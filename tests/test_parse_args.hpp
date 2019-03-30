@@ -100,3 +100,71 @@ TEST_CASE("Parse a vector of integer arguments", "[parse_args]") {
   REQUIRE(vector[3] == 4);
   REQUIRE(vector[4] == 5);
 }
+
+TEST_CASE("Parse a vector of float arguments", "[parse_args]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--vector")
+    .nargs(5)
+    .action([](const std::string& value) { return std::stof(value); });
+  program.parse_args({ "test", "--vector", "1.1", "2.2", "3.3", "4.4", "5.5" });
+  auto arguments = program.get_arguments();
+  REQUIRE(arguments.size() == 1);
+  auto vector = program.get<std::vector<float>>("--vector");
+  REQUIRE(vector.size() == 5);
+  REQUIRE(vector[0] == 1.1f);
+  REQUIRE(vector[1] == 2.2f);
+  REQUIRE(vector[2] == 3.3f);
+  REQUIRE(vector[3] == 4.4f);
+  REQUIRE(vector[4] == 5.5f);
+}
+
+TEST_CASE("Parse a vector of double arguments", "[parse_args]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--vector")
+    .nargs(5)
+    .action([](const std::string& value) { return std::stod(value); });
+  program.parse_args({ "test", "--vector", "1.1", "2.2", "3.3", "4.4", "5.5" });
+  auto arguments = program.get_arguments();
+  REQUIRE(arguments.size() == 1);
+  auto vector = program.get<std::vector<double>>("--vector");
+  REQUIRE(vector.size() == 5);
+  REQUIRE(vector[0] == 1.1);
+  REQUIRE(vector[1] == 2.2);
+  REQUIRE(vector[2] == 3.3);
+  REQUIRE(vector[3] == 4.4);
+  REQUIRE(vector[4] == 5.5);
+}
+
+TEST_CASE("Parse a vector of string arguments", "[parse_args]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--vector")
+    .nargs(5)
+    .action([](const std::string& value) { return value; });
+  program.parse_args({ "test", "--vector", "abc", "def", "ghi", "jkl", "mno" });
+  auto arguments = program.get_arguments();
+  REQUIRE(arguments.size() == 1);
+  auto vector = program.get<std::vector<std::string>>("--vector");
+  REQUIRE(vector.size() == 5);
+  REQUIRE(vector[0] == "abc");
+  REQUIRE(vector[1] == "def");
+  REQUIRE(vector[2] == "ghi");
+  REQUIRE(vector[3] == "jkl");
+  REQUIRE(vector[4] == "mno");
+}
+
+TEST_CASE("Parse a vector of character arguments", "[parse_args]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--vector")
+    .nargs(5)
+    .action([](const std::string& value) { return value[0]; });
+  program.parse_args({ "test", "--vector", "a", "b", "c", "d", "e" });
+  auto arguments = program.get_arguments();
+  REQUIRE(arguments.size() == 1);
+  auto vector = program.get<std::vector<char>>("--vector");
+  REQUIRE(vector.size() == 5);
+  REQUIRE(vector[0] == 'a');
+  REQUIRE(vector[1] == 'b');
+  REQUIRE(vector[2] == 'c');
+  REQUIRE(vector[3] == 'd');
+  REQUIRE(vector[4] == 'e');
+}
