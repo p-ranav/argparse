@@ -14,7 +14,7 @@ TEST_CASE("Parse a string argument with value", "[parse_args]") {
 TEST_CASE("Parse a string argument with default value", "[parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--config")
-    .default_value([]() { return std::string("foo.yml"); });
+    .default_value(std::string("foo.yml"));
   program.parse_args({ "test", "--config" });
   auto arguments = program.get_arguments();
   REQUIRE(arguments.size() == 1);
@@ -34,7 +34,7 @@ TEST_CASE("Parse an int argument with value", "[parse_args]") {
 TEST_CASE("Parse an int argument with default value", "[parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--count")
-    .default_value([]() { return 2; })
+    .default_value(2)
     .action([](const std::string& value) { return std::stoi(value); });
   program.parse_args({ "test", "--count" });
   auto arguments = program.get_arguments();
@@ -55,7 +55,7 @@ TEST_CASE("Parse a float argument with value", "[parse_args]") {
 TEST_CASE("Parse a float argument with default value", "[parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
-    .default_value([]() { return 3.14f; })
+    .default_value(3.14f)
     .action([](const std::string& value) { return std::stof(value); });
   program.parse_args({ "test", "--ratio" });
   auto arguments = program.get_arguments();
@@ -76,7 +76,7 @@ TEST_CASE("Parse a double argument with value", "[parse_args]") {
 TEST_CASE("Parse a double argument with default value", "[parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
-    .default_value([]() { return 3.14; })
+    .default_value(3.14)
     .action([](const std::string& value) { return std::stod(value); });
   program.parse_args({ "test", "--ratio" });
   auto arguments = program.get_arguments();

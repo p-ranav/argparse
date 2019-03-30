@@ -35,7 +35,7 @@ bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementTy
 struct Argument {
   std::vector<std::string> mNames;
   std::string mHelp;
-  std::function<std::any()> mDefaultValue;
+  std::any mDefaultValue;
   std::function<std::any(const std::string&)> mAction;
   std::vector<std::any> mValues;
   std::vector<std::string> mRawValues;
@@ -44,7 +44,6 @@ struct Argument {
   Argument() :
     mNames({}),
     mHelp(""),
-    mDefaultValue(nullptr),
     mAction([](const std::string& aValue) { return aValue; }),
     mValues({}),
     mRawValues({}),
@@ -55,7 +54,7 @@ struct Argument {
     return *this;
   }
 
-  Argument& default_value(std::function<std::any()> aDefaultValue) {
+  Argument& default_value(std::any aDefaultValue) {
     mDefaultValue = aDefaultValue;
     return *this;
   }
@@ -73,8 +72,8 @@ struct Argument {
   template <typename T>
   T get() {
     if (mValues.size() == 0) {
-      if (mDefaultValue != nullptr) {
-        return std::any_cast<T>(mDefaultValue());
+      if (mDefaultValue.has_value()) {
+        return std::any_cast<T>(mDefaultValue);
       }
       else
         return T();
@@ -83,8 +82,8 @@ struct Argument {
       if (mRawValues.size() > 0)
         return std::any_cast<T>(mValues[0]);
       else {
-        if (mDefaultValue != nullptr)
-          return std::any_cast<T>(mDefaultValue());
+        if (mDefaultValue.has_value())
+          return std::any_cast<T>(mDefaultValue);
         else
           return T();
       }
@@ -95,8 +94,8 @@ struct Argument {
   T get_vector() {
     T tResult;
     if (mValues.size() == 0) {
-      if (mDefaultValue != nullptr) {
-        std::any tDefaultValueLambdaResult = mDefaultValue();
+      if (mDefaultValue.has_value()) {
+        std::any tDefaultValueLambdaResult = mDefaultValue;
         T tDefaultValues = std::any_cast<T>(tDefaultValueLambdaResult);
         for (size_t i = 0; i < tDefaultValues.size(); i++) {
           tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
@@ -114,8 +113,8 @@ struct Argument {
         return tResult;
       }
       else {
-        if (mDefaultValue != nullptr) {
-          std::any tDefaultValueLambdaResult = mDefaultValue();
+        if (mDefaultValue.has_value()) {
+          std::any tDefaultValueLambdaResult = mDefaultValue;
           std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(tDefaultValueLambdaResult);
           for (size_t i = 0; i < tDefaultValues.size(); i++) {
             tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
@@ -140,8 +139,8 @@ class ArgumentParser {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
       tArgument->mNames.push_back(value);
       add_argument_internal(tArgument, Fargs...);
-      mArguments.push_back(tArgument);
-      for (auto& mName : tArgument->mNames) {
+      mPositionalArguments.push_back(tArgument); // TODO: check if argument is positional before push_back
+      for (auto& mName : tArgument->mNames) { 
         upsert(mArgumentMap, mName, tArgument);
       }
       return *tArgument;
@@ -169,23 +168,14 @@ class ArgumentParser {
               if (tArgument->mAction != nullptr)
                 tArgument->mValues.push_back(tArgument->mAction(argv[i]));
               else {
-                if (tArgument->mDefaultValue != nullptr)
-                  tArgument->mValues.push_back(tArgument->mDefaultValue());
+                if (tArgument->mDefaultValue.has_value())
+                  tArgument->mValues.push_back(tArgument->mDefaultValue);
                 else
                   tArgument->mValues.push_back(std::string(argv[i]));
               }
             }
             tCount -= 1;
           }
-        }
-      }
-    }
-
-    Argument& operator[](const char * key) {
-      for (auto& tArgument : mArguments) {
-        auto tIndex = std::find(tArgument->mNames.begin(), tArgument->mNames.end(), key);
-        if (tIndex != tArgument->mNames.end()) {
-          return *tArgument;
         }
       }
     }
@@ -227,7 +217,7 @@ class ArgumentParser {
     }
 
     std::string mProgramName;
-    std::vector<std::shared_ptr<Argument>> mArguments;
+    std::vector<std::shared_ptr<Argument>> mPositionalArguments;
     std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
 };
 
