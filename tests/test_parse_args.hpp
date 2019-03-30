@@ -168,3 +168,27 @@ TEST_CASE("Parse a vector of character arguments", "[parse_args]") {
   REQUIRE(vector[3] == 'd');
   REQUIRE(vector[4] == 'e');
 }
+
+TEST_CASE("Parse a vector of string arguments and construct objects", "[parse_args]") {
+
+  class Foo {
+  public:
+    Foo(const std::string& value) : value(value) {}
+    std::string value;
+  };
+
+  argparse::ArgumentParser program("test");
+  program.add_argument("--vector")
+    .nargs(5)
+    .action([](const std::string& value) { return Foo(value); });
+  program.parse_args({ "test", "--vector", "abc", "def", "ghi", "jkl", "mno" });
+  auto arguments = program.get_arguments();
+  REQUIRE(arguments.size() == 1);
+  auto vector = program.get<std::vector<Foo>>("--vector");
+  REQUIRE(vector.size() == 5);
+  REQUIRE(vector[0].value == Foo("abc").value);
+  REQUIRE(vector[1].value == Foo("def").value);
+  REQUIRE(vector[2].value == Foo("ghi").value);
+  REQUIRE(vector[3].value == Foo("jkl").value);
+  REQUIRE(vector[4].value == Foo("mno").value);
+}
