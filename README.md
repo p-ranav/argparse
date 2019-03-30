@@ -8,17 +8,17 @@
 int main(int argc, char *argv[]) {
   argparse::ArgumentParser program("main");
   
-  program.add_argument("config")
+  program.add_argument("--config")
     .help("configuration file")
-    .default_value([]() { return "config.yml" });
+    .default_value(std::string("config.yml"));
     
-  program.add_argument("n", "-n", "--num_iterations")
+  program.add_argument("-n", "--num_iterations")
     .help("The list of input files")
     .action([](const std::string& value) { return std::stoi(value); });
     
   program.parse(argc, argv);
-  std::string config = program.get("config");
-  int num_iterations = program.get<int>("n");  
+  std::string config = program.get("--config");
+  int num_iterations = program.get<int>("-n");  
   
   return 0;
 }
