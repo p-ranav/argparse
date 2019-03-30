@@ -1,6 +1,6 @@
 # Argument Parser
 
-## Simple Arguments
+## Simple Optional Arguments
 
 ```cpp
 #include <argparse.hpp>
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-## Parsing a list of arguments
+## List of arguments
 
 ```cpp
 #include <argparse.hpp>
