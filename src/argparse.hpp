@@ -6,6 +6,7 @@
 #include <any>
 #include <memory>
 #include <type_traits>
+#include <algorithm>
 
 namespace argparse {
 
@@ -32,6 +33,11 @@ bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementTy
     return true;  // changed cause not existing
 }
 
+bool starts_with(const std::string& haystack, const std::string& needle) {
+  return needle.length() <= haystack.length()
+    && std::equal(needle.begin(), needle.end(), haystack.begin());
+};
+
 struct Argument {
   std::vector<std::string> mNames;
   std::string mHelp;
@@ -40,6 +46,7 @@ struct Argument {
   std::vector<std::any> mValues;
   std::vector<std::string> mRawValues;
   size_t mNumArgs;
+  bool mIsPositional;
 
   Argument() :
     mNames({}),
@@ -47,7 +54,8 @@ struct Argument {
     mAction([](const std::string& aValue) { return aValue; }),
     mValues({}),
     mRawValues({}),
-    mNumArgs(1) {}
+    mNumArgs(1),
+    mIsPositional(false) {}
 
   Argument& help(const std::string& aHelp) {
     mHelp = aHelp;
@@ -139,7 +147,16 @@ class ArgumentParser {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
       tArgument->mNames.push_back(value);
       add_argument_internal(tArgument, Fargs...);
-      mPositionalArguments.push_back(tArgument); // TODO: check if argument is positional before push_back
+
+      bool positional = false;
+      for (auto& mName : tArgument->mNames) {
+        if (starts_with(mName, "--") || starts_with(mName, "-"))
+          tArgument->mIsPositional = true;
+      }
+
+      if (tArgument->mIsPositional)
+        mPositionalArguments.push_back(tArgument);
+
       for (auto& mName : tArgument->mNames) { 
         upsert(mArgumentMap, mName, tArgument);
       }
