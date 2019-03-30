@@ -5,7 +5,7 @@
 #include <functional>
 #include <any>
 #include <memory>
-#include <type_traits> // C++0x
+#include <type_traits>
 
 namespace argparse {
 
@@ -145,6 +145,14 @@ class ArgumentParser {
         upsert(mArgumentMap, mName, tArgument);
       }
       return *tArgument;
+    }
+
+    void parse_args(const std::vector<std::string>& aArguments) {
+      std::vector<char*> argv;
+      for (const auto& arg : aArguments)
+        argv.push_back((char*)arg.data());
+      argv.push_back(nullptr);
+      return parse_args(argv.size() - 1, argv.data());
     }
 
     void parse_args(int argc, char * argv[]) {

@@ -1,3 +1,4 @@
+#pragma once
 #include <catch.hpp>
 #include <argparse.hpp>
 
