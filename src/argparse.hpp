@@ -29,8 +29,8 @@ struct Argument {
   std::string mHelp;
   std::function<std::any()> mDefaultValue;
   std::function<std::any(const std::string&)> mAction;
-  std::any mValue;
-  std::string mRawValue;
+  std::vector<std::any> mValues;
+  std::vector<std::string> mRawValues;
   size_t mNumArgs;
 
   Argument() :
@@ -38,8 +38,8 @@ struct Argument {
     mHelp(""),
     mDefaultValue(nullptr),
     mAction([](const std::string& aValue) { return aValue; }),
-    mValue(nullptr),
-    mRawValue(""),
+    mValues({}),
+    mRawValues({}),
     mNumArgs(1) {}
 
   Argument& help(const std::string& aHelp) {
@@ -64,7 +64,7 @@ struct Argument {
 
   template <typename T>
   T get() {
-    if (!mValue.has_value()) {
+    if (mValues.size() == 0) {
       if (mDefaultValue != nullptr) {
         return std::any_cast<T>(mDefaultValue());
       }
@@ -72,13 +72,50 @@ struct Argument {
         return T();
     }
     else {
-      if (mRawValue != "")
-        return std::any_cast<T>(mValue);
+      if (mRawValues.size() > 0)
+        return std::any_cast<T>(mValues[0]);
       else {
         if (mDefaultValue != nullptr)
           return std::any_cast<T>(mDefaultValue());
         else
           return T();
+      }
+    }
+  }
+
+  template <typename T>
+  std::vector<T> get_list() {
+    std::vector<T> tResult;
+    if (mValues.size() == 0) {
+      if (mDefaultValue != nullptr) {
+        std::any tDefaultValueLambdaResult = mDefaultValue();
+        std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(tDefaultValueLambdaResult);
+        for (size_t i = 0; i < tDefaultValues.size(); i++) {
+          tResult.push_back(std::any_cast<T>(tDefaultValues[i]));
+        }
+        return tResult;
+      }
+      else
+        return std::vector<T>();
+    }
+    else {
+      if (mRawValues.size() > 0) {
+        for (size_t i = 0; i < mValues.size(); i++) {
+          tResult.push_back(std::any_cast<T>(mValues[i]));
+        }
+        return tResult;
+      }
+      else {
+        if (mDefaultValue != nullptr) {
+          std::any tDefaultValueLambdaResult = mDefaultValue();
+          std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(tDefaultValueLambdaResult);
+          for (size_t i = 0; i < tDefaultValues.size(); i++) {
+            tResult.push_back(std::any_cast<T>(tDefaultValues[i]));
+          }
+          return tResult;
+        }
+        else
+          return std::vector<T>();
       }
     }
   }
@@ -112,14 +149,14 @@ class ArgumentParser {
           while (tCount > 0) {
             i = i + 1;
             if (i < argc) {
-              tArgument->mRawValue = argv[i];
+              tArgument->mRawValues.push_back(argv[i]);
               if (tArgument->mAction != nullptr)
-                tArgument->mValue = tArgument->mAction(argv[i]);
+                tArgument->mValues.push_back(tArgument->mAction(argv[i]));
               else {
                 if (tArgument->mDefaultValue != nullptr)
-                  tArgument->mValue = tArgument->mDefaultValue();
+                  tArgument->mValues.push_back(tArgument->mDefaultValue());
                 else
-                  tArgument->mValue = std::string(argv[i]);
+                  tArgument->mValues.push_back(std::string(argv[i]));
               }
             }
             tCount -= 1;
@@ -139,13 +176,20 @@ class ArgumentParser {
 
     template <typename T = std::string>
     T get(const char * aArgumentName) {
-      for (auto& tArgument : mArguments) {
-        auto tIndex = std::find(tArgument->mNames.begin(), tArgument->mNames.end(), aArgumentName);
-        if (tIndex != tArgument->mNames.end()) {
-          return tArgument->get<T>();
-        }
+      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      if (tIterator != mArgumentMap.end()) {
+        return tIterator->second->get<T>();
       }
       return T();
+    }
+
+    template <typename T>
+    std::vector<T> get_list(const char * aArgumentName) {
+      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      if (tIterator != mArgumentMap.end()) {
+        return tIterator->second->get_list<T>();
+      }
+      return std::vector<T>();
     }
 
   private:
