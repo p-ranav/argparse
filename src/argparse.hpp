@@ -104,28 +104,6 @@ class ArgumentParser {
 
     void parse_args(int argc, char * argv[]) {
       for (int i = 1; i < argc; i++) {
-        for (auto& tArgument : mArguments) {
-          auto tIndex = std::find(tArgument->mNames.begin(), tArgument->mNames.end(), argv[i]);
-          if (tIndex != tArgument->mNames.end()) {
-            i = i + 1;
-            if (i < argc) {
-              tArgument->mRawValue = argv[i];
-              if (tArgument->mAction != nullptr)
-                tArgument->mValue = tArgument->mAction(argv[i]);
-              else {
-                if (tArgument->mDefaultValue != nullptr)
-                  tArgument->mValue = tArgument->mDefaultValue();
-                else
-                  tArgument->mValue = std::string(argv[i]);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    void parse_args_2(int argc, char * argv[]) {
-      for (int i = 1; i < argc; i++) {
         auto tCurrentArgument = argv[i];
         std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
         if (tIterator != mArgumentMap.end()) {
