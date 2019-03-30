@@ -83,3 +83,20 @@ TEST_CASE("Parse a double argument with default value", "[parse_args]") {
   REQUIRE(arguments.size() == 1);
   REQUIRE(program.get<double>("--ratio") == 3.14);
 }
+
+TEST_CASE("Parse a vector of integer arguments", "[parse_args]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--vector")
+    .nargs(5)
+    .action([](const std::string& value) { return std::stoi(value); });
+  program.parse_args({ "test", "--vector", "1", "2", "3", "4", "5" });
+  auto arguments = program.get_arguments();
+  REQUIRE(arguments.size() == 1);
+  auto vector = program.get<std::vector<int>>("--vector");
+  REQUIRE(vector.size() == 5);
+  REQUIRE(vector[0] == 1);
+  REQUIRE(vector[1] == 2);
+  REQUIRE(vector[2] == 3);
+  REQUIRE(vector[3] == 4);
+  REQUIRE(vector[4] == 5);
+}
