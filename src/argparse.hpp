@@ -1,9 +1,28 @@
 #include <string>
+#include <map>
 #include <vector>
 #include <functional>
 #include <any>
+#include <memory>
 
 namespace argparse {
+
+template <class KeyType, class ElementType>
+bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementType const& aNewValue) {
+  typedef typename std::map<KeyType, ElementType>::iterator Iterator;
+  typedef typename std::pair<Iterator, bool> Result;
+  Result tResult = aMap.insert(typename std::map<KeyType, ElementType>::value_type(aKey, aNewValue));
+  if (!tResult.second) {
+    if (!(tResult.first->second == aNewValue)) {
+      tResult.first->second = aNewValue;
+      return true;
+    }
+    else
+      return false; // it was the same
+  }
+  else
+    return true;  // changed cause not existing
+}
 
 struct Argument {
   std::vector<std::string> mNames;
@@ -70,6 +89,9 @@ class ArgumentParser {
       tArgument->mNames.push_back(value);
       add_argument_internal(tArgument, Fargs...);
       mArguments.push_back(tArgument);
+      for (auto& mName : tArgument->mNames) {
+        upsert(mArgumentMap, mName, tArgument);
+      }
       return *tArgument;
     }
 
@@ -129,6 +151,7 @@ class ArgumentParser {
 
     std::string mProgramName;
     std::vector<std::shared_ptr<Argument>> mArguments;
+    std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
 };
 
 }
