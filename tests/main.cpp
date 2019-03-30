@@ -17,7 +17,7 @@ int main(int argc, char * argv[]) {
   program.add_argument("-v", "--verbose", "VERBOSE")
     .default_value([]() { return true; });
 
-  program.parse_args_2(argc, argv);
+  program.parse_args(argc, argv);
 
   auto config_file = program.get<std::string>("--config");
   auto num_iters = program.get<int>("-n");
