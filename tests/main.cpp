@@ -11,12 +11,13 @@ int main(int argc, char * argv[]) {
 
   program.add_argument("-n", "--num_iterations")
     .help("Number of iterations")
+    .nargs(2)
     .action([](const std::string& value) { return std::stoi(value); });
 
   program.add_argument("-v", "--verbose", "VERBOSE")
     .default_value([]() { return true; });
 
-  program.parse_args(argc, argv);
+  program.parse_args_2(argc, argv);
 
   auto config_file = program.get<std::string>("--config");
   auto num_iters = program.get<int>("-n");

@@ -31,14 +31,16 @@ struct Argument {
   std::function<std::any(const std::string&)> mAction;
   std::any mValue;
   std::string mRawValue;
+  size_t mNumArgs;
 
   Argument() :
     mNames({}),
     mHelp(""),
     mDefaultValue(nullptr),
-    mAction(nullptr),
+    mAction([](const std::string& aValue) { return aValue; }),
     mValue(nullptr),
-    mRawValue("") {}
+    mRawValue(""),
+    mNumArgs(1) {}
 
   Argument& help(const std::string& aHelp) {
     mHelp = aHelp;
@@ -52,6 +54,11 @@ struct Argument {
 
   Argument& action(std::function<std::any(const std::string&)> aAction) {
     mAction = aAction;
+    return *this;
+  }
+
+  Argument& nargs(size_t aNumArgs) {
+    mNumArgs = aNumArgs;
     return *this;
   }
 
@@ -112,6 +119,32 @@ class ArgumentParser {
                   tArgument->mValue = std::string(argv[i]);
               }
             }
+          }
+        }
+      }
+    }
+
+    void parse_args_2(int argc, char * argv[]) {
+      for (int i = 1; i < argc; i++) {
+        auto tCurrentArgument = argv[i];
+        std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
+        if (tIterator != mArgumentMap.end()) {
+          auto tArgument = tIterator->second;
+          auto tCount = tArgument->mNumArgs;
+          while (tCount > 0) {
+            i = i + 1;
+            if (i < argc) {
+              tArgument->mRawValue = argv[i];
+              if (tArgument->mAction != nullptr)
+                tArgument->mValue = tArgument->mAction(argv[i]);
+              else {
+                if (tArgument->mDefaultValue != nullptr)
+                  tArgument->mValue = tArgument->mDefaultValue();
+                else
+                  tArgument->mValue = std::string(argv[i]);
+              }
+            }
+            tCount -= 1;
           }
         }
       }
