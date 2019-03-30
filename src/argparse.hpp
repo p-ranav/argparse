@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <map>
 #include <vector>
@@ -199,6 +200,10 @@ class ArgumentParser {
         return tIterator->second->get_vector<T>();
       }
       return T();
+    }
+
+    std::map<std::string, std::shared_ptr<Argument>> get_arguments() const {
+      return mArgumentMap;
     }
 
   private:
