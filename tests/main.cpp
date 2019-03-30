@@ -27,7 +27,7 @@ int main(int argc, char * argv[]) {
   auto config_file = program.get<std::string>("--config");
   auto num_iters = program.get<int>("-n");
   auto verbose = program.get<bool>("-v");
-  auto test_inputs = program.get_list<int>("--test_inputs");
+  auto test_inputs = program.get<std::vector<int>>("--test_inputs");
 
   std::cout << config_file << std::endl;
   std::cout << num_iters << std::endl;

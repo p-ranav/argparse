@@ -4,8 +4,15 @@
 #include <functional>
 #include <any>
 #include <memory>
+#include <type_traits> // C++0x
 
 namespace argparse {
+
+template<typename Test, template<typename...> class Ref>
+struct is_specialization : std::false_type {};
+
+template<template<typename...> class Ref, typename... Args>
+struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
 
 template <class KeyType, class ElementType>
 bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementType const& aNewValue) {
@@ -84,24 +91,24 @@ struct Argument {
   }
 
   template <typename T>
-  std::vector<T> get_list() {
-    std::vector<T> tResult;
+  T get_vector() {
+    T tResult;
     if (mValues.size() == 0) {
       if (mDefaultValue != nullptr) {
         std::any tDefaultValueLambdaResult = mDefaultValue();
-        std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(tDefaultValueLambdaResult);
+        T tDefaultValues = std::any_cast<T>(tDefaultValueLambdaResult);
         for (size_t i = 0; i < tDefaultValues.size(); i++) {
-          tResult.push_back(std::any_cast<T>(tDefaultValues[i]));
+          tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
         }
         return tResult;
       }
       else
-        return std::vector<T>();
+        return T();
     }
     else {
       if (mRawValues.size() > 0) {
         for (size_t i = 0; i < mValues.size(); i++) {
-          tResult.push_back(std::any_cast<T>(mValues[i]));
+          tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
         }
         return tResult;
       }
@@ -110,12 +117,12 @@ struct Argument {
           std::any tDefaultValueLambdaResult = mDefaultValue();
           std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(tDefaultValueLambdaResult);
           for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.push_back(std::any_cast<T>(tDefaultValues[i]));
+            tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
           }
           return tResult;
         }
         else
-          return std::vector<T>();
+          return T();
       }
     }
   }
@@ -175,7 +182,8 @@ class ArgumentParser {
     }
 
     template <typename T = std::string>
-    T get(const char * aArgumentName) {
+    typename std::enable_if<is_specialization<T, std::vector>::value == false, T>::type
+    get(const char * aArgumentName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get<T>();
@@ -184,12 +192,13 @@ class ArgumentParser {
     }
 
     template <typename T>
-    std::vector<T> get_list(const char * aArgumentName) {
+    typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
+    get(const char * aArgumentName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
-        return tIterator->second->get_list<T>();
+        return tIterator->second->get_vector<T>();
       }
-      return std::vector<T>();
+      return T();
     }
 
   private:
