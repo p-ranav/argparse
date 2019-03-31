@@ -20,11 +20,7 @@ To start parsing command-line arguments, create an ```ArgumentParser```.
 argparse::ArgumentParser program("program name");
 ```
 
-Argparse supports a variety of argument types including:
-* Positional arguments
-* Optional arguments
-* Toggle arguments
-* Compound arguments
+Argparse supports a variety of argument types including positional arguments, optional arguments, toggle arguments and compound arguments.
 
 Here's an example of a positional argument:
 
