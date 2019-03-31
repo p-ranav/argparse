@@ -128,7 +128,6 @@ Here's what's happening:
   - ```-a``` and ```-b``` become true.
   - argv is further parsed to identify the inputs mapped to ```-c```.
 * Using ```-cab``` will throw an error since argparse expects two inputs for the argument ```-c```.
-* Notice how argparse is able to quietly and peacefully return an std::vector<float> when asked for it. 
 
 ## Further Examples
 
