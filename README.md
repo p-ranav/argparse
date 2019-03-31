@@ -1,5 +1,24 @@
 # Argument Parser
 
+## Positional Arguments
+
+```cpp
+#include <argparse.hpp>
+
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("main");
+  
+  program.add_argument("input");
+  program.add_argument("output");
+    
+  program.parse(argc, argv);
+  std::string input = program.get("input");
+  std::string output = program.get("output");
+  
+  return 0;
+}
+```
+
 ## Optional Arguments
 
 ```cpp
