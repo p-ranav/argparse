@@ -87,7 +87,7 @@ std::string input = program.get("input");     // "rocket.msh"
 std::string output = program.get("output");   // "thrust_profile.csv"
 ```
 
-### Construct Objects from Arguments with ```.action```
+### Construct a JSON object from a filename argument
 
 ```cpp
 argparse::ArgumentParser program("json_test");
