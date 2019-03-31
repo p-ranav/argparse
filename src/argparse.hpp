@@ -49,6 +49,11 @@ T get_from_list(const std::list<T>& aList, size_t aIndex) {
   return T();
 }
 
+template <typename T>
+T get_from_list(const std::vector<T>& aList, size_t aIndex) {
+  return aList[aIndex];
+}
+
 struct Argument {
   std::vector<std::string> mNames;
   std::string mHelp;
@@ -96,7 +101,7 @@ struct Argument {
   }
 
   template <typename T>
-  T get() {
+  T get() const {
     if (mValues.size() == 0) {
       if (mDefaultValue.has_value()) {
         return std::any_cast<T>(mDefaultValue);
@@ -117,7 +122,7 @@ struct Argument {
   }
 
   template <typename T>
-  T get_vector() {
+  T get_vector() const {
     T tResult;
     if (mValues.size() == 0) {
       if (mDefaultValue.has_value()) {
@@ -152,7 +157,7 @@ struct Argument {
   }
 
   template <typename T>
-  T get_list() {
+  T get_list() const {
     T tResult;
     if (mValues.size() == 0) {
       if (mDefaultValue.has_value()) {
@@ -183,6 +188,50 @@ struct Argument {
         else
           return T();
       }
+    }
+  }
+
+  template <typename T>
+  bool operator!=(const T& aRhs) const {
+    return !(*this == aRhs);
+  }
+
+  template <typename T>
+  typename std::enable_if<is_specialization<T, std::vector>::value == false &&
+                          is_specialization<T, std::list>::value == false, bool>::type
+    operator==(const T& aRhs) const {
+    return get<T>() == aRhs;
+  }
+
+  template <typename T>
+  typename std::enable_if<is_specialization<T, std::vector>::value, bool>::type
+  operator==(const T& aRhs) const {
+    T tLhs = get_vector<T>();
+    if (tLhs.size() != aRhs.size())
+      return false;
+    else {
+      for (size_t i = 0; i < tLhs.size(); i++) {
+        auto tValueAtIndex = std::any_cast<typename T::value_type>(tLhs[i]);
+        if (tValueAtIndex != aRhs[i])
+          return false;
+      }
+      return true;
+    }
+  }
+
+  template <typename T>
+  typename std::enable_if<is_specialization<T, std::list>::value, bool>::type
+    operator==(const T& aRhs) const {
+    T tLhs = get_list<T>();
+    if (tLhs.size() != aRhs.size())
+      return false;
+    else {
+      for (size_t i = 0; i < tLhs.size(); i++) {
+        auto tValueAtIndex = std::any_cast<typename T::value_type>(get_from_list(tLhs, i));
+        if (tValueAtIndex != get_from_list(aRhs, i))
+          return false;
+      }
+      return true;
     }
   }
 
@@ -350,13 +399,13 @@ class ArgumentParser {
       return mArgumentMap;
     }
 
-    std::shared_ptr<Argument> operator[](const std::string& aArgumentName) {
+    Argument& operator[](const std::string& aArgumentName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
-        return tIterator->second;
+        return *(tIterator->second);
       }
       else {
-        return nullptr;
+        throw std::runtime_error("Argument " + aArgumentName + " not found");
       }
     }
 

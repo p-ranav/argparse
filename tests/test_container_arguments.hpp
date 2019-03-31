@@ -50,6 +50,7 @@ TEST_CASE("Parse list of arguments with default values", "[vector]") {
   REQUIRE(argparse::get_from_list(inputs, 2) == 3);
   REQUIRE(argparse::get_from_list(inputs, 3) == 4);
   REQUIRE(argparse::get_from_list(inputs, 4) == 5);
+  REQUIRE(program["input"] == std::list<int>{1, 2, 3, 4, 5});
 }
 
 TEST_CASE("Parse list of arguments and save in an object", "[vector]") {
@@ -78,4 +79,5 @@ TEST_CASE("Parse list of arguments and save in an object", "[vector]") {
   REQUIRE(config_manager.files.size() == 2);
   REQUIRE(config_manager.files[0] == "config.xml");
   REQUIRE(config_manager.files[1] == "system.json");
+  REQUIRE(program["--input_files"] == std::vector<std::string>{"config.xml", "system.json"});
 }

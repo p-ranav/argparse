@@ -12,6 +12,7 @@ TEST_CASE("Parse toggle arguments with default value", "[optional_arguments]") {
   auto arguments = program.get_arguments();
   REQUIRE(arguments.size() == 2);
   REQUIRE(program.get<bool>("--verbose") == false);
+  REQUIRE(program["--verbose"] == false);
 }
 
 TEST_CASE("Parse toggle arguments with implicit value", "[optional_arguments]") {
@@ -24,6 +25,8 @@ TEST_CASE("Parse toggle arguments with implicit value", "[optional_arguments]") 
   auto arguments = program.get_arguments();
   REQUIRE(arguments.size() == 1);
   REQUIRE(program.get<bool>("--verbose") == true);
+  REQUIRE(program["--verbose"] == true);
+  REQUIRE(program["--verbose"] != false);
 }
 
 TEST_CASE("Parse multiple toggle arguments with implicit values", "[optional_arguments]") {
