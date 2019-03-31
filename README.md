@@ -77,6 +77,23 @@ Here's what's happening:
 
 ### Combining Positional and Optional Arguments
 
+
+### List of Arguments
+
+ArgumentParser objects usually associate a single command-line argument with a single action to be taken. The ```.nargs``` associates a different number of command-line arguments with a single action. When using ```nargs(N)```, N arguments from the command line will be gathered together into a list.
+
+```cpp
+argparse::ArgumentParser program("main");
+
+program.add_argument("--input_files")
+  .help("The list of input files")
+  .nargs(3);
+
+program.parse_args({"./main", "--input_files", "config.yml", "System.xml"});
+
+auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
+```
+
 ### Compound Arguments
 
 Compound arguments are optional arguments that are combined and provided as a single argument. Example: ```ps -aux```
@@ -173,20 +190,6 @@ program.parse_args({"./main", "-n", "36"});
 
 std::string config = program.get("--config");   // "config.json"
 int num_iterations = program.get<int>("-n");    // 36
-```
-
-### Vector of Arguments
-
-```cpp
-argparse::ArgumentParser program("main");
-
-program.add_argument("--input_files")
-  .help("The list of input files")
-  .nargs(3);
-
-program.parse_args({"./main", "--input_files", "config.yml", "System.xml"});
-
-auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
 
 ### Positional Arguments with Compound Toggle Arguments
