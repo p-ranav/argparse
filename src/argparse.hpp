@@ -121,8 +121,7 @@ struct Argument {
     T tResult;
     if (mValues.size() == 0) {
       if (mDefaultValue.has_value()) {
-        std::any tDefaultValueLambdaResult = mDefaultValue;
-        T tDefaultValues = std::any_cast<T>(tDefaultValueLambdaResult);
+        T tDefaultValues = std::any_cast<T>(mDefaultValue);
         for (size_t i = 0; i < tDefaultValues.size(); i++) {
           tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
         }
@@ -140,8 +139,7 @@ struct Argument {
       }
       else {
         if (mDefaultValue.has_value()) {
-          std::any tDefaultValueLambdaResult = mDefaultValue;
-          std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(tDefaultValueLambdaResult);
+          std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
           for (size_t i = 0; i < tDefaultValues.size(); i++) {
             tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
           }
