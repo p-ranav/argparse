@@ -293,6 +293,16 @@ class ArgumentParser {
       return mArgumentMap;
     }
 
+    std::shared_ptr<Argument> operator[](const std::string& aArgumentName) {
+      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      if (tIterator != mArgumentMap.end()) {
+        return tIterator->second;
+      }
+      else {
+        return nullptr;
+      }
+    }
+
   private:
     Argument& add_argument_internal(std::shared_ptr<Argument> aArgument) {
       return *aArgument;
