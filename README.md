@@ -2,9 +2,53 @@
 
 ## Highlights
 
-* Simply include <argparse.hpp>
+* Header-only library
 * Requires C++17
 * MIT License
+
+## Quick Start
+
+Simply include argparse.hpp and you're good to go.
+
+```cpp
+#include <argparse.hpp>
+```
+
+To start parsing command-line arguments, create an ```ArgumentParser```. 
+
+```cpp
+argparse::ArgumentParser program("program name");
+```
+
+Argparse supports a variety of argument types including:
+* Positional arguments
+* Optional arguments
+* Toggle arguments
+* Compound arguments
+
+Here's an example of a positional argument:
+
+```cpp
+program.add_argument("square")
+  .help("display a square of a given number")
+  .action([](const std::string& value) { auto integer = std::stoi(value); return integer * integer; });
+
+program.parse_args(argc, argv);
+std::cout << program.get<int>("square") << std::endl;
+```
+
+And running the code:
+
+```bash
+$ ./main 15
+225
+```
+
+Here's what's happening:
+
+* We’ve added the add_argument() method, which is what we use to specify which command-line options the program is willing to accept. In this case, I’ve named it square so that it’s in line with its function.
+* Calling our program now requires us to specify an option.
+* The parse_args() method parses the arguments provided and performs the user-defined action each time it visits an argument value.
 
 ## Examples
 
