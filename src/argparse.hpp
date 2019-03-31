@@ -244,7 +244,7 @@ class ArgumentParser {
             auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
             while (tCount > 0) {
               std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
-              if (tIterator != mArgumentMap.end()) {
+              if (tIterator != mArgumentMap.end() || is_optional(argv[i])) {
                 i = i - 1;
                 break;
               }
