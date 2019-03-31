@@ -30,7 +30,7 @@ Here's an example of a positional argument:
 
 ```cpp
 program.add_argument("square")
-  .help("display a square of a given number")
+  .help("display the square of a given integer")
   .action([](const std::string& value) { auto integer = std::stoi(value); return integer * integer; });
 
 program.parse_args(argc, argv);
@@ -46,9 +46,11 @@ $ ./main 15
 
 Here's what's happening:
 
-* We’ve added the add_argument() method, which is what we use to specify which command-line options the program is willing to accept. In this case, I’ve named it square so that it’s in line with its function.
+* The ```add_argument()``` method is used to specify which command-line options the program is willing to accept. In this case, I’ve named it square so that it’s in line with its function.
+* Command-line arguments are strings. Inorder to square the argument and print the result, we need to convert this argument to a number. In order to do this, we use the ```.action``` method and provide a lambda function that takes the argument value (std::string) and returns the square of the number it represents. Actions are quite powerful as you will see in later examples. 
 * Calling our program now requires us to specify an option.
-* The parse_args() method parses the arguments provided and performs the user-defined action each time it visits an argument value.
+* The parse_args() method parses the arguments provided, converts our input into an integer and returns the square. 
+* We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method. 
 
 ## Examples
 
