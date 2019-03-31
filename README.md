@@ -90,3 +90,37 @@ auto a = program.get<bool>("-a");                // true
 auto b = program.get<bool>("-b");                // true
 auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
 ```
+
+## Positional Arguments with Compound Toggle Arguments
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("numbers")
+  .nargs(3)
+  .action([](const std::string& value) { return std::stoi(value); });
+
+program.add_argument("-a")
+  .default_value(false)
+  .implicit_value(true);
+
+program.add_argument("-b")
+  .default_value(false)
+  .implicit_value(true);
+
+program.add_argument("-c")
+  .nargs(2)
+  .action([](const std::string& value) { return std::stof(value); });
+
+program.add_argument("--files")
+  .nargs(3);
+
+program.parse_args({ "./test.exe", "1", "-abc", "3.14", "2.718", "2", "--files",
+  "a.txt", "b.txt", "c.txt", "3" });
+
+auto numbers = program.get<std::vector<int>>("numbers");        // {1, 2, 3}
+auto a = program.get<bool>("-a");                               // true
+auto b = program.get<bool>("-b");                               // true
+auto c = program.get<std::vector<float>>("-c");                 // {3.14f, 2.718f}
+auto files = program.get<std::vector<std::string>>("--files");  // {"a.txt", "b.txt", "c.txt"}
+```
