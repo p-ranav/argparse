@@ -77,6 +77,28 @@ Here's what's happening:
 
 ### Combining Positional and Optional Arguments
 
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("square")
+  .help("display the square of a given number")
+  .action([](const std::string& value) { return std::stoi(value); });
+
+program.add_argument("--verbose")
+  .default_value(false)
+  .implicit_value(true);
+
+program.parse_args({ "./main", "4", "--verbose" });
+
+int input = program.get<int>("square");
+
+if (program["--verbose"] == true) {
+  std::cout << "The square of " << input << " is " << (input * input) << std::endl;
+}
+else {
+  std::cout << (input * input) << std::endl;
+}
+```
 
 ### List of Arguments
 
