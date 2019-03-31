@@ -130,7 +130,7 @@ Here's what's happening:
 * Using ```-cab``` will throw an error since argparse expects two inputs for the argument ```-c```.
 * Notice how argparse is able to quietly and peacefully return an std::vector<float> when asked for it. 
 
-## Examples
+## Further Examples
 
 ### Construct a JSON object from a filename argument
 
