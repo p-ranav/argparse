@@ -216,8 +216,13 @@ class ArgumentParser {
           // This is a positional argument. 
           // Parse and save into mPositionalArguments vector
           auto tArgument = mPositionalArguments[mNextPositionalArgument];
-          auto tCount = tArgument->mNumArgs;
+          auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
           while (tCount > 0) {
+            std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
+            if (tIterator != mArgumentMap.end()) {
+              i = i - 1;
+              break;
+            }
             if (i < argc) {
               tArgument->mRawValues.push_back(argv[i]);
               if (tArgument->mAction != nullptr)
