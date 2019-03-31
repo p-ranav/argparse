@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <list>
 #include <functional>
 #include <any>
 #include <memory>
@@ -37,6 +38,16 @@ bool starts_with(const std::string& haystack, const std::string& needle) {
   return needle.length() <= haystack.length()
     && std::equal(needle.begin(), needle.end(), haystack.begin());
 };
+
+template <typename T>
+T get_from_list(const std::list<T>& aList, size_t aIndex) {
+  if (aList.size() > aIndex) {
+    auto tIterator = aList.begin();
+    std::advance(tIterator, aIndex);
+    return *tIterator;
+  }
+  return T();
+}
 
 struct Argument {
   std::vector<std::string> mNames;
@@ -142,11 +153,46 @@ struct Argument {
     }
   }
 
+  template <typename T>
+  T get_list() {
+    T tResult;
+    if (mValues.size() == 0) {
+      if (mDefaultValue.has_value()) {
+        T tDefaultValues = std::any_cast<T>(mDefaultValue);
+        for (size_t i = 0; i < tDefaultValues.size(); i++) {
+          tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
+        }
+        return tResult;
+      }
+      else
+        return T();
+    }
+    else {
+      if (mRawValues.size() > 0) {
+        for (size_t i = 0; i < mValues.size(); i++) {
+          tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
+        }
+        return tResult;
+      }
+      else {
+        if (mDefaultValue.has_value()) {
+          std::list<T> tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
+          for (size_t i = 0; i < tDefaultValues.size(); i++) {
+            tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
+          }
+          return tResult;
+        }
+        else
+          return T();
+      }
+    }
+  }
+
 };
 
 class ArgumentParser {
   public:
-    ArgumentParser(const std::string& aProgramName) :
+    ArgumentParser(const std::string& aProgramName = "") :
       mProgramName(aProgramName),
       mNextPositionalArgument(0) {}
 
@@ -179,6 +225,8 @@ class ArgumentParser {
     }
 
     void parse_args(int argc, char * argv[]) {
+      if (mProgramName == "" && argc > 0)
+        mProgramName = argv[0];
       for (int i = 1; i < argc; i++) {
         auto tCurrentArgument = argv[i];
         std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
@@ -270,7 +318,8 @@ class ArgumentParser {
     }
 
     template <typename T = std::string>
-    typename std::enable_if<is_specialization<T, std::vector>::value == false, T>::type
+    typename std::enable_if<is_specialization<T, std::vector>::value == false && 
+                            is_specialization<T, std::list>::value == false, T>::type
     get(const char * aArgumentName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
@@ -285,6 +334,16 @@ class ArgumentParser {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get_vector<T>();
+      }
+      return T();
+    }
+
+    template <typename T>
+    typename std::enable_if<is_specialization<T, std::list>::value, T>::type
+      get(const char * aArgumentName) {
+      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      if (tIterator != mArgumentMap.end()) {
+        return tIterator->second->get_list<T>();
       }
       return T();
     }
