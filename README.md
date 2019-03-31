@@ -88,7 +88,7 @@ program.add_argument("--verbose")
   .default_value(false)
   .implicit_value(true);
 
-program.parse_args({ "./main", "4", "--verbose" });
+program.parse_args(argc, argv);
 
 int input = program.get<int>("square");
 
@@ -98,6 +98,17 @@ if (program["--verbose"] == true) {
 else {
   std::cout << (input * input) << std::endl;
 }
+```
+
+```bash
+$ ./main 4
+16
+
+$ ./main 4 --verbose
+The square of 4 is 16
+
+$ ./main --verbose 4
+The square of 4 is 16
 ```
 
 ### List of Arguments
