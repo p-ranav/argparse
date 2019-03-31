@@ -101,4 +101,9 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and ot
   REQUIRE(numbers[0] == 1);
   REQUIRE(numbers[1] == 2);
   REQUIRE(numbers[2] == 3);
+  auto numbers_list = program.get<std::list<int>>("numbers");
+  REQUIRE(numbers.size() == 3);
+  REQUIRE(argparse::get_from_list(numbers_list, 0) == 1);
+  REQUIRE(argparse::get_from_list(numbers_list, 1) == 2);
+  REQUIRE(argparse::get_from_list(numbers_list, 2) == 3);
 }
