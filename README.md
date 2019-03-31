@@ -22,6 +22,8 @@ argparse::ArgumentParser program("program name");
 
 Argparse supports a variety of argument types including positional arguments, optional arguments, toggle arguments and compound arguments.
 
+### Positional Arguments
+
 Here's an example of a ***positional argument***:
 
 ```cpp
@@ -47,6 +49,8 @@ Here's what's happening:
 * Calling our program now requires us to specify an option.
 * The parse_args() method parses the arguments provided, converts our input into an integer and returns the square. 
 * We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method. 
+
+### Optional Arguments
 
 Now, let's look at ***optional arguments***. Optional arguments start with ```-``` or ```--```, e.g., "--verbose" or "-a". Optional arguments can be placed anywhere in the input sequence. 
 
