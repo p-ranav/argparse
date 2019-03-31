@@ -6,7 +6,9 @@
 * Requires C++17
 * MIT License
 
-## Positional Arguments
+## Examples
+
+### Positional Arguments
 
 ```cpp
 argparse::ArgumentParser program("main");
@@ -20,7 +22,7 @@ std::string input = program.get("input");     // "rocket.msh"
 std::string output = program.get("output");   // "thrust_profile.csv"
 ```
 
-## Optional Arguments
+### Optional Arguments
 
 ```cpp
 argparse::ArgumentParser program("main");
@@ -39,7 +41,7 @@ std::string config = program.get("--config");   // "config.json"
 int num_iterations = program.get<int>("-n");    // 36
 ```
 
-## Vector of Arguments
+### Vector of Arguments
 
 ```cpp
 argparse::ArgumentParser program("main");
@@ -53,7 +55,7 @@ program.parse_args({"./main", "--input_files", "config.yml", "System.xml"});
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
 
-## Toggle Arguments
+### Toggle Arguments
 
 ```cpp
 argparse::ArgumentParser program("test");
@@ -67,7 +69,7 @@ program.parse_args({ "./main", "--verbose" });
 auto a = program.get<bool>("--verbose");  // true
 ```
 
-## Compound Arguments
+### Compound Arguments
 
 ```cpp
 argparse::ArgumentParser program("test");
@@ -91,7 +93,7 @@ auto b = program.get<bool>("-b");                // true
 auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
 ```
 
-## Positional Arguments with Compound Toggle Arguments
+### Positional Arguments with Compound Toggle Arguments
 
 ```cpp
 argparse::ArgumentParser program("test");
@@ -123,4 +125,23 @@ auto a = program.get<bool>("-a");                               // true
 auto b = program.get<bool>("-b");                               // true
 auto c = program.get<std::vector<float>>("-c");                 // {3.14f, 2.718f}
 auto files = program.get<std::vector<std::string>>("--files");  // {"a.txt", "b.txt", "c.txt"}
+```
+
+### Construct class objects from arguments
+
+```cpp
+argparse::ArgumentParser program("json_test");
+
+program.add_argument("config")
+  .action([](const std::string& value) {
+    // read a JSON file
+    std::ifstream stream(value);
+    nlohmann::json config_json;
+    stream >> config_json;
+    return config_json;
+  });
+
+program.parse_args({"./test", "config.json"});
+
+nlohmann::json config = program.get<nlohmann::json>("config");
 ```
