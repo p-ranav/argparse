@@ -87,7 +87,7 @@ argparse::ArgumentParser program("main");
 
 program.add_argument("--input_files")
   .help("The list of input files")
-  .nargs(3);
+  .nargs(2);
 
 program.parse_args({"./main", "--input_files", "config.yml", "System.xml"});
 
@@ -128,31 +128,9 @@ Here's what's happening:
   - ```-a``` and ```-b``` become true.
   - argv is further parsed to identify the inputs mapped to ```-c```.
 * Using ```-cab``` will throw an error since argparse expects two inputs for the argument ```-c```.
-
-Notice how argparse is able to quietly and peacefully return an std::vector<float> when asked for it. 
-  
-```cpp
-auto c_vector = program.get<std::vector<float>>("-c");
-auto c_list = program.get<std::list<float>>("-c");
-```
-
-Both of these above statements will work. Argparse has specializations implemented for both ```std::vector``` and ```std::list```.
+* Notice how argparse is able to quietly and peacefully return an std::vector<float> when asked for it. 
 
 ## Examples
-
-### Positional Arguments
-
-```cpp
-argparse::ArgumentParser program("main");
-
-program.add_argument("input");
-program.add_argument("output");
-
-program.parse_args({"./main", "rocket.msh", "thrust_profile.csv"});
-
-std::string input = program.get("input");     // "rocket.msh"
-std::string output = program.get("output");   // "thrust_profile.csv"
-```
 
 ### Construct a JSON object from a filename argument
 
@@ -171,25 +149,6 @@ program.add_argument("config")
 program.parse_args({"./test", "config.json"});
 
 nlohmann::json config = program.get<nlohmann::json>("config");
-```
-
-### Optional Arguments
-
-```cpp
-argparse::ArgumentParser program("main");
-
-program.add_argument("--config")
-  .help("configuration file")
-  .default_value(std::string("config.json"));
-
-program.add_argument("-n", "--num_iterations")
-  .help("The list of input files")
-  .action([](const std::string& value) { return std::stoi(value); });
-
-program.parse_args({"./main", "-n", "36"});
-
-std::string config = program.get("--config");   // "config.json"
-int num_iterations = program.get<int>("-n");    // 36
 ```
 
 ### Positional Arguments with Compound Toggle Arguments
