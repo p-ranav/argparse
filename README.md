@@ -22,6 +22,25 @@ std::string input = program.get("input");     // "rocket.msh"
 std::string output = program.get("output");   // "thrust_profile.csv"
 ```
 
+### Construct Objects from Arguments with ```.action```
+
+```cpp
+argparse::ArgumentParser program("json_test");
+
+program.add_argument("config")
+  .action([](const std::string& value) {
+    // read a JSON file
+    std::ifstream stream(value);
+    nlohmann::json config_json;
+    stream >> config_json;
+    return config_json;
+  });
+
+program.parse_args({"./test", "config.json"});
+
+nlohmann::json config = program.get<nlohmann::json>("config");
+```
+
 ### Optional Arguments
 
 ```cpp
@@ -125,23 +144,4 @@ auto a = program.get<bool>("-a");                               // true
 auto b = program.get<bool>("-b");                               // true
 auto c = program.get<std::vector<float>>("-c");                 // {3.14f, 2.718f}
 auto files = program.get<std::vector<std::string>>("--files");  // {"a.txt", "b.txt", "c.txt"}
-```
-
-### Construct class objects from arguments
-
-```cpp
-argparse::ArgumentParser program("json_test");
-
-program.add_argument("config")
-  .action([](const std::string& value) {
-    // read a JSON file
-    std::ifstream stream(value);
-    nlohmann::json config_json;
-    stream >> config_json;
-    return config_json;
-  });
-
-program.parse_args({"./test", "config.json"});
-
-nlohmann::json config = program.get<nlohmann::json>("config");
 ```
