@@ -47,7 +47,21 @@ program.parse_args({"./main", "--input_files", "config.yml", "System.xml"});
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
 
-## Compound Toggle Arguments
+## Toggle Arguments
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("--verbose", "-v")
+  .default_value(false)
+  .implicit_value(true);
+
+program.parse_args({ "./main", "--verbose" });
+
+auto a = program.get<bool>("--verbose");  // true
+```
+
+## Compound Arguments
 
 ```cpp
 argparse::ArgumentParser program("test");
