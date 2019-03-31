@@ -193,6 +193,10 @@ class ArgumentParser {
             tCount -= 1;
           }
         }
+        else {
+          // This is a positional argument. 
+          // Parse and save into mPositionalArguments vector
+        }
       }
     }
 
