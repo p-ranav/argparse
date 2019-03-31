@@ -145,3 +145,23 @@ auto b = program.get<bool>("-b");                               // true
 auto c = program.get<std::vector<float>>("-c");                 // {3.14f, 2.718f}
 auto files = program.get<std::vector<std::string>>("--files");  // {"a.txt", "b.txt", "c.txt"}
 ```
+
+### Restricting the set of values for an argument
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("input")
+  .default_value("baz")
+  .action([=](const std::string& value) {
+    static const std::vector<std::string> choices = { "foo", "bar", "baz" };
+    if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
+      return value;
+    }
+    return std::string{ "baz" };
+  });
+
+program.parse_args({ "./test", "fez" });
+
+auto input = program.get("input"); // baz
+```
