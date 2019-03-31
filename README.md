@@ -81,9 +81,6 @@ Here's what's happening:
 
 Compound arguments are optional arguments that are combined and provided as a single argument. Example: ```ps -aux```
 
-* Here are three optional arguments ```-a```, ```-b``` and ```-c```. 
-* ```-c``` requires 2 floating point numbers from the command-line. ```-a``` and ```-b``` are toggle arguments.
-
 ```cpp
 argparse::ArgumentParser program("test");
 
@@ -105,6 +102,15 @@ auto a = program.get<bool>("-a");                // true
 auto b = program.get<bool>("-b");                // true
 auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
 ```
+
+Here's what's happening:
+* We have three optional arguments ```-a```, ```-b``` and ```-c```. 
+* ```-a``` and ```-b``` are toggle arguments.
+* ```-c``` requires 2 floating point numbers from the command-line. You can specify how many inputs to expect using ```nargs```.
+* argparse can handle compound arguments ```-abc``` and ```-bac```. This only works with short single-character argument names. 
+  - ```-a``` and ```-b``` become true.
+  - argv is further parsed to identify the inputs mapped to ```-c```.
+* Using ```-cab``` will throw an error since argparse expects two inputs for the argument ```-c```.
 
 ## Examples
 
