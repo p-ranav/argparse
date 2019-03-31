@@ -112,6 +112,15 @@ Here's what's happening:
   - argv is further parsed to identify the inputs mapped to ```-c```.
 * Using ```-cab``` will throw an error since argparse expects two inputs for the argument ```-c```.
 
+Notice how argparse is able to quietly and peacefully return an std::vector<float> when asked for it. 
+  
+```cpp
+auto c_vector = program.get<std::vector<float>>("-c");
+auto c_list = program.get<std::list<float>>("-c");
+```
+
+Both of these above statements will work. Argparse has specializations implemented for both ```std::vector``` and ```std::list```.
+
 ## Examples
 
 ### Positional Arguments
