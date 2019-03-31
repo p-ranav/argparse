@@ -1,5 +1,11 @@
 # Argument Parser
 
+## Highlights
+
+* Simply include <argparse.hpp>
+* Requires C++17
+* MIT License
+
 ## Positional Arguments
 
 ```cpp
