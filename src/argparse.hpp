@@ -42,6 +42,7 @@ struct Argument {
   std::vector<std::string> mNames;
   std::string mHelp;
   std::any mDefaultValue;
+  std::any mImplicitValue;
   std::function<std::any(const std::string&)> mAction;
   std::vector<std::any> mValues;
   std::vector<std::string> mRawValues;
@@ -64,6 +65,11 @@ struct Argument {
 
   Argument& default_value(std::any aDefaultValue) {
     mDefaultValue = aDefaultValue;
+    return *this;
+  }
+
+  Argument& implicit_value(std::any aImplicitValue) {
+    mImplicitValue = aImplicitValue;
     return *this;
   }
 
@@ -176,8 +182,20 @@ class ArgumentParser {
         auto tCurrentArgument = argv[i];
         std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
         if (tIterator != mArgumentMap.end()) {
+          // Start parsing optional argument
           auto tArgument = tIterator->second;
           auto tCount = tArgument->mNumArgs;
+
+          // Check to see if implicit value should be used
+          // Two cases to handle here:
+          // (1) User has explicitly programmed nargs to be 0
+          // (2) User has left nargs to be default, i.e., 1 and provided an implicit value
+          if (tCount == 0 || (tArgument->mImplicitValue.has_value() && tCount == 1)) {
+            // Use implicit value for this optional argument
+            tArgument->mValues.push_back(tArgument->mImplicitValue);
+            tArgument->mRawValues.push_back("");
+            tCount = 0;
+          }
           while (tCount > 0) {
             i = i + 1;
             if (i < argc) {
