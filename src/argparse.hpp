@@ -70,6 +70,7 @@ struct Argument {
 
   Argument& implicit_value(std::any aImplicitValue) {
     mImplicitValue = aImplicitValue;
+    mNumArgs = 0;
     return *this;
   }
 
@@ -156,7 +157,7 @@ class ArgumentParser {
       add_argument_internal(tArgument, Fargs...);
 
       for (auto& mName : tArgument->mNames) {
-        if (starts_with(mName, "--") || starts_with(mName, "-"))
+        if (is_optional(mName))
           tArgument->mIsOptional = true;
       }
 
@@ -189,8 +190,8 @@ class ArgumentParser {
           // Check to see if implicit value should be used
           // Two cases to handle here:
           // (1) User has explicitly programmed nargs to be 0
-          // (2) User has left nargs to be default, i.e., 1 and provided an implicit value
-          if (tCount == 0 || (tArgument->mImplicitValue.has_value() && tCount == 1)) {
+          // (2) User has provided an implicit value, which also sets nargs to 0
+          if (tCount == 0) {
             // Use implicit value for this optional argument
             tArgument->mValues.push_back(tArgument->mImplicitValue);
             tArgument->mRawValues.push_back("");
@@ -213,32 +214,57 @@ class ArgumentParser {
           }
         }
         else {
-          // This is a positional argument. 
-          // Parse and save into mPositionalArguments vector
-          auto tArgument = mPositionalArguments[mNextPositionalArgument];
-          auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
-          while (tCount > 0) {
-            std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
-            if (tIterator != mArgumentMap.end()) {
-              i = i - 1;
-              break;
-            }
-            if (i < argc) {
-              tArgument->mRawValues.push_back(argv[i]);
-              if (tArgument->mAction != nullptr)
-                tArgument->mValues.push_back(tArgument->mAction(argv[i]));
-              else {
-                if (tArgument->mDefaultValue.has_value())
-                  tArgument->mValues.push_back(tArgument->mDefaultValue);
-                else
-                  tArgument->mValues.push_back(std::string(argv[i]));
+          if (is_optional(argv[i])) {
+            // This is possibly a compound optional argument
+            // Example: We have three optional arguments -a, -u and -x
+            // The user provides ./main -aux ...
+            // Here -aux is a compound optional argument
+            std::string tCompoundArgument = std::string(argv[i]);
+            for (size_t j = 1; j < tCompoundArgument.size(); j++) {
+              std::string tArgument(1, tCompoundArgument[j]);
+              size_t tNumArgs = 0;
+              std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find("-" + tArgument);
+              if (tIterator != mArgumentMap.end()) {
+                auto tArgumentObject = tIterator->second;
+                tNumArgs = tArgumentObject->mNumArgs;
               }
+              std::vector<std::string> tArgumentsForRecursiveParsing = { "", "-" + tArgument };
+              while (tNumArgs > 0) {
+                i += 1;
+                tArgumentsForRecursiveParsing.push_back(argv[i]);
+                tNumArgs -= 1;
+              }
+              parse_args(tArgumentsForRecursiveParsing);
             }
-            tCount -= 1;
-            if (tCount > 0) i += 1;
           }
-          if (tCount == 0)
-            mNextPositionalArgument += 1;
+          else {
+            // This is a positional argument. 
+            // Parse and save into mPositionalArguments vector
+            auto tArgument = mPositionalArguments[mNextPositionalArgument];
+            auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
+            while (tCount > 0) {
+              std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
+              if (tIterator != mArgumentMap.end()) {
+                i = i - 1;
+                break;
+              }
+              if (i < argc) {
+                tArgument->mRawValues.push_back(argv[i]);
+                if (tArgument->mAction != nullptr)
+                  tArgument->mValues.push_back(tArgument->mAction(argv[i]));
+                else {
+                  if (tArgument->mDefaultValue.has_value())
+                    tArgument->mValues.push_back(tArgument->mDefaultValue);
+                  else
+                    tArgument->mValues.push_back(std::string(argv[i]));
+                }
+              }
+              tCount -= 1;
+              if (tCount > 0) i += 1;
+            }
+            if (tCount == 0)
+              mNextPositionalArgument += 1;
+          }
         }
       }
     }
@@ -277,6 +303,15 @@ class ArgumentParser {
       aArgument->mNames.push_back(aArgumentName);
       add_argument_internal(aArgument, Fargs...);
       return *aArgument;
+    }
+
+    bool is_optional(const std::string& aName) {
+      return (starts_with(aName, "--") || starts_with(aName, "-"));
+    }
+
+    bool is_valid_argument(const std::string& aName) {
+      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aName);
+      return (tIterator != mArgumentMap.end());
     }
 
     std::string mProgramName;
