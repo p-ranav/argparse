@@ -85,7 +85,9 @@ program.add_argument("--verbose", "-v")
 
 program.parse_args({ "./main", "--verbose" });
 
-auto a = program.get<bool>("--verbose");  // true
+if (program["--verbose'] == true) {   // true
+    // enable verbose logging
+}
 ```
 
 ### Compound Arguments
