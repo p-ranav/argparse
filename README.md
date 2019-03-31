@@ -81,7 +81,7 @@ Here's what's happening:
 
 Compound arguments are optional arguments that are combined and provided as a single argument. Example: ```ps -aux```
 
-Here are three optional arguments ```-a```, ```-b``` and ```-c```
+Here are three optional arguments ```-a```, ```-b``` and ```-c```. ```-c``` requires 2 floating point numbers from the command-line. ```-a``` and ```-b``` are toggle arguments.
 
 ```cpp
 argparse::ArgumentParser program("test");
