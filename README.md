@@ -75,6 +75,36 @@ Here's what's happening:
 * To show that the option is actually optional, there is no error when running the program without it. Note that by using ```.default_value(false)```, if the optional argument isn’t used, it's value is automatically set to false. 
 * By using ```.implicit_value(true)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, it's value is set to true. 
 
+### Combining Positional and Optional Arguments
+
+### Compound Arguments
+
+Compound arguments are optional arguments that are combined and provided as a single argument. Example: ```ps -aux```
+
+Here are three optional arguments ```-a```, ```-b``` and ```-c```
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("-a")
+  .default_value(false)
+  .implicit_value(true);
+
+program.add_argument("-b")
+  .default_value(false)
+  .implicit_value(true);
+
+program.add_argument("-c")
+  .nargs(2)
+  .action([](const std::string& value) { return std::stof(value); });
+
+program.parse_args({ "./main", "-abc", "3.14", "2.718" });
+
+auto a = program.get<bool>("-a");                // true
+auto b = program.get<bool>("-b");                // true
+auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
+```
+
 ## Examples
 
 ### Positional Arguments
@@ -141,46 +171,6 @@ program.add_argument("--input_files")
 program.parse_args({"./main", "--input_files", "config.yml", "System.xml"});
 
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
-```
-
-### Toggle Arguments
-
-```cpp
-argparse::ArgumentParser program("test");
-
-program.add_argument("--verbose", "-v")
-  .default_value(false)
-  .implicit_value(true);
-
-program.parse_args({ "./main", "--verbose" });
-
-if (program["--verbose'] == true) {   // true
-    // enable verbose logging
-}
-```
-
-### Compound Arguments
-
-```cpp
-argparse::ArgumentParser program("test");
-
-program.add_argument("-a")
-  .default_value(false)
-  .implicit_value(true);
-
-program.add_argument("-b")
-  .default_value(false)
-  .implicit_value(true);
-
-program.add_argument("-c")
-  .nargs(2)
-  .action([](const std::string& value) { return std::stof(value); });
-
-program.parse_args({ "./main", "-abc", "3.14", "2.718" });
-
-auto a = program.get<bool>("-a");                // true
-auto b = program.get<bool>("-b");                // true
-auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
 ```
 
 ### Positional Arguments with Compound Toggle Arguments
