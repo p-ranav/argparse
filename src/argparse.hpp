@@ -140,7 +140,8 @@ struct Argument {
 class ArgumentParser {
   public:
     ArgumentParser(const std::string& aProgramName) :
-      mProgramName(aProgramName) {}
+      mProgramName(aProgramName),
+      mNextPositionalArgument(0) {}
 
     template<typename T, typename... Targs>
     Argument& add_argument(T value, Targs... Fargs) {
@@ -196,6 +197,25 @@ class ArgumentParser {
         else {
           // This is a positional argument. 
           // Parse and save into mPositionalArguments vector
+          auto tArgument = mPositionalArguments[mNextPositionalArgument];
+          auto tCount = tArgument->mNumArgs;
+          while (tCount > 0) {
+            if (i < argc) {
+              tArgument->mRawValues.push_back(argv[i]);
+              if (tArgument->mAction != nullptr)
+                tArgument->mValues.push_back(tArgument->mAction(argv[i]));
+              else {
+                if (tArgument->mDefaultValue.has_value())
+                  tArgument->mValues.push_back(tArgument->mDefaultValue);
+                else
+                  tArgument->mValues.push_back(std::string(argv[i]));
+              }
+            }
+            tCount -= 1;
+            if (tCount > 0) i += 1;
+          }
+          if (tCount == 0)
+            mNextPositionalArgument += 1;
         }
       }
     }
@@ -238,6 +258,7 @@ class ArgumentParser {
 
     std::string mProgramName;
     std::vector<std::shared_ptr<Argument>> mPositionalArguments;
+    size_t mNextPositionalArgument;
     std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
 };
 
