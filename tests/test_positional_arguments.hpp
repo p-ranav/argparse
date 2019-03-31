@@ -2,7 +2,7 @@
 #include <catch.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Parse positional arguments", "[parse_args]") {
+TEST_CASE("Parse positional arguments", "[positional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output");
@@ -13,7 +13,7 @@ TEST_CASE("Parse positional arguments", "[parse_args]") {
   REQUIRE(program.get("output") == "thrust_profile.csv");
 }
 
-TEST_CASE("Parse positional arguments with fixed nargs", "[parse_args]") {
+TEST_CASE("Parse positional arguments with fixed nargs", "[positional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);
@@ -27,7 +27,7 @@ TEST_CASE("Parse positional arguments with fixed nargs", "[parse_args]") {
   REQUIRE(outputs[1] == "output.mesh");
 }
 
-TEST_CASE("Parse positional arguments with optional arguments", "[parse_args]") {
+TEST_CASE("Parse positional arguments with optional arguments", "[positional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);

@@ -4,4 +4,6 @@
 #include <test_add_argument.hpp>
 #include <test_parse_args.hpp>
 #include <test_positional_arguments.hpp>
-#include <test_implicit_values.hpp>
+#include <test_optional_arguments.hpp>
+#include <test_compound_arguments.hpp>
+#include <test_actions.hpp>
