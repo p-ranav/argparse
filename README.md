@@ -35,7 +35,7 @@ program.add_argument("-n", "--num_iterations")
 
 program.parse_args({"./main", "-n", "36"});
 
-std::string config = program.get("--config");   // config.json
+std::string config = program.get("--config");   // "config.json"
 int num_iterations = program.get<int>("-n");    // 36
 ```
 
