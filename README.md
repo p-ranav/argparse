@@ -22,7 +22,7 @@ argparse::ArgumentParser program("program name");
 
 Argparse supports a variety of argument types including positional arguments, optional arguments, toggle arguments and compound arguments.
 
-Here's an example of a positional argument:
+Here's an example of a ***positional argument***:
 
 ```cpp
 program.add_argument("square")
@@ -47,6 +47,29 @@ Here's what's happening:
 * Calling our program now requires us to specify an option.
 * The parse_args() method parses the arguments provided, converts our input into an integer and returns the square. 
 * We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method. 
+
+Now, let's look at ***optional arguments***. Optional arguments start with ```-``` or ```--```, e.g., "--verbose" or "-a". Optional arguments can be placed anywhere in the input sequence. 
+
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("--verbose")
+  .help("increase output verbosity")
+  .default_value(false)
+  .implicit_value(true);
+
+program.parse_args({ "./main", "--verbose" });
+
+if (program["--verbose'] == true) {
+    std::cout << "Verbosity enabled" << std::endl;
+}
+```
+
+Here's what's happening: 
+* The program is written so as to display something when --verbose is specified and display nothing when not.
+* To show that the option is actually optional, there is no error when running the program without it. Note that by using ```.default_value(...)```, if an optional argument isn’t used, the relevant variable, in this case parser["--verbose"], is given false as a value. 
+* By using ```.implicit_value(...)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, parser["--verbose"] is internally set to true. 
 
 ## Examples
 
