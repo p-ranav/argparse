@@ -68,8 +68,8 @@ if (program["--verbose'] == true) {
 
 Here's what's happening: 
 * The program is written so as to display something when --verbose is specified and display nothing when not.
-* To show that the option is actually optional, there is no error when running the program without it. Note that by using ```.default_value(...)```, if an optional argument isn’t used, the relevant variable, in this case parser["--verbose"], is given false as a value. 
-* By using ```.implicit_value(...)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, parser["--verbose"] is internally set to true. 
+* To show that the option is actually optional, there is no error when running the program without it. Note that by using ```.default_value(false)```, if the optional argument isn’t used, it's value is automatically set to false. 
+* By using ```.implicit_value(true)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, it's value is set to true. 
 
 ## Examples
 
