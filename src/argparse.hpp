@@ -46,7 +46,7 @@ struct Argument {
   std::vector<std::any> mValues;
   std::vector<std::string> mRawValues;
   size_t mNumArgs;
-  bool mIsPositional;
+  bool mIsOptional;
 
   Argument() :
     mNames({}),
@@ -55,7 +55,7 @@ struct Argument {
     mValues({}),
     mRawValues({}),
     mNumArgs(1),
-    mIsPositional(false) {}
+    mIsOptional(false) {}
 
   Argument& help(const std::string& aHelp) {
     mHelp = aHelp;
@@ -148,13 +148,12 @@ class ArgumentParser {
       tArgument->mNames.push_back(value);
       add_argument_internal(tArgument, Fargs...);
 
-      bool positional = false;
       for (auto& mName : tArgument->mNames) {
         if (starts_with(mName, "--") || starts_with(mName, "-"))
-          tArgument->mIsPositional = true;
+          tArgument->mIsOptional = true;
       }
 
-      if (tArgument->mIsPositional)
+      if (!tArgument->mIsOptional)
         mPositionalArguments.push_back(tArgument);
 
       for (auto& mName : tArgument->mNames) { 
