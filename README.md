@@ -127,9 +127,30 @@ program.add_argument("--input_files")
   .help("The list of input files")
   .nargs(2);
 
-program.parse_args({"./main", "--input_files", "config.yml", "System.xml"});
+program.parse_args(argc, argv);  // Example: ./main --input_files config.yml System.xml
 
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
+```
+
+```ArgumentParser.get<T>()``` has specializations for ```std::vector``` and ```std::list```. So, the following variant, ```.get<std::list>```, will also work. 
+
+```cpp
+auto files = program.get<std::list<std::string>>("--input_files");  // Works! files now has {"config.yml", "System.xml"}
+```
+
+Using ```.action```, one can quickly build a list of custom objects from command line arguments. Here's an example:
+
+```cpp
+argparse::ArgumentParser program("main");
+
+program.add_argument("--query_point")
+  .help("3D query point")
+  .nargs(3)
+  .action([](const std::string& value) { return std::stod(value); });
+
+program.parse_args(argc, argv);  // Example: ./main --query_point 3.5 4.7 9.2
+
+auto query_point = program.get<std::vector<double>>("--query_point");  // {3.5, 4.7, 9.2}
 ```
 
 ### Compound Arguments
