@@ -101,3 +101,25 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and ot
   REQUIRE(argparse::get_from_list(numbers_list, 1) == 2);
   REQUIRE(argparse::get_from_list(numbers_list, 2) == 3);
 }
+
+TEST_CASE("Parse out-of-order compound arguments", "[compound_arguments]") {
+  argparse::ArgumentParser program("test");
+
+  program.add_argument("-a")
+    .default_value(false)
+    .implicit_value(true);
+
+  program.add_argument("-b")
+    .default_value(false)
+    .implicit_value(true);
+
+  program.add_argument("-c")
+    .nargs(2)
+    .action([](const std::string& value) { return std::stof(value); });
+
+  program.parse_args({ "./main", "-cab", "3.14", "2.718" });
+
+  auto a = program.get<bool>("-a");                // true
+  auto b = program.get<bool>("-b");                // true
+  auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
+}
