@@ -15,7 +15,7 @@ $ ./tests
 ```bash
 $ mkdir build
 $ cd build
-$ cmake -G "Visual Studio 15 2017" ../.
+$ cmake ../. -G "Visual Studio 15 2017"
 $ make
 $ ./tests
 ```
