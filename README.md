@@ -138,7 +138,7 @@ auto files = program.get<std::vector<std::string>>("--input_files");  // {"confi
 auto files = program.get<std::list<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
 
-Using ```.action```, one can quickly build a list of custom objects from command line arguments. Here's an example:
+Using ```.action```, one can quickly build a list of desired value types from command line arguments. Here's an example:
 
 ```cpp
 argparse::ArgumentParser program("main");
