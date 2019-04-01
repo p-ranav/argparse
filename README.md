@@ -135,7 +135,7 @@ auto files = program.get<std::vector<std::string>>("--input_files");  // {"confi
 ```ArgumentParser.get<T>()``` has specializations for ```std::vector``` and ```std::list```. So, the following variant, ```.get<std::list>```, will also work. 
 
 ```cpp
-auto files = program.get<std::list<std::string>>("--input_files");  // Works! files = {"config.yml", "System.xml"}
+auto files = program.get<std::list<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
 
 Using ```.action```, one can quickly build a list of custom objects from command line arguments. Here's an example:
