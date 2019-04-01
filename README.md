@@ -146,6 +146,7 @@ argparse::ArgumentParser program("main");
 program.add_argument("--query_point")
   .help("3D query point")
   .nargs(3)
+  .default(std::vector<double>{0.0, 0.0, 0.0})
   .action([](const std::string& value) { return std::stod(value); });
 
 program.parse_args(argc, argv);  // Example: ./main --query_point 3.5 4.7 9.2
