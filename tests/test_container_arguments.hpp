@@ -30,20 +30,20 @@ TEST_CASE("Parse list of arguments", "[vector]") {
 
 TEST_CASE("Parse list of arguments with default values", "[vector]") {
   argparse::ArgumentParser program("test");
-  program.add_argument("input")
+  program.add_argument("--input")
     .default_value(std::list<int>{1, 2, 3, 4, 5})
-    .nargs(2);
+    .nargs(5);
 
   program.parse_args({ "test" });
 
-  auto inputs = program.get<std::list<int>>("input");
+  auto inputs = program.get<std::list<int>>("--input");
   REQUIRE(inputs.size() == 5);
   REQUIRE(argparse::get_from_list(inputs, 0) == 1);
   REQUIRE(argparse::get_from_list(inputs, 1) == 2);
   REQUIRE(argparse::get_from_list(inputs, 2) == 3);
   REQUIRE(argparse::get_from_list(inputs, 3) == 4);
   REQUIRE(argparse::get_from_list(inputs, 4) == 5);
-  REQUIRE(program["input"] == std::list<int>{1, 2, 3, 4, 5});
+  REQUIRE(program["--input"] == std::list<int>{1, 2, 3, 4, 5});
 }
 
 TEST_CASE("Parse list of arguments and save in an object", "[vector]") {
