@@ -65,7 +65,7 @@ program.add_argument("--verbose")
 
 program.parse_args({ "./main", "--verbose" });
 
-if (program["--verbose'] == true) {
+if (program["--verbose"] == true) {
     std::cout << "Verbosity enabled" << std::endl;
 }
 ```
