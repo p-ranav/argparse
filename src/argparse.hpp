@@ -8,6 +8,7 @@
 #include <memory>
 #include <type_traits>
 #include <algorithm>
+#include <sstream>
 
 namespace argparse {
 
@@ -256,6 +257,8 @@ class ArgumentParser {
 
       if (!tArgument->mIsOptional)
         mPositionalArguments.push_back(tArgument);
+      else
+        mOptionalArguments.push_back(tArgument);
 
       for (auto& mName : tArgument->mNames) { 
         upsert(mArgumentMap, mName, tArgument);
@@ -409,6 +412,69 @@ class ArgumentParser {
       }
     }
 
+    std::string print_help() {
+      std::stringstream stream;
+      stream << "Usage: " << mProgramName << " [options]";
+      size_t tLongestArgumentLength = get_length_of_longest_argument();
+
+      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
+        auto tNames = mPositionalArguments[i]->mNames;
+        stream << (i == 0 ? " " : "") << tNames[0] << " ";
+      }
+      stream << "\n\n";
+
+      stream << "Positional arguments:\n";
+      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
+        size_t tCurrentLength = 0;
+        auto tNames = mPositionalArguments[i]->mNames;
+        for (size_t j = 0; j < tNames.size() - 1; j++) {
+          auto tCurrentName = tNames[j];
+          stream << tCurrentName;
+          stream << ", ";
+          tCurrentLength += tCurrentName.length() + 2;
+        }
+        stream << tNames[tNames.size() - 1];
+        tCurrentLength += tNames[tNames.size() - 1].length();
+        if (tCurrentLength < tLongestArgumentLength)
+          stream << std::string((tLongestArgumentLength - tCurrentLength) + 2, ' ');
+        else if (tCurrentLength == tLongestArgumentLength)
+          stream << std::string(2, ' ');
+        else
+          stream << std::string((tCurrentLength - tLongestArgumentLength) + 2, ' ');
+        
+        stream << mPositionalArguments[i]->mHelp << "\n";
+      }
+
+      stream << "\nOptional arguments:\n";
+      for (size_t i = 0; i < mOptionalArguments.size(); i++) {
+        size_t tCurrentLength = 0;
+        auto tNames = mOptionalArguments[i]->mNames;
+        std::sort(tNames.begin(), tNames.end(), 
+          [](const std::string& lhs, const std::string& rhs) {
+            return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size(); 
+        });
+        for (size_t j = 0; j < tNames.size() - 1; j++) {
+          auto tCurrentName = tNames[j];
+          stream << tCurrentName;
+          stream << ", ";
+          tCurrentLength += tCurrentName.length() + 2;
+        }
+        stream << tNames[tNames.size() - 1];
+        tCurrentLength += tNames[tNames.size() - 1].length();
+        if (tCurrentLength < tLongestArgumentLength)
+          stream << std::string((tLongestArgumentLength - tCurrentLength) + 2, ' ');
+        else if (tCurrentLength == tLongestArgumentLength)
+          stream << std::string(2, ' ');
+        else
+          stream << std::string((tCurrentLength - tLongestArgumentLength) + 2, ' ');
+
+        stream << mOptionalArguments[i]->mHelp << "\n";
+      }
+
+      std::cout << stream.str();
+      return stream.str();
+    }
+
   private:
     Argument& add_argument_internal(std::shared_ptr<Argument> aArgument) {
       return *aArgument;
@@ -430,8 +496,37 @@ class ArgumentParser {
       return (tIterator != mArgumentMap.end());
     }
 
+    size_t get_length_of_longest_argument() {
+      size_t tResult = 0;
+      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
+        size_t tCurrentArgumentLength = 0;
+        auto tNames = mPositionalArguments[i]->mNames;
+        for (size_t j = 0; j < tNames.size() - 1; j++) {
+          auto tNameLength = tNames[j].length();
+          tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
+        }
+        tCurrentArgumentLength += tNames[tNames.size() - 1].length();
+        if (tCurrentArgumentLength > tResult)
+          tResult = tCurrentArgumentLength;
+      }
+
+      for (size_t i = 0; i < mOptionalArguments.size(); i++) {
+        size_t tCurrentArgumentLength = 0;
+        auto tNames = mOptionalArguments[i]->mNames;
+        for (size_t j = 0; j < tNames.size() - 1; j++) {
+          auto tNameLength = tNames[j].length();
+          tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
+        }
+        tCurrentArgumentLength += tNames[tNames.size() - 1].length();
+        if (tCurrentArgumentLength > tResult)
+          tResult = tCurrentArgumentLength;
+      }
+      return tResult;
+    }
+
     std::string mProgramName;
     std::vector<std::shared_ptr<Argument>> mPositionalArguments;
+    std::vector<std::shared_ptr<Argument>> mOptionalArguments;
     size_t mNextPositionalArgument;
     std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
 };
