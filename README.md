@@ -174,11 +174,11 @@ program.add_argument("-c")
   .default_value(std::vector<float>{0.0f, 0.0f})
   .action([](const std::string& value) { return std::stof(value); });
 
-program.parse_args(argc, argv);
+program.parse_args(argc, argv);                    // Example: ./main -abc 1.95 2.47 
 
-auto a = program.get<bool>("-a");
-auto b = program.get<bool>("-b");
-auto c = program.get<std::vector<float>>("-c");
+auto a = program.get<bool>("-a");                  // true
+auto b = program.get<bool>("-b");                  // true
+auto c = program.get<std::vector<float>>("-c");    // {1.95, 2.47}
 
 /// Some code that prints parsed arguments
 ```
