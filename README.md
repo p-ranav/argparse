@@ -63,11 +63,16 @@ program.add_argument("--verbose")
   .default_value(false)
   .implicit_value(true);
 
-program.parse_args({ "./main", "--verbose" });
+program.parse_args(argc, argv);
 
 if (program["--verbose"] == true) {
     std::cout << "Verbosity enabled" << std::endl;
 }
+```
+
+```bash
+$ ./main --verbose
+Verbosity enabled
 ```
 
 Here's what's happening: 
@@ -144,6 +149,7 @@ program.add_argument("-b")
 
 program.add_argument("-c")
   .nargs(2)
+  .default_value(std::vector<float>{0.0f, 0.0f})
   .action([](const std::string& value) { return std::stof(value); });
 
 program.parse_args({ "./main", "-abc", "3.14", "2.718" });
@@ -151,6 +157,20 @@ program.parse_args({ "./main", "-abc", "3.14", "2.718" });
 auto a = program.get<bool>("-a");                // true
 auto b = program.get<bool>("-b");                // true
 auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
+
+/// Some code that prints parsed arguments
+```
+
+```bash
+$ ./main -ac 3.14 2.718
+a = true
+b = false
+c = {3.14, 2.718}
+
+$ ./main -cb
+a = false
+b = true
+c = {0.0, 0.0}
 ```
 
 Here's what's happening:
@@ -206,14 +226,24 @@ program.add_argument("-c")
 program.add_argument("--files")
   .nargs(3);
 
-program.parse_args({ "./test.exe", "1", "-abc", "3.14", "2.718", "2", "--files",
-  "a.txt", "b.txt", "c.txt", "3" });
+program.parse_args(argc, argv);
 
 auto numbers = program.get<std::vector<int>>("numbers");        // {1, 2, 3}
 auto a = program.get<bool>("-a");                               // true
 auto b = program.get<bool>("-b");                               // true
 auto c = program.get<std::vector<float>>("-c");                 // {3.14f, 2.718f}
 auto files = program.get<std::vector<std::string>>("--files");  // {"a.txt", "b.txt", "c.txt"}
+
+/// Some code that prints parsed arguments
+```
+
+```bash
+./main 1 -abc 3.14 2.718 2 --files a.txt b.txt c.txt 3
+numbers = {1, 2, 3}
+a = true
+b = true
+c = {3.14, 2.718}
+d = {"a.txt", "b.txt", "c.txt"}
 ```
 
 ### Restricting the set of values for an argument
@@ -234,6 +264,12 @@ program.add_argument("input")
 program.parse_args({ "./test", "fez" });
 
 auto input = program.get("input"); // baz
+std::cout << input << std::endl;
+```
+
+```bash
+$ ./main fex
+baz
 ```
 
 ## Contributing
