@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <string>
 #include <map>
 #include <vector>
@@ -242,7 +243,14 @@ class ArgumentParser {
   public:
     ArgumentParser(const std::string& aProgramName = "") :
       mProgramName(aProgramName),
-      mNextPositionalArgument(0) {}
+      mNextPositionalArgument(0) {
+      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
+      tArgument->mNames = { "-h", "--help" };
+      tArgument->mHelp = "show this help message and exit";
+      mOptionalArguments.push_back(tArgument);
+      upsert(mArgumentMap, std::string("-h"), tArgument);
+      upsert(mArgumentMap, std::string("--help"), tArgument);
+    }
 
     template<typename T, typename... Targs>
     Argument& add_argument(T value, Targs... Fargs) {
@@ -278,7 +286,11 @@ class ArgumentParser {
       if (mProgramName == "" && argc > 0)
         mProgramName = argv[0];
       for (int i = 1; i < argc; i++) {
-        auto tCurrentArgument = argv[i];
+        auto tCurrentArgument = std::string(argv[i]);
+        if (tCurrentArgument == "-h" || tCurrentArgument == "--help") {
+          print_help();
+          exit(0);
+        }
         std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
         if (tIterator != mArgumentMap.end()) {
           // Start parsing optional argument
@@ -398,10 +410,6 @@ class ArgumentParser {
       return T();
     }
 
-    std::map<std::string, std::shared_ptr<Argument>> get_arguments() const {
-      return mArgumentMap;
-    }
-
     Argument& operator[](const std::string& aArgumentName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
@@ -423,7 +431,8 @@ class ArgumentParser {
       }
       stream << "\n\n";
 
-      stream << "Positional arguments:\n";
+      if (mPositionalArguments.size() > 0)
+        stream << "Positional arguments:\n";
       for (size_t i = 0; i < mPositionalArguments.size(); i++) {
         size_t tCurrentLength = 0;
         auto tNames = mPositionalArguments[i]->mNames;
@@ -445,7 +454,10 @@ class ArgumentParser {
         stream << mPositionalArguments[i]->mHelp << "\n";
       }
 
-      stream << "\nOptional arguments:\n";
+      if (mOptionalArguments.size() > 0 && mPositionalArguments.size() > 0)
+        stream << "\nOptional arguments:\n";
+      else if (mOptionalArguments.size() > 0)
+        stream << "Optional arguments:\n";
       for (size_t i = 0; i < mOptionalArguments.size(); i++) {
         size_t tCurrentLength = 0;
         auto tNames = mOptionalArguments[i]->mNames;

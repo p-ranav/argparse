@@ -17,8 +17,6 @@ TEST_CASE("Parse compound toggle arguments with implicit values", "[compound_arg
     .implicit_value(true);
 
   program.parse_args({ "./test.exe", "-aux" });
-  auto arguments = program.get_arguments();
-  REQUIRE(arguments.size() == 3);
   REQUIRE(program.get<bool>("-a") == true);
   REQUIRE(program.get<bool>("-u") == true);
   REQUIRE(program.get<bool>("-x") == true);
@@ -43,8 +41,6 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs", "[co
 
   program.parse_args({ "./test.exe", "-abc", "3.14", "2.718", "--input_files",
     "a.txt", "b.txt", "c.txt" });
-  auto arguments = program.get_arguments();
-  REQUIRE(arguments.size() == 4);
   REQUIRE(program.get<bool>("-a") == true);
   REQUIRE(program.get<bool>("-b") == true);
   auto c = program.get<std::vector<float>>("-c");
@@ -83,8 +79,6 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and ot
   program.parse_args({ "./test.exe", "1", "-abc", "3.14", "2.718", "2", "--input_files",
     "a.txt", "b.txt", "c.txt", "3" });
 
-  auto arguments = program.get_arguments();
-  REQUIRE(arguments.size() == 5);
   REQUIRE(program.get<bool>("-a") == true);
   REQUIRE(program.get<bool>("-b") == true);
   auto c = program.get<std::vector<float>>("-c");

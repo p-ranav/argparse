@@ -9,9 +9,6 @@ TEST_CASE("Parse vector of arguments", "[vector]") {
 
   program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv" });
 
-  auto arguments = program.get_arguments();
-  REQUIRE(arguments.size() == 1);
-
   auto inputs = program.get<std::vector<std::string>>("input");
   REQUIRE(inputs.size() == 2);
   REQUIRE(inputs[0] == "rocket.mesh");
@@ -25,8 +22,6 @@ TEST_CASE("Parse list of arguments", "[vector]") {
 
   program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv" });
 
-  auto arguments = program.get_arguments();
-  REQUIRE(arguments.size() == 1);
   auto inputs = program.get<std::list<std::string>>("input");
   REQUIRE(inputs.size() == 2);
   REQUIRE(argparse::get_from_list(inputs, 0) == "rocket.mesh");
@@ -41,8 +36,6 @@ TEST_CASE("Parse list of arguments with default values", "[vector]") {
 
   program.parse_args({ "test" });
 
-  auto arguments = program.get_arguments();
-  REQUIRE(arguments.size() == 1);
   auto inputs = program.get<std::list<int>>("input");
   REQUIRE(inputs.size() == 5);
   REQUIRE(argparse::get_from_list(inputs, 0) == 1);

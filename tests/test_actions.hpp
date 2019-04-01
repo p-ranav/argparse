@@ -15,7 +15,5 @@ TEST_CASE("Users can use defaul value inside actions", "[actions]") {
     });
 
   program.parse_args({ "test", "fez" });
-  auto arguments = program.get_arguments();
-  REQUIRE(arguments.size() == 1);
   REQUIRE(program.get("input") == "bar");
 }
