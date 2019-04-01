@@ -47,7 +47,7 @@ Here's what's happening:
 * The ```add_argument()``` method is used to specify which command-line options the program is willing to accept. In this case, I’ve named it square so that it’s in line with its function.
 * Command-line arguments are strings. Inorder to square the argument and print the result, we need to convert this argument to a number. In order to do this, we use the ```.action``` method and provide a lambda function that takes the argument value (std::string) and returns the square of the number it represents. Actions are quite powerful as you will see in later examples. 
 * Calling our program now requires us to specify an option.
-* The parse_args() method parses the arguments provided, converts our input into an integer and returns the square. 
+* The ```parse_args()``` method parses the arguments provided, converts our input into an integer and returns the square. 
 * We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method. 
 
 ### Optional Arguments
