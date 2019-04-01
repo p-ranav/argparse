@@ -52,7 +52,7 @@ Here's what's happening:
 
 ### Optional Arguments
 
-Now, let's look at ***optional arguments***. Optional arguments start with ```-``` or ```--```, e.g., "--verbose" or "-a". Optional arguments can be placed anywhere in the input sequence. 
+Now, let's look at ***optional arguments***. Optional arguments start with ```-``` or ```--```, e.g., ```--verbose``` or ```-a```. Optional arguments can be placed anywhere in the input sequence. 
 
 
 ```cpp
