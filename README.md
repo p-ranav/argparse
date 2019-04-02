@@ -29,10 +29,10 @@ Here's an example of a ***positional argument***:
 ```cpp
 program.add_argument("square")
   .help("display the square of a given integer")
-  .action([](const std::string& value) { auto integer = std::stoi(value); return integer * integer; });
+  .action([](const std::string& value) { return pow(std::stoi(value), 2); });
 
 program.parse_args(argc, argv);
-std::cout << program.get<int>("square") << std::endl;
+std::cout << program.get<double>("square") << std::endl;
 ```
 
 And running the code:
