@@ -284,7 +284,7 @@ auto files = program.get<std::vector<std::string>>("--files");  // {"a.txt", "b.
 ```
 
 ```bash
-./main 1 -abc 3.14 2.718 2 --files a.txt b.txt c.txt 3
+$ ./main 1 -abc 3.14 2.718 2 --files a.txt b.txt c.txt 3
 numbers = {1, 2, 3}
 a = true
 b = true
