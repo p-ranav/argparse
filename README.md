@@ -204,6 +204,29 @@ Here's what's happening:
   - argv is further parsed to identify the inputs mapped to ```-c```.
   - If argparse cannot find any arguments to map to c, then c defaults to {0.0, 0.0} as defined by ```.default_value```
 
+
+### Parent Parsers
+
+Sometimes, several parsers share a common set of arguments. Rather than repeating the definitions of these arguments, a single parser with all the shared arguments can be added as a parent to another ArgumentParser instance. The ```.add_parents``` method takes a list of ArgumentParser objects, collects all the positional and optional actions from them, and adds these actions to the ArgumentParser object being constructed:
+
+```cpp
+argparse::ArgumentParser parent_parser("main");
+parent_parser.add_argument("--parent")
+  .default_value(0)
+  .action([](const std::string& value) { return std::stoi(value); });
+
+argparse::ArgumentParser foo_parser("foo");
+foo_parser.add_argument("foo");
+foo_parser.add_parents(parent_parser);
+foo_parser.parse_args({ "./main", "--parent", "2", "XXX" });   // parent = 2, foo = XXX
+
+argparse::ArgumentParser bar_parser("bar");
+bar_parser.add_argument("--bar");
+bar_parser.parse_args({ "./main", "--bar", "YYY" });           // bar = YYY
+```
+
+Note You must fully initialize the parsers before passing them via ```.add_parents```. If you change the parent parsers after the child parser, those changes will not be reflected in the child.
+
 ## Further Examples
 
 ### Construct a JSON object from a filename argument
