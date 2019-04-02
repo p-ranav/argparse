@@ -116,6 +116,22 @@ $ ./main --verbose 4
 The square of 4 is 16
 ```
 
+### Printing Help
+
+```ArgumentParser.print_help()``` print a help message, including the program usage and information about the arguments registered with the ArgumentParser. For the previous example, here's the default help message:
+
+```bash
+$ ./main --help
+Usage: ./main [options] square
+
+Positional arguments:
+square         display a square of a given number
+
+Optional arguments:
+-h, --help     show this help message and exit
+-v, --verbose  enable verbose logging
+```
+
 ### List of Arguments
 
 ArgumentParser objects usually associate a single command-line argument with a single action to be taken. The ```.nargs``` associates a different number of command-line arguments with a single action. When using ```nargs(N)```, N arguments from the command line will be gathered together into a list.
