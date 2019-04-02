@@ -62,8 +62,8 @@ TEST_CASE("Square a number", "[positional_arguments]") {
 
   program.add_argument("square")
     .help("display a square of a given number")
-    .action([](const std::string& value) { auto integer = std::stoi(value); return integer * integer; });
+    .action([](const std::string& value) { return pow(std::stoi(value), 2); });
 
   program.parse_args({"./main", "15"});
-  REQUIRE(program.get<int>("square") == 225);
+  REQUIRE(program.get<double>("square") == 225);
 }
