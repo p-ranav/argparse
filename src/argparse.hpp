@@ -94,7 +94,8 @@ public:
     mValues({}),
     mRawValues({}),
     mNumArgs(1),
-    mIsOptional(false) {}
+    mIsOptional(false),
+    mIsUsed(false) {}
 
   Argument& help(const std::string& aHelp) {
     mHelp = aHelp;
@@ -274,6 +275,7 @@ public:
     std::vector<std::string> mRawValues;
     size_t mNumArgs;
     bool mIsOptional;
+    bool mIsUsed; // relevant for optional arguments. True if used by user
 };
 
 class ArgumentParser {
@@ -518,6 +520,7 @@ class ArgumentParser {
         if (tIterator != mArgumentMap.end()) {
           // Start parsing optional argument
           auto tArgument = tIterator->second;
+          tArgument->mIsUsed = true;
           auto tCount = tArgument->mNumArgs;
 
           // Check to see if implicit value should be used
@@ -620,7 +623,7 @@ class ArgumentParser {
       // Check if all user-provided optional argument values are parsed correctly
       for (size_t i = 0; i < mOptionalArguments.size(); i++) {
         auto tArgument = mOptionalArguments[i];
-        if (tArgument->mNumArgs > 0) {
+        if (tArgument->mIsUsed && tArgument->mNumArgs > 0) {
           if (tArgument->mValues.size() != tArgument->mNumArgs) {
             // All cool if there's a default value to return
             // If no default value, then there's a problem
