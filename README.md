@@ -198,10 +198,11 @@ c = {0.0, 0.0}
 Here's what's happening:
 * We have three optional arguments ```-a```, ```-b``` and ```-c```. 
 * ```-a``` and ```-b``` are toggle arguments.
-* ```-c``` requires 2 floating point numbers from the command-line. You can specify how many inputs to expect using ```nargs```.
+* ```-c``` requires 2 floating point numbers from the command-line.
 * argparse can handle compound arguments, e.g., ```-abc``` or ```-bac``` or ```-cab```. This only works with short single-character argument names. 
   - ```-a``` and ```-b``` become true.
   - argv is further parsed to identify the inputs mapped to ```-c```.
+  - If argparse cannot find any arguments to map to c, then c defaults to {0.0, 0.0} as defined by ```.default_value```
 
 ## Further Examples
 
