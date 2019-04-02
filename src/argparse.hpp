@@ -42,12 +42,14 @@ SOFTWARE.
 
 namespace argparse {
 
+// Some utility structs to check template specialization
 template<typename Test, template<typename...> class Ref>
 struct is_specialization : std::false_type {};
 
 template<template<typename...> class Ref, typename... Args>
 struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
 
+// Upsert into std::map
 template <class KeyType, class ElementType>
 bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementType const& aNewValue) {
   typedef typename std::map<KeyType, ElementType>::iterator Iterator;
@@ -65,11 +67,13 @@ bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementTy
     return true;  // changed cause not existing
 }
 
+// Check if string (haystack) starts with a substring (needle)
 bool starts_with(const std::string& haystack, const std::string& needle) {
   return needle.length() <= haystack.length()
     && std::equal(needle.begin(), needle.end(), haystack.begin());
 };
 
+// Get value at index from std::list
 template <typename T>
 T get_from_list(const std::list<T>& aList, size_t aIndex) {
   if (aList.size() > aIndex) {
@@ -78,11 +82,6 @@ T get_from_list(const std::list<T>& aList, size_t aIndex) {
     return *tIterator;
   }
   return T();
-}
-
-template <typename T>
-T get_from_list(const std::vector<T>& aList, size_t aIndex) {
-  return aList[aIndex];
 }
 
 class Argument {
@@ -128,6 +127,7 @@ public:
     return !(*this == aRhs);
   }
 
+  // Entry point for template types other than std::vector and std::list
   template <typename T>
   typename std::enable_if<is_specialization<T, std::vector>::value == false &&
                           is_specialization<T, std::list>::value == false, bool>::type
@@ -135,6 +135,7 @@ public:
     return get<T>() == aRhs;
   }
 
+  // Template specialization for std::vector<...>
   template <typename T>
   typename std::enable_if<is_specialization<T, std::vector>::value, bool>::type
   operator==(const T& aRhs) const {
@@ -151,6 +152,7 @@ public:
     }
   }
 
+  // Template specialization for std::list<...>
   template <typename T>
   typename std::enable_if<is_specialization<T, std::list>::value, bool>::type
     operator==(const T& aRhs) const {
@@ -169,6 +171,7 @@ public:
 
   private:
 
+    // Getter for template types other than std::vector and std::list
     template <typename T>
     T get() const {
       if (mValues.size() == 0) {
@@ -190,6 +193,7 @@ public:
       }
     }
 
+    // Getter for std::vector. Here T = std::vector<...>
     template <typename T>
     T get_vector() const {
       T tResult;
@@ -225,6 +229,7 @@ public:
       }
     }
 
+    // Getter for std::list. Here T = std::list<...>
     template <typename T>
     T get_list() const {
       T tResult;
@@ -279,11 +284,17 @@ class ArgumentParser {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
       tArgument->mNames = { "-h", "--help" };
       tArgument->mHelp = "show this help message and exit";
+      tArgument->mNumArgs = 0;
+      tArgument->mDefaultValue = false;
+      tArgument->mImplicitValue = true;
       mOptionalArguments.push_back(tArgument);
       upsert(mArgumentMap, std::string("-h"), tArgument);
       upsert(mArgumentMap, std::string("--help"), tArgument);
     }
 
+    // Parameter packing
+    // Call add_argument with variadic number of string arguments
+    // TODO: enforce T to be std::string
     template<typename T, typename... Targs>
     Argument& add_argument(T value, Targs... Fargs) {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
@@ -306,6 +317,7 @@ class ArgumentParser {
       return *tArgument;
     }
 
+    // Base case for add_parents parameter packing
     void add_parents() {
       for (size_t i = 0; i < mParentParsers.size(); i++) {
         auto tParentParser = mParentParsers[i];
@@ -324,22 +336,29 @@ class ArgumentParser {
       }
     }
 
+    // Parameter packed add_parents method
+    // Accepts a variadic number of ArgumentParser objects
     template<typename T, typename... Targs>
     void add_parents(T aArgumentParser, Targs... Fargs) {
       mParentParsers.push_back(aArgumentParser);
       add_parents(Fargs...);
     }
 
+    // Call parse_args_internal - which does all the work
+    // Then, validate the parsed arguments
+    // This variant is used mainly for testing
     void parse_args(const std::vector<std::string>& aArguments) {
       parse_args_internal(aArguments);
       parse_args_validate();
     }
 
+    // Main entry point for parsing command-line arguments using this ArgumentParser
     void parse_args(int argc, char * argv[]) {
       parse_args_internal(argc, argv);
       parse_args_validate();
     }
 
+    // Getter enabled for all template types other than std::vector and std::list
     template <typename T = std::string>
     typename std::enable_if<is_specialization<T, std::vector>::value == false && 
                             is_specialization<T, std::list>::value == false, T>::type
@@ -351,6 +370,7 @@ class ArgumentParser {
       return T();
     }
 
+    // Getter enabled for std::vector
     template <typename T>
     typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
     get(const char * aArgumentName) {
@@ -361,6 +381,7 @@ class ArgumentParser {
       return T();
     }
 
+    // Getter enabled for std::list
     template <typename T>
     typename std::enable_if<is_specialization<T, std::list>::value, T>::type
       get(const char * aArgumentName) {
@@ -371,6 +392,8 @@ class ArgumentParser {
       return T();
     }
 
+    // Indexing operator. Return a reference to an Argument object
+    // Used in conjuction with Argument.operator== e.g., parser["foo"] == true
     Argument& operator[](const std::string& aArgumentName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
@@ -381,6 +404,9 @@ class ArgumentParser {
       }
     }
 
+    // Printing the one and only help message
+    // I've stuck with a simple message format, nothing fancy. 
+    // TODO: support user-defined help and usage messages for the ArgumentParser
     std::string print_help() {
       std::stringstream stream;
       stream << "Usage: " << mProgramName << " [options]";
@@ -460,10 +486,12 @@ class ArgumentParser {
       return *aArgument;
     }
 
+    // If an argument starts with "-" or "--", then it's optional
     bool is_optional(const std::string& aName) {
       return (starts_with(aName, "--") || starts_with(aName, "-"));
     }
 
+    // If the argument was defined by the user and can be found in mArgumentMap, then it's valid
     bool is_valid_argument(const std::string& aName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aName);
       return (tIterator != mArgumentMap.end());
@@ -582,14 +610,36 @@ class ArgumentParser {
         auto tArgument = mPositionalArguments[i];
         if (tArgument->mValues.size() != tArgument->mNumArgs) {
           std::cout << "error: " << tArgument->mNames[0] << ": expected "
-            << tArgument->mNumArgs << " arguments. "
+            << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? "argument. " : " arguments. ")
             << tArgument->mValues.size() << " provided.\n" << std::endl;
           print_help();
           exit(0);
         }
       }
+
+      // Check if all user-provided optional argument values are parsed correctly
+      for (size_t i = 0; i < mOptionalArguments.size(); i++) {
+        auto tArgument = mOptionalArguments[i];
+        if (tArgument->mNumArgs > 0) {
+          if (tArgument->mValues.size() != tArgument->mNumArgs) {
+            // All cool if there's a default value to return
+            // If no default value, then there's a problem
+            if (!tArgument->mDefaultValue.has_value()) {
+              std::cout << "error: " << tArgument->mNames[0] << ": expected "
+                << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? "argument. " : " arguments. ")
+                << tArgument->mValues.size() << " provided.\n" << std::endl;
+              print_help();
+              exit(0);
+            }
+          }
+        }
+        else {
+          // TODO: check if an implicit value was programmed for this argument
+        }
+      }
     }
 
+    // Used by print_help. 
     size_t get_length_of_longest_argument() {
       size_t tResult = 0;
       for (size_t i = 0; i < mPositionalArguments.size(); i++) {
