@@ -322,7 +322,7 @@ argparse::ArgumentParser program("test");
 
 program.add_argument("input")
   .default_value("baz")
-  .action([=](const std::string& value) {
+  .action([](const std::string& value) {
     static const std::vector<std::string> choices = { "foo", "bar", "baz" };
     if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
       return value;
