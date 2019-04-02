@@ -66,6 +66,4 @@ TEST_CASE("Square a number", "[positional_arguments]") {
 
   program.parse_args({"./main", "15"});
   REQUIRE(program.get<int>("square") == 225);
-
-  program.print_help();
 }
