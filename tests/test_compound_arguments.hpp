@@ -123,3 +123,30 @@ TEST_CASE("Parse out-of-order compound arguments", "[compound_arguments]") {
   auto b = program.get<bool>("-b");                // true
   auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
 }
+
+TEST_CASE("Parse out-of-order compound arguments. Second variation", "[compound_arguments]") {
+  argparse::ArgumentParser program("test");
+
+  program.add_argument("-a")
+    .default_value(false)
+    .implicit_value(true);
+
+  program.add_argument("-b")
+    .default_value(false)
+    .implicit_value(true);
+
+  program.add_argument("-c")
+    .nargs(2)
+    .default_value(std::vector<float>{0.0f, 0.0f})
+    .action([](const std::string& value) { return std::stof(value); });
+
+  program.parse_args({"./main", "-cb"}); 
+
+  auto a = program.get<bool>("-a");
+  auto b = program.get<bool>("-b");
+  auto c = program.get<std::vector<float>>("-c");
+
+  REQUIRE(a == false);
+  REQUIRE(b == true);
+  REQUIRE(program["-c"] == std::vector<float>{0.0f, 0.0f});
+}

@@ -478,10 +478,12 @@ class ArgumentParser {
                 tNumArgs = tArgumentObject->mNumArgs;
               }
               std::vector<std::string> tArgumentsForRecursiveParsing = { "", "-" + tArgument };
-              while (tNumArgs > 0) {
+              while (tNumArgs > 0 && i < argc) {
                 i += 1;
-                tArgumentsForRecursiveParsing.push_back(argv[i]);
-                tNumArgs -= 1;
+                if (i < argc) {
+                  tArgumentsForRecursiveParsing.push_back(argv[i]);
+                  tNumArgs -= 1;
+                }
               }
               parse_args_internal(tArgumentsForRecursiveParsing);
             }
