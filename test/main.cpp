@@ -1,0 +1,10 @@
+#define CATCH_CONFIG_MAIN
+#include <iostream>
+#include <argparse.hpp>
+#include <test_parse_args.hpp>
+#include <test_positional_arguments.hpp>
+#include <test_optional_arguments.hpp>
+#include <test_compound_arguments.hpp>
+#include <test_actions.hpp>
+#include <test_container_arguments.hpp>
+#include <test_parent_parsers.hpp>
