@@ -274,6 +274,30 @@ class ArgumentParser {
       return *tArgument;
     }
 
+    void add_parents() {
+      for (size_t i = 0; i < mParentParsers.size(); i++) {
+        auto tParentParser = mParentParsers[i];
+        auto tPositionalArguments = tParentParser.mPositionalArguments;
+        for (auto& tArgument : tPositionalArguments) {
+          mPositionalArguments.push_back(tArgument);
+        }
+        auto tOptionalArguments = tParentParser.mOptionalArguments;
+        for (auto& tArgument : tOptionalArguments) {
+          mOptionalArguments.push_back(tArgument);
+        }
+        auto tArgumentMap = tParentParser.mArgumentMap;
+        for (auto&[tKey, tValue] : tArgumentMap) {
+          upsert(mArgumentMap, tKey, tValue);
+        }
+      }
+    }
+
+    template<typename T, typename... Targs>
+    void add_parents(T aArgumentParser, Targs... Fargs) {
+      mParentParsers.push_back(aArgumentParser);
+      add_parents(Fargs...);
+    }
+
     void parse_args(const std::vector<std::string>& aArguments) {
       parse_args_internal(aArguments);
       parse_args_validate();
@@ -563,6 +587,7 @@ class ArgumentParser {
     }
 
     std::string mProgramName;
+    std::vector<ArgumentParser> mParentParsers;
     std::vector<std::shared_ptr<Argument>> mPositionalArguments;
     std::vector<std::shared_ptr<Argument>> mOptionalArguments;
     size_t mNextPositionalArgument;
