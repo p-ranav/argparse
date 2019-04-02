@@ -34,10 +34,11 @@ int main(int argc, char *argv[]) {
 
   program.add_argument("square")
     .help("display the square of a given integer")
-    .action([](const std::string& value) { return pow(std::stoi(value), 2); });
+    .action([](const std::string& value) { return std::stoi(value); });
 
   program.parse_args(argc, argv);
-  std::cout << program.get<double>("square") << std::endl;
+  auto input = program.get<int>("square");
+  std::cout << (input * input) << std::endl;
 
   return 0;
 }
@@ -53,9 +54,7 @@ $ ./main 15
 Here's what's happening:
 
 * The ```add_argument()``` method is used to specify which command-line options the program is willing to accept. In this case, I’ve named it square so that it’s in line with its function.
-* Command-line arguments are strings. Inorder to square the argument and print the result, we need to convert this argument to a number. In order to do this, we use the ```.action``` method and provide a lambda function that takes the argument value (std::string) and returns the square of the number it represents. Actions are quite powerful as you will see in later examples. 
-* Calling our program now requires us to specify an option.
-* The ```parse_args()``` method parses the arguments provided, converts our input into an integer and returns the square. 
+* Command-line arguments are strings. Inorder to square the argument and print the result, we need to convert this argument to a number. In order to do this, we use the ```.action``` method and provide a lambda function that tries to convert user input into an integer.
 * We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method. 
 
 ### Optional Arguments
