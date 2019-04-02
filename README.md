@@ -146,7 +146,7 @@ argparse::ArgumentParser program("main");
 program.add_argument("--query_point")
   .help("3D query point")
   .nargs(3)
-  .default(std::vector<double>{0.0, 0.0, 0.0})
+  .default_value(std::vector<double>{0.0, 0.0, 0.0})
   .action([](const std::string& value) { return std::stod(value); });
 
 program.parse_args(argc, argv);  // Example: ./main --query_point 3.5 4.7 9.2
@@ -174,11 +174,11 @@ program.add_argument("-c")
   .default_value(std::vector<float>{0.0f, 0.0f})
   .action([](const std::string& value) { return std::stof(value); });
 
-program.parse_args({ "./main", "-abc", "3.14", "2.718" });
+program.parse_args(argc, argv);                    // Example: ./main -abc 1.95 2.47 
 
-auto a = program.get<bool>("-a");                // true
-auto b = program.get<bool>("-b");                // true
-auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
+auto a = program.get<bool>("-a");                  // true
+auto b = program.get<bool>("-b");                  // true
+auto c = program.get<std::vector<float>>("-c");    // {1.95, 2.47}
 
 /// Some code that prints parsed arguments
 ```
