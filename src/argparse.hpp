@@ -85,17 +85,9 @@ T get_from_list(const std::vector<T>& aList, size_t aIndex) {
   return aList[aIndex];
 }
 
-struct Argument {
-  std::vector<std::string> mNames;
-  std::string mHelp;
-  std::any mDefaultValue;
-  std::any mImplicitValue;
-  std::function<std::any(const std::string&)> mAction;
-  std::vector<std::any> mValues;
-  std::vector<std::string> mRawValues;
-  size_t mNumArgs;
-  bool mIsOptional;
-
+class Argument {
+  friend class ArgumentParser;
+public:
   Argument() :
     mNames({}),
     mHelp(""),
@@ -129,97 +121,6 @@ struct Argument {
   Argument& nargs(size_t aNumArgs) {
     mNumArgs = aNumArgs;
     return *this;
-  }
-
-  template <typename T>
-  T get() const {
-    if (mValues.size() == 0) {
-      if (mDefaultValue.has_value()) {
-        return std::any_cast<T>(mDefaultValue);
-      }
-      else
-        return T();
-    }
-    else {
-      if (mRawValues.size() > 0)
-        return std::any_cast<T>(mValues[0]);
-      else {
-        if (mDefaultValue.has_value())
-          return std::any_cast<T>(mDefaultValue);
-        else
-          return T();
-      }
-    }
-  }
-
-  template <typename T>
-  T get_vector() const {
-    T tResult;
-    if (mValues.size() == 0) {
-      if (mDefaultValue.has_value()) {
-        T tDefaultValues = std::any_cast<T>(mDefaultValue);
-        for (size_t i = 0; i < tDefaultValues.size(); i++) {
-          tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
-        }
-        return tResult;
-      }
-      else
-        return T();
-    }
-    else {
-      if (mRawValues.size() > 0) {
-        for (size_t i = 0; i < mValues.size(); i++) {
-          tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
-        }
-        return tResult;
-      }
-      else {
-        if (mDefaultValue.has_value()) {
-          std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
-          for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
-          }
-          return tResult;
-        }
-        else
-          return T();
-      }
-    }
-  }
-
-  template <typename T>
-  T get_list() const {
-    T tResult;
-    if (mValues.size() == 0) {
-      if (mDefaultValue.has_value()) {
-        T tDefaultValues = std::any_cast<T>(mDefaultValue);
-        for (size_t i = 0; i < tDefaultValues.size(); i++) {
-          tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
-        }
-        return tResult;
-      }
-      else
-        return T();
-    }
-    else {
-      if (mRawValues.size() > 0) {
-        for (size_t i = 0; i < mValues.size(); i++) {
-          tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
-        }
-        return tResult;
-      }
-      else {
-        if (mDefaultValue.has_value()) {
-          std::list<T> tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
-          for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
-          }
-          return tResult;
-        }
-        else
-          return T();
-      }
-    }
   }
 
   template <typename T>
@@ -266,6 +167,108 @@ struct Argument {
     }
   }
 
+  private:
+
+    template <typename T>
+    T get() const {
+      if (mValues.size() == 0) {
+        if (mDefaultValue.has_value()) {
+          return std::any_cast<T>(mDefaultValue);
+        }
+        else
+          return T();
+      }
+      else {
+        if (mRawValues.size() > 0)
+          return std::any_cast<T>(mValues[0]);
+        else {
+          if (mDefaultValue.has_value())
+            return std::any_cast<T>(mDefaultValue);
+          else
+            return T();
+        }
+      }
+    }
+
+    template <typename T>
+    T get_vector() const {
+      T tResult;
+      if (mValues.size() == 0) {
+        if (mDefaultValue.has_value()) {
+          T tDefaultValues = std::any_cast<T>(mDefaultValue);
+          for (size_t i = 0; i < tDefaultValues.size(); i++) {
+            tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
+          }
+          return tResult;
+        }
+        else
+          return T();
+      }
+      else {
+        if (mRawValues.size() > 0) {
+          for (size_t i = 0; i < mValues.size(); i++) {
+            tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
+          }
+          return tResult;
+        }
+        else {
+          if (mDefaultValue.has_value()) {
+            std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
+            for (size_t i = 0; i < tDefaultValues.size(); i++) {
+              tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
+            }
+            return tResult;
+          }
+          else
+            return T();
+        }
+      }
+    }
+
+    template <typename T>
+    T get_list() const {
+      T tResult;
+      if (mValues.size() == 0) {
+        if (mDefaultValue.has_value()) {
+          T tDefaultValues = std::any_cast<T>(mDefaultValue);
+          for (size_t i = 0; i < tDefaultValues.size(); i++) {
+            tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
+          }
+          return tResult;
+        }
+        else
+          return T();
+      }
+      else {
+        if (mRawValues.size() > 0) {
+          for (size_t i = 0; i < mValues.size(); i++) {
+            tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
+          }
+          return tResult;
+        }
+        else {
+          if (mDefaultValue.has_value()) {
+            std::list<T> tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
+            for (size_t i = 0; i < tDefaultValues.size(); i++) {
+              tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
+            }
+            return tResult;
+          }
+          else
+            return T();
+        }
+      }
+    }
+
+    std::vector<std::string> mNames;
+    std::string mHelp;
+    std::any mDefaultValue;
+    std::any mImplicitValue;
+    std::function<std::any(const std::string&)> mAction;
+    std::vector<std::any> mValues;
+    std::vector<std::string> mRawValues;
+    size_t mNumArgs;
+    bool mIsOptional;
 };
 
 class ArgumentParser {
