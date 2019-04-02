@@ -27,12 +27,20 @@ Argparse supports a variety of argument types including positional, optional, an
 Here's an example of a ***positional argument***:
 
 ```cpp
-program.add_argument("square")
-  .help("display the square of a given integer")
-  .action([](const std::string& value) { return pow(std::stoi(value), 2); });
+#include <argparse.hpp>
 
-program.parse_args(argc, argv);
-std::cout << program.get<double>("square") << std::endl;
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("program name");
+
+  program.add_argument("square")
+    .help("display the square of a given integer")
+    .action([](const std::string& value) { return pow(std::stoi(value), 2); });
+
+  program.parse_args(argc, argv);
+  std::cout << program.get<double>("square") << std::endl;
+
+  return 0;
+}
 ```
 
 And running the code:
