@@ -341,6 +341,11 @@ $ ./main fex
 baz
 ```
 
+## Supported Compilers
+* GCC >= 7.0.0
+* Clang >= 4.0
+* MSVC >= 2017
+
 ## Contributing
 Contributions are welcomed, have a look at the [CONTRIBUTING.md](CONTRIBUTING.md) document for more information.
 
