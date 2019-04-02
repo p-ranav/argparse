@@ -120,7 +120,7 @@ The square of 4 is 16
 
 ```ArgumentParser.print_help()``` print a help message, including the program usage and information about the arguments registered with the ArgumentParser. For the previous example, here's the default help message:
 
-```bash
+```
 $ ./main --help
 Usage: ./main [options] square
 
