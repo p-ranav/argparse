@@ -55,10 +55,17 @@ TEST_CASE("Parse positional arguments with optional arguments in the middle", "[
 
 TEST_CASE("Square a number", "[positional_arguments]") {
   argparse::ArgumentParser program;
+  program.add_argument("--verbose", "-v")
+    .help("enable verbose logging")
+    .default_value(false)
+    .implicit_value(true);
+
   program.add_argument("square")
     .help("display a square of a given number")
     .action([](const std::string& value) { auto integer = std::stoi(value); return integer * integer; });
 
   program.parse_args({"./main", "15"});
   REQUIRE(program.get<int>("square") == 225);
+
+  program.print_help();
 }
