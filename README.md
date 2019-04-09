@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
     .action([](const std::string& value) { return std::stoi(value); });
 
   program.parse_args(argc, argv);
+  
   auto input = program.get<int>("square");
   std::cout << (input * input) << std::endl;
 
