@@ -330,9 +330,9 @@ program.add_argument("input")
     return std::string{ "baz" };
   });
 
-program.parse_args({ "./test", "fez" });
+program.parse_args(argc, argv);
 
-auto input = program.get("input"); // baz
+auto input = program.get("input");
 std::cout << input << std::endl;
 ```
 
