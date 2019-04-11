@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(argparse VERSION 0.1.0 LANGUAGES CXX)
+project(argparse VERSION 1.0.0 LANGUAGES CXX)
 option(ARGPARSE_BUILD_TESTS OFF)
 
 include(GNUInstallDirs)
