@@ -556,28 +556,38 @@ class ArgumentParser {
             // The user provides ./main -aux ...
             // Here -aux is a compound optional argument
             std::string tCompoundArgument = std::string(argv[i]);
-            for (size_t j = 1; j < tCompoundArgument.size(); j++) {
-              std::string tArgument(1, tCompoundArgument[j]);
-              size_t tNumArgs = 0;
-              std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find("-" + tArgument);
-              if (tIterator != mArgumentMap.end()) {
-                auto tArgumentObject = tIterator->second;
-                tNumArgs = tArgumentObject->mNumArgs;
-              }
-              std::vector<std::string> tArgumentsForRecursiveParsing = { "", "-" + tArgument };
-              while (tNumArgs > 0 && i < argc) {
-                i += 1;
-                if (i < argc) {
-                  tArgumentsForRecursiveParsing.push_back(argv[i]);
-                  tNumArgs -= 1;
+            if (tCompoundArgument.size() > 1 && tCompoundArgument[0] == '-' && tCompoundArgument[1] != '-') {
+              for (size_t j = 1; j < tCompoundArgument.size(); j++) {
+                std::string tArgument(1, tCompoundArgument[j]);
+                size_t tNumArgs = 0;
+                std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find("-" + tArgument);
+                if (tIterator != mArgumentMap.end()) {
+                  auto tArgumentObject = tIterator->second;
+                  tNumArgs = tArgumentObject->mNumArgs;
                 }
+                std::vector<std::string> tArgumentsForRecursiveParsing = { "", "-" + tArgument };
+                while (tNumArgs > 0 && i < argc) {
+                  i += 1;
+                  if (i < argc) {
+                    tArgumentsForRecursiveParsing.push_back(argv[i]);
+                    tNumArgs -= 1;
+                  }
+                }
+                parse_args_internal(tArgumentsForRecursiveParsing);
               }
-              parse_args_internal(tArgumentsForRecursiveParsing);
+            }
+            else {
+              std::cout << "warning: unrecognized optional argument " << tCompoundArgument << std::endl;
             }
           }
           else {
             // This is a positional argument. 
             // Parse and save into mPositionalArguments vector
+            if (mNextPositionalArgument >= mPositionalArguments.size()) {
+              std::cout << "error: unexpected positional argument " << argv[i] << std::endl;
+              print_help();
+              exit(0);
+            }
             auto tArgument = mPositionalArguments[mNextPositionalArgument];
             auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
             while (tCount > 0) {
