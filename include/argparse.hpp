@@ -504,7 +504,7 @@ class ArgumentParser {
       for (const auto& arg : aArguments)
         argv.push_back((char*)arg.data());
       argv.push_back(nullptr);
-      return parse_args_internal(argv.size() - 1, argv.data());
+      return parse_args_internal(int(argv.size()) - 1, argv.data());
     }
 
     void parse_args_internal(int argc, char * argv[]) {
