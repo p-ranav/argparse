@@ -313,7 +313,7 @@ numbers = {1, 2, 3}
 a = true
 b = true
 c = {3.14, 2.718}
-d = {"a.txt", "b.txt", "c.txt"}
+files = {"a.txt", "b.txt", "c.txt"}
 ```
 
 ### Restricting the set of values for an argument
