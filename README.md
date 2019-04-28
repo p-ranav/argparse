@@ -1,8 +1,10 @@
-# Argument Parser for Modern C++
+<p align="center">
+  <img height="100" src="https://i.imgur.com/oDXeMUQ.png" alt="pprint"/>
+</p>
 
 ## Highlights
 
-* Header-only library
+* Single header file
 * Requires C++17
 * MIT License
 
