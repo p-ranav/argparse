@@ -623,7 +623,7 @@ class ArgumentParser {
         auto tArgument = mPositionalArguments[i];
         if (tArgument->mValues.size() != tArgument->mNumArgs) {
           std::cout << "error: " << tArgument->mNames[0] << ": expected "
-            << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? "argument. " : " arguments. ")
+            << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
             << tArgument->mValues.size() << " provided.\n" << std::endl;
           print_help();
           exit(0);
@@ -639,7 +639,7 @@ class ArgumentParser {
             // If no default value, then there's a problem
             if (!tArgument->mDefaultValue.has_value()) {
               std::cout << "error: " << tArgument->mNames[0] << ": expected "
-                << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? "argument. " : " arguments. ")
+                << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
                 << tArgument->mValues.size() << " provided.\n" << std::endl;
               print_help();
               exit(0);
