@@ -89,6 +89,7 @@ class Argument {
 public:
   Argument() :
     mNames({}),
+    mUsedName(""),
     mHelp(""),
     mAction([](const std::string& aValue) { return aValue; }),
     mValues({}),
@@ -267,10 +268,11 @@ public:
     }
 
     std::vector<std::string> mNames;
+    std::string mUsedName;
     std::string mHelp;
     std::any mDefaultValue;
     std::any mImplicitValue;
-    std::function<std::any(const std::string&)> mAction;
+    std::function<std::any(const std::string&)> mAction;  
     std::vector<std::any> mValues;
     std::vector<std::string> mRawValues;
     size_t mNumArgs;
@@ -520,6 +522,7 @@ class ArgumentParser {
         if (tIterator != mArgumentMap.end()) {
           // Start parsing optional argument
           auto tArgument = tIterator->second;
+	  tArgument->mUsedName = tCurrentArgument;
           tArgument->mIsUsed = true;
           auto tCount = tArgument->mNumArgs;
 
@@ -536,6 +539,7 @@ class ArgumentParser {
           while (tCount > 0) {
             i = i + 1;
             if (i < argc) {
+	      tArgument->mUsedName = tCurrentArgument;
               tArgument->mRawValues.push_back(argv[i]);
               if (tArgument->mAction != nullptr)
                 tArgument->mValues.push_back(tArgument->mAction(argv[i]));
@@ -597,6 +601,7 @@ class ArgumentParser {
                 break;
               }
               if (i < argc) {
+		tArgument->mUsedName = tCurrentArgument;
                 tArgument->mRawValues.push_back(argv[i]);
                 if (tArgument->mAction != nullptr)
                   tArgument->mValues.push_back(tArgument->mAction(argv[i]));
@@ -622,7 +627,7 @@ class ArgumentParser {
       for (size_t i = 0; i < mPositionalArguments.size(); i++) {
         auto tArgument = mPositionalArguments[i];
         if (tArgument->mValues.size() != tArgument->mNumArgs) {
-          std::cout << "error: " << tArgument->mNames[0] << ": expected "
+          std::cout << "error: " << tArgument->mUsedName << ": expected "
             << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
             << tArgument->mValues.size() << " provided.\n" << std::endl;
           print_help();
@@ -638,7 +643,7 @@ class ArgumentParser {
             // All cool if there's a default value to return
             // If no default value, then there's a problem
             if (!tArgument->mDefaultValue.has_value()) {
-              std::cout << "error: " << tArgument->mNames[0] << ": expected "
+              std::cout << "error: " << tArgument->mUsedName << ": expected "
                 << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
                 << tArgument->mValues.size() << " provided.\n" << std::endl;
               print_help();
