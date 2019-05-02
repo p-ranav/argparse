@@ -22,7 +22,14 @@ To start parsing command-line arguments, create an ```ArgumentParser```.
 argparse::ArgumentParser program("program name");
 ```
 
-Argparse supports a variety of argument types including positional, optional, and compound arguments.
+To add a new argument, simply call ```.add_argument(...)```. You can provide a variadic list of argument names that you want to group together, e.g., ```-v``` and ```--verbose```
+
+```cpp
+program.add_argument("foo");
+program.add_argument("-v", "--verbose"); // parameter packing
+```
+
+Argparse supports a variety of argument types including positional, optional, and compound arguments. Below you can see how to configure each of these types:
 
 ### Positional Arguments
 
