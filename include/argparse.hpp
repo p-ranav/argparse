@@ -518,7 +518,8 @@ class ArgumentParser {
           print_help();
           exit(0);
         }
-        std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
+        std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator =
+	  mArgumentMap.find(argv[i]);
         if (tIterator != mArgumentMap.end()) {
           // Start parsing optional argument
           auto tArgument = tIterator->second;
@@ -568,16 +569,24 @@ class ArgumentParser {
                 if (tIterator != mArgumentMap.end()) {
                   auto tArgumentObject = tIterator->second;
                   tNumArgs = tArgumentObject->mNumArgs;
+		  std::vector<std::string> tArgumentsForRecursiveParsing = { "", "-" + tArgument };
+		  while (tNumArgs > 0 && i < argc) {
+		    i += 1;
+		    if (i < argc) {
+		      tArgumentsForRecursiveParsing.push_back(argv[i]);
+		      tNumArgs -= 1;
+		    }
+		  }
+		  parse_args_internal(tArgumentsForRecursiveParsing);		  
                 }
-                std::vector<std::string> tArgumentsForRecursiveParsing = { "", "-" + tArgument };
-                while (tNumArgs > 0 && i < argc) {
-                  i += 1;
-                  if (i < argc) {
-                    tArgumentsForRecursiveParsing.push_back(argv[i]);
-                    tNumArgs -= 1;
-                  }
-                }
-                parse_args_internal(tArgumentsForRecursiveParsing);
+		else {
+		  if (tArgument.size() > 0 && tArgument[0] == '-')
+		    std::cout << "warning: unrecognized optional argument " << tArgument
+			      << std::endl;
+		  else
+		    std::cout << "warning: unrecognized optional argument -" << tArgument
+			      << std::endl;		    
+		}
               }
             }
             else {
