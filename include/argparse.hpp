@@ -2,7 +2,7 @@
   __ _ _ __ __ _ _ __   __ _ _ __ ___  ___
  / _` | '__/ _` | '_ \ / _` | '__/ __|/ _ \ Argument Parser for Modern C++
 | (_| | | | (_| | |_) | (_| | |  \__ \  __/ http://github.com/p-ranav/argparse
- \__,_|_|  \__, | .__/ \__,_|_|  |___/\___|  
+ \__,_|_|  \__, | .__/ \__,_|_|  |___/\___|
            |___/|_|
 
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
@@ -272,7 +272,7 @@ public:
     std::string mHelp;
     std::any mDefaultValue;
     std::any mImplicitValue;
-    std::function<std::any(const std::string&)> mAction;  
+    std::function<std::any(const std::string&)> mAction;
     std::vector<std::any> mValues;
     std::vector<std::string> mRawValues;
     size_t mNumArgs;
@@ -315,7 +315,7 @@ class ArgumentParser {
       else
         mOptionalArguments.push_back(tArgument);
 
-      for (auto& mName : tArgument->mNames) { 
+      for (auto& mName : tArgument->mNames) {
         upsert(mArgumentMap, mName, tArgument);
       }
       return *tArgument;
@@ -364,7 +364,7 @@ class ArgumentParser {
 
     // Getter enabled for all template types other than std::vector and std::list
     template <typename T = std::string>
-    typename std::enable_if<is_specialization<T, std::vector>::value == false && 
+    typename std::enable_if<is_specialization<T, std::vector>::value == false &&
                             is_specialization<T, std::list>::value == false, T>::type
     get(const char * aArgumentName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
@@ -409,7 +409,7 @@ class ArgumentParser {
     }
 
     // Printing the one and only help message
-    // I've stuck with a simple message format, nothing fancy. 
+    // I've stuck with a simple message format, nothing fancy.
     // TODO: support user-defined help and usage messages for the ArgumentParser
     std::string print_help() {
       std::stringstream stream;
@@ -441,7 +441,7 @@ class ArgumentParser {
           stream << std::string(2, ' ');
         else
           stream << std::string((tCurrentLength - tLongestArgumentLength) + 2, ' ');
-        
+
         stream << mPositionalArguments[i]->mHelp << "\n";
       }
 
@@ -452,9 +452,9 @@ class ArgumentParser {
       for (size_t i = 0; i < mOptionalArguments.size(); i++) {
         size_t tCurrentLength = 0;
         auto tNames = mOptionalArguments[i]->mNames;
-        std::sort(tNames.begin(), tNames.end(), 
+        std::sort(tNames.begin(), tNames.end(),
           [](const std::string& lhs, const std::string& rhs) {
-            return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size(); 
+            return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
         });
         for (size_t j = 0; j < tNames.size() - 1; j++) {
           auto tCurrentName = tNames[j];
@@ -504,7 +504,7 @@ class ArgumentParser {
     void parse_args_internal(const std::vector<std::string>& aArguments) {
       std::vector<char*> argv;
       for (const auto& arg : aArguments)
-        argv.push_back((char*)arg.data());
+        argv.push_back(const_cast<char*>(arg.data()));
       argv.push_back(nullptr);
       return parse_args_internal(int(argv.size()) - 1, argv.data());
     }
@@ -565,7 +565,7 @@ class ArgumentParser {
               for (size_t j = 1; j < tCompoundArgument.size(); j++) {
                 std::string tArgument(1, tCompoundArgument[j]);
                 size_t tNumArgs = 0;
-                std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find("-" + tArgument);
+                tIterator = mArgumentMap.find("-" + tArgument);
                 if (tIterator != mArgumentMap.end()) {
                   auto tArgumentObject = tIterator->second;
                   tNumArgs = tArgumentObject->mNumArgs;
@@ -577,7 +577,7 @@ class ArgumentParser {
 		      tNumArgs -= 1;
 		    }
 		  }
-		  parse_args_internal(tArgumentsForRecursiveParsing);		  
+		  parse_args_internal(tArgumentsForRecursiveParsing);
                 }
 		else {
 		  if (tArgument.size() > 0 && tArgument[0] == '-')
@@ -585,7 +585,7 @@ class ArgumentParser {
 			      << std::endl;
 		  else
 		    std::cout << "warning: unrecognized optional argument -" << tArgument
-			      << std::endl;		    
+			      << std::endl;
 		}
               }
             }
@@ -594,7 +594,7 @@ class ArgumentParser {
             }
           }
           else {
-            // This is a positional argument. 
+            // This is a positional argument.
             // Parse and save into mPositionalArguments vector
             if (mNextPositionalArgument >= mPositionalArguments.size()) {
               std::cout << "error: unexpected positional argument " << argv[i] << std::endl;
@@ -604,7 +604,7 @@ class ArgumentParser {
             auto tArgument = mPositionalArguments[mNextPositionalArgument];
             auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
             while (tCount > 0) {
-              std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(argv[i]);
+              tIterator = mArgumentMap.find(argv[i]);
               if (tIterator != mArgumentMap.end() || is_optional(argv[i])) {
                 i = i - 1;
                 break;
@@ -666,7 +666,7 @@ class ArgumentParser {
       }
     }
 
-    // Used by print_help. 
+    // Used by print_help.
     size_t get_length_of_longest_argument() {
       size_t tResult = 0;
       for (size_t i = 0; i < mPositionalArguments.size(); i++) {
