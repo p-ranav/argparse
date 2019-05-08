@@ -89,6 +89,12 @@ class Argument {
 public:
   Argument() = default;
 
+  template <typename ...Args>
+  Argument(Args... args)
+    : mNames({std::move(args)...})
+    , mIsOptional((is_optional(args) || ...))
+  {}
+
   Argument& help(const std::string& aHelp) {
     mHelp = aHelp;
     return *this;
@@ -163,6 +169,10 @@ public:
   }
 
   private:
+    // If an argument starts with "-" or "--", then it's optional
+    static bool is_optional(const std::string& aName) {
+      return (starts_with(aName, "--") || starts_with(aName, "-"));
+    }
 
     // Getter for template types other than std::vector and std::list
     template <typename T>
@@ -289,17 +299,9 @@ class ArgumentParser {
 
     // Parameter packing
     // Call add_argument with variadic number of string arguments
-    // TODO: enforce T to be std::string
-    template<typename T, typename... Targs>
-    Argument& add_argument(T value, Targs... Fargs) {
-      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
-      tArgument->mNames.push_back(value);
-      add_argument_internal(tArgument, Fargs...);
-
-      for (auto& mName : tArgument->mNames) {
-        if (is_optional(mName))
-          tArgument->mIsOptional = true;
-      }
+    template<typename... Targs>
+    Argument& add_argument(Targs... Fargs) {
+      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>(Fargs...);
 
       if (!tArgument->mIsOptional)
         mPositionalArguments.push_back(tArgument);
@@ -470,22 +472,6 @@ class ArgumentParser {
     }
 
   private:
-    Argument& add_argument_internal(std::shared_ptr<Argument> aArgument) {
-      return *aArgument;
-    }
-
-    template<typename T, typename... Targs>
-    Argument& add_argument_internal(std::shared_ptr<Argument> aArgument, T aArgumentName, Targs... Fargs) {
-      aArgument->mNames.push_back(aArgumentName);
-      add_argument_internal(aArgument, Fargs...);
-      return *aArgument;
-    }
-
-    // If an argument starts with "-" or "--", then it's optional
-    bool is_optional(const std::string& aName) {
-      return (starts_with(aName, "--") || starts_with(aName, "-"));
-    }
-
     // If the argument was defined by the user and can be found in mArgumentMap, then it's valid
     bool is_valid_argument(const std::string& aName) {
       std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aName);
@@ -546,7 +532,7 @@ class ArgumentParser {
           }
         }
         else {
-          if (is_optional(argv[i])) {
+          if (Argument::is_optional(argv[i])) {
             // This is possibly a compound optional argument
             // Example: We have three optional arguments -a, -u and -x
             // The user provides ./main -aux ...
@@ -596,7 +582,7 @@ class ArgumentParser {
             auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
             while (tCount > 0) {
               tIterator = mArgumentMap.find(argv[i]);
-              if (tIterator != mArgumentMap.end() || is_optional(argv[i])) {
+              if (tIterator != mArgumentMap.end() || Argument::is_optional(argv[i])) {
                 i = i - 1;
                 break;
               }
