@@ -87,16 +87,7 @@ T get_from_list(const std::list<T>& aList, size_t aIndex) {
 class Argument {
   friend class ArgumentParser;
 public:
-  Argument() :
-    mNames({}),
-    mUsedName(""),
-    mHelp(""),
-    mAction([](const std::string& aValue) { return aValue; }),
-    mValues({}),
-    mRawValues({}),
-    mNumArgs(1),
-    mIsOptional(false),
-    mIsUsed(false) {}
+  Argument() = default;
 
   Argument& help(const std::string& aHelp) {
     mHelp = aHelp;
@@ -272,12 +263,12 @@ public:
     std::string mHelp;
     std::any mDefaultValue;
     std::any mImplicitValue;
-    std::function<std::any(const std::string&)> mAction;
+    std::function<std::any(const std::string&)> mAction = [](const std::string& aValue) { return aValue; };
     std::vector<std::any> mValues;
     std::vector<std::string> mRawValues;
-    size_t mNumArgs;
-    bool mIsOptional;
-    bool mIsUsed; // relevant for optional arguments. True if used by user
+    size_t mNumArgs = 1;
+    bool mIsOptional = false;
+    bool mIsUsed = false; // relevant for optional arguments. True if used by user
 };
 
 class ArgumentParser {
