@@ -126,8 +126,8 @@ public:
 
   // Entry point for template types other than std::vector and std::list
   template <typename T>
-  typename std::enable_if<is_specialization<T, std::vector>::value == false &&
-                          is_specialization<T, std::list>::value == false, bool>::type
+  typename std::enable_if<!is_specialization<T, std::vector>::value &&
+                          !is_specialization<T, std::list>::value, bool>::type
     operator==(const T& aRhs) const {
     return get<T>() == aRhs;
   }
@@ -354,8 +354,8 @@ class ArgumentParser {
 
     // Getter enabled for all template types other than std::vector and std::list
     template <typename T = std::string>
-    typename std::enable_if<is_specialization<T, std::vector>::value == false &&
-                            is_specialization<T, std::list>::value == false, T>::type
+    typename std::enable_if<!is_specialization<T, std::vector>::value &&
+                            !is_specialization<T, std::list>::value, T>::type
     get(const char * aArgumentName) {
       auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
