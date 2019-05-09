@@ -478,8 +478,8 @@ class ArgumentParser {
     void parse_args_internal(const std::vector<std::string>& aArguments) {
       std::vector<char*> argv;
       for (const auto& arg : aArguments)
-        argv.push_back(const_cast<char*>(arg.data()));
-      argv.push_back(nullptr);
+        argv.emplace_back(const_cast<char*>(arg.data()));
+      argv.emplace_back(nullptr);
       return parse_args_internal(int(argv.size()) - 1, argv.data());
     }
 
@@ -507,21 +507,21 @@ class ArgumentParser {
           if (tCount == 0) {
             // Use implicit value for this optional argument
             tArgument->mValues.push_back(tArgument->mImplicitValue);
-            tArgument->mRawValues.push_back("");
+            tArgument->mRawValues.emplace_back();
             tCount = 0;
           }
           while (tCount > 0) {
             i = i + 1;
             if (i < argc) {
 	      tArgument->mUsedName = tCurrentArgument;
-              tArgument->mRawValues.push_back(argv[i]);
+              tArgument->mRawValues.emplace_back(argv[i]);
               if (tArgument->mAction != nullptr)
                 tArgument->mValues.push_back(tArgument->mAction(argv[i]));
               else {
                 if (tArgument->mDefaultValue.has_value())
                   tArgument->mValues.push_back(tArgument->mDefaultValue);
                 else
-                  tArgument->mValues.push_back(std::string(argv[i]));
+                  tArgument->mValues.emplace_back(std::string(argv[i]));
               }
             }
             tCount -= 1;
@@ -546,7 +546,7 @@ class ArgumentParser {
 		  while (tNumArgs > 0 && i < argc) {
 		    i += 1;
 		    if (i < argc) {
-		      tArgumentsForRecursiveParsing.push_back(argv[i]);
+		      tArgumentsForRecursiveParsing.emplace_back(argv[i]);
 		      tNumArgs -= 1;
 		    }
 		  }
@@ -584,14 +584,14 @@ class ArgumentParser {
               }
               if (i < argc) {
 		tArgument->mUsedName = tCurrentArgument;
-                tArgument->mRawValues.push_back(argv[i]);
+                tArgument->mRawValues.emplace_back(argv[i]);
                 if (tArgument->mAction != nullptr)
                   tArgument->mValues.push_back(tArgument->mAction(argv[i]));
                 else {
                   if (tArgument->mDefaultValue.has_value())
                     tArgument->mValues.push_back(tArgument->mDefaultValue);
                   else
-                    tArgument->mValues.push_back(std::string(argv[i]));
+                    tArgument->mValues.emplace_back(std::string(argv[i]));
                 }
               }
               tCount -= 1;
