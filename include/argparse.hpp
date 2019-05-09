@@ -52,9 +52,7 @@ struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
 // Upsert into std::map
 template <class KeyType, class ElementType>
 bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementType const& aNewValue) {
-  typedef typename std::map<KeyType, ElementType>::iterator Iterator;
-  typedef typename std::pair<Iterator, bool> Result;
-  Result tResult = aMap.insert(typename std::map<KeyType, ElementType>::value_type(aKey, aNewValue));
+  auto tResult = aMap.insert(typename std::map<KeyType, ElementType>::value_type(aKey, aNewValue));
   if (!tResult.second) {
     if (!(tResult.first->second == aNewValue)) {
       tResult.first->second = aNewValue;
@@ -360,7 +358,7 @@ class ArgumentParser {
     typename std::enable_if<is_specialization<T, std::vector>::value == false &&
                             is_specialization<T, std::list>::value == false, T>::type
     get(const char * aArgumentName) {
-      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get<T>();
       }
@@ -371,7 +369,7 @@ class ArgumentParser {
     template <typename T>
     typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
     get(const char * aArgumentName) {
-      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get_vector<T>();
       }
@@ -382,7 +380,7 @@ class ArgumentParser {
     template <typename T>
     typename std::enable_if<is_specialization<T, std::list>::value, T>::type
       get(const char * aArgumentName) {
-      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get_list<T>();
       }
@@ -392,7 +390,7 @@ class ArgumentParser {
     // Indexing operator. Return a reference to an Argument object
     // Used in conjuction with Argument.operator== e.g., parser["foo"] == true
     Argument& operator[](const std::string& aArgumentName) {
-      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aArgumentName);
+      auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return *(tIterator->second);
       }
@@ -474,7 +472,7 @@ class ArgumentParser {
   private:
     // If the argument was defined by the user and can be found in mArgumentMap, then it's valid
     bool is_valid_argument(const std::string& aName) {
-      std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator = mArgumentMap.find(aName);
+      auto tIterator = mArgumentMap.find(aName);
       return (tIterator != mArgumentMap.end());
     }
 
@@ -495,8 +493,7 @@ class ArgumentParser {
           print_help();
           exit(0);
         }
-        std::map<std::string, std::shared_ptr<Argument>>::iterator tIterator =
-	  mArgumentMap.find(argv[i]);
+        auto tIterator = mArgumentMap.find(argv[i]);
         if (tIterator != mArgumentMap.end()) {
           // Start parsing optional argument
           auto tArgument = tIterator->second;
