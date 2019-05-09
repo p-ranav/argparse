@@ -175,7 +175,7 @@ public:
     // Getter for template types other than std::vector and std::list
     template <typename T>
     T get() const {
-      if (mValues.size() == 0) {
+      if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
           return std::any_cast<T>(mDefaultValue);
         }
@@ -183,7 +183,7 @@ public:
           return T();
       }
       else {
-        if (mRawValues.size() > 0)
+        if (!mRawValues.empty())
           return std::any_cast<T>(mValues[0]);
         else {
           if (mDefaultValue.has_value())
@@ -198,7 +198,7 @@ public:
     template <typename T>
     T get_vector() const {
       T tResult;
-      if (mValues.size() == 0) {
+      if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
           T tDefaultValues = std::any_cast<T>(mDefaultValue);
           for (size_t i = 0; i < tDefaultValues.size(); i++) {
@@ -210,7 +210,7 @@ public:
           return T();
       }
       else {
-        if (mRawValues.size() > 0) {
+        if (!mRawValues.empty()) {
           for (const auto& mValue : mValues) {
             tResult.push_back(std::any_cast<typename T::value_type>(mValue));
           }
@@ -234,7 +234,7 @@ public:
     template <typename T>
     T get_list() const {
       T tResult;
-      if (mValues.size() == 0) {
+      if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
           T tDefaultValues = std::any_cast<T>(mDefaultValue);
           for (size_t i = 0; i < tDefaultValues.size(); i++) {
@@ -246,7 +246,7 @@ public:
           return T();
       }
       else {
-        if (mRawValues.size() > 0) {
+        if (!mRawValues.empty()) {
           for (const auto& mValue : mValues) {
             tResult.push_back(std::any_cast<typename T::value_type>(mValue));
           }
@@ -412,7 +412,7 @@ class ArgumentParser {
       }
       stream << "\n\n";
 
-      if (mPositionalArguments.size() > 0)
+      if (!mPositionalArguments.empty())
         stream << "Positional arguments:\n";
       for (const auto& mPositionalArgument : mPositionalArguments) {
         size_t tCurrentLength = 0;
@@ -435,9 +435,9 @@ class ArgumentParser {
         stream << mPositionalArgument->mHelp << "\n";
       }
 
-      if (mOptionalArguments.size() > 0 && mPositionalArguments.size() > 0)
+      if (!mOptionalArguments.empty() && !mPositionalArguments.empty())
         stream << "\nOptional arguments:\n";
-      else if (mOptionalArguments.size() > 0)
+      else if (!mOptionalArguments.empty())
         stream << "Optional arguments:\n";
       for (const auto & mOptionalArgument : mOptionalArguments) {
         size_t tCurrentLength = 0;
@@ -484,7 +484,7 @@ class ArgumentParser {
     }
 
     void parse_args_internal(int argc, char * argv[]) {
-      if (mProgramName == "" && argc > 0)
+      if (mProgramName.empty() && argc > 0)
         mProgramName = argv[0];
       for (int i = 1; i < argc; i++) {
         auto tCurrentArgument = std::string(argv[i]);
@@ -553,7 +553,7 @@ class ArgumentParser {
 		  parse_args_internal(tArgumentsForRecursiveParsing);
                 }
 		else {
-		  if (tArgument.size() > 0 && tArgument[0] == '-')
+		  if (!tArgument.empty() && tArgument[0] == '-')
 		    std::cout << "warning: unrecognized optional argument " << tArgument
 			      << std::endl;
 		  else
