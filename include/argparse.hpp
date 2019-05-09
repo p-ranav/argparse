@@ -90,7 +90,7 @@ public:
   Argument() = default;
 
   template <typename ...Args>
-  Argument(Args... args)
+  explicit Argument(Args... args)
     : mNames({std::move(args)...})
     , mIsOptional((is_optional(args) || ...))
   {}
@@ -301,7 +301,7 @@ class ArgumentParser {
     // Call add_argument with variadic number of string arguments
     template<typename... Targs>
     Argument& add_argument(Targs... Fargs) {
-      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>(Fargs...);
+      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>(std::move(Fargs)...);
 
       if (!tArgument->mIsOptional)
         mPositionalArguments.push_back(tArgument);
