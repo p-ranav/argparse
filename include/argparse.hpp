@@ -99,18 +99,18 @@ public:
   }
 
   Argument& default_value(std::any aDefaultValue) {
-    mDefaultValue = aDefaultValue;
+    mDefaultValue = std::move(aDefaultValue);
     return *this;
   }
 
   Argument& implicit_value(std::any aImplicitValue) {
-    mImplicitValue = aImplicitValue;
+    mImplicitValue = std::move(aImplicitValue);
     mNumArgs = 0;
     return *this;
   }
 
   Argument& action(std::function<std::any(const std::string&)> aAction) {
-    mAction = aAction;
+    mAction = std::move(aAction);
     return *this;
   }
 
@@ -281,8 +281,8 @@ public:
 
 class ArgumentParser {
   public:
-    ArgumentParser(const std::string& aProgramName = "") :
-      mProgramName(aProgramName),
+    explicit ArgumentParser(std::string aProgramName = "") :
+      mProgramName(std::move(aProgramName)),
       mNextPositionalArgument(0) {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
       tArgument->mNames = { "-h", "--help" };
