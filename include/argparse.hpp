@@ -211,8 +211,8 @@ public:
       }
       else {
         if (mRawValues.size() > 0) {
-          for (size_t i = 0; i < mValues.size(); i++) {
-            tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
+          for (const auto& mValue : mValues) {
+            tResult.push_back(std::any_cast<typename T::value_type>(mValue));
           }
           return tResult;
         }
@@ -247,8 +247,8 @@ public:
       }
       else {
         if (mRawValues.size() > 0) {
-          for (size_t i = 0; i < mValues.size(); i++) {
-            tResult.push_back(std::any_cast<typename T::value_type>(mValues[i]));
+          for (const auto& mValue : mValues) {
+            tResult.push_back(std::any_cast<typename T::value_type>(mValue));
           }
           return tResult;
         }
@@ -314,8 +314,7 @@ class ArgumentParser {
 
     // Base case for add_parents parameter packing
     void add_parents() {
-      for (size_t i = 0; i < mParentParsers.size(); i++) {
-        auto tParentParser = mParentParsers[i];
+      for (const auto& tParentParser : mParentParsers) {
         auto tPositionalArguments = tParentParser.mPositionalArguments;
         for (auto& tArgument : tPositionalArguments) {
           mPositionalArguments.push_back(tArgument);
@@ -415,9 +414,9 @@ class ArgumentParser {
 
       if (mPositionalArguments.size() > 0)
         stream << "Positional arguments:\n";
-      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
+      for (const auto& mPositionalArgument : mPositionalArguments) {
         size_t tCurrentLength = 0;
-        auto tNames = mPositionalArguments[i]->mNames;
+        auto tNames = mPositionalArgument->mNames;
         for (size_t j = 0; j < tNames.size() - 1; j++) {
           auto tCurrentName = tNames[j];
           stream << tCurrentName;
@@ -433,16 +432,16 @@ class ArgumentParser {
         else
           stream << std::string((tCurrentLength - tLongestArgumentLength) + 2, ' ');
 
-        stream << mPositionalArguments[i]->mHelp << "\n";
+        stream << mPositionalArgument->mHelp << "\n";
       }
 
       if (mOptionalArguments.size() > 0 && mPositionalArguments.size() > 0)
         stream << "\nOptional arguments:\n";
       else if (mOptionalArguments.size() > 0)
         stream << "Optional arguments:\n";
-      for (size_t i = 0; i < mOptionalArguments.size(); i++) {
+      for (const auto & mOptionalArgument : mOptionalArguments) {
         size_t tCurrentLength = 0;
-        auto tNames = mOptionalArguments[i]->mNames;
+        auto tNames = mOptionalArgument->mNames;
         std::sort(tNames.begin(), tNames.end(),
           [](const std::string& lhs, const std::string& rhs) {
             return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
@@ -462,7 +461,7 @@ class ArgumentParser {
         else
           stream << std::string((tCurrentLength - tLongestArgumentLength) + 2, ' ');
 
-        stream << mOptionalArguments[i]->mHelp << "\n";
+        stream << mOptionalArgument->mHelp << "\n";
       }
 
       std::cout << stream.str();
@@ -607,8 +606,7 @@ class ArgumentParser {
 
     void parse_args_validate() {
       // Check if all positional arguments are parsed
-      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
-        auto tArgument = mPositionalArguments[i];
+      for (const auto& tArgument : mPositionalArguments) {
         if (tArgument->mValues.size() != tArgument->mNumArgs) {
           std::cout << "error: " << tArgument->mUsedName << ": expected "
             << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
@@ -619,8 +617,7 @@ class ArgumentParser {
       }
 
       // Check if all user-provided optional argument values are parsed correctly
-      for (size_t i = 0; i < mOptionalArguments.size(); i++) {
-        auto tArgument = mOptionalArguments[i];
+      for (const auto& tArgument : mOptionalArguments) {
         if (tArgument->mIsUsed && tArgument->mNumArgs > 0) {
           if (tArgument->mValues.size() != tArgument->mNumArgs) {
             // All cool if there's a default value to return
@@ -643,9 +640,9 @@ class ArgumentParser {
     // Used by print_help.
     size_t get_length_of_longest_argument() {
       size_t tResult = 0;
-      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
+      for (const auto& mPositionalArgument : mPositionalArguments) {
         size_t tCurrentArgumentLength = 0;
-        auto tNames = mPositionalArguments[i]->mNames;
+        auto tNames = mPositionalArgument->mNames;
         for (size_t j = 0; j < tNames.size() - 1; j++) {
           auto tNameLength = tNames[j].length();
           tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
@@ -655,9 +652,9 @@ class ArgumentParser {
           tResult = tCurrentArgumentLength;
       }
 
-      for (size_t i = 0; i < mOptionalArguments.size(); i++) {
+      for (const auto& mOptionalArgument : mOptionalArguments) {
         size_t tCurrentArgumentLength = 0;
-        auto tNames = mOptionalArguments[i]->mNames;
+        auto tNames = mOptionalArgument->mNames;
         for (size_t j = 0; j < tNames.size() - 1; j++) {
           auto tNameLength = tNames[j].length();
           tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
