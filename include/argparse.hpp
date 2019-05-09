@@ -69,7 +69,7 @@ bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementTy
 bool starts_with(const std::string& haystack, const std::string& needle) {
   return needle.length() <= haystack.length()
     && std::equal(needle.begin(), needle.end(), haystack.begin());
-};
+}
 
 // Get value at index from std::list
 template <typename T>
@@ -496,7 +496,7 @@ class ArgumentParser {
         if (tIterator != mArgumentMap.end()) {
           // Start parsing optional argument
           auto tArgument = tIterator->second;
-	  tArgument->mUsedName = tCurrentArgument;
+          tArgument->mUsedName = tCurrentArgument;
           tArgument->mIsUsed = true;
           auto tCount = tArgument->mNumArgs;
 
@@ -513,7 +513,7 @@ class ArgumentParser {
           while (tCount > 0) {
             i = i + 1;
             if (i < argc) {
-	      tArgument->mUsedName = tCurrentArgument;
+              tArgument->mUsedName = tCurrentArgument;
               tArgument->mRawValues.emplace_back(argv[i]);
               if (tArgument->mAction != nullptr)
                 tArgument->mValues.push_back(tArgument->mAction(argv[i]));
@@ -542,24 +542,24 @@ class ArgumentParser {
                 if (tIterator != mArgumentMap.end()) {
                   auto tArgumentObject = tIterator->second;
                   tNumArgs = tArgumentObject->mNumArgs;
-		  std::vector<std::string> tArgumentsForRecursiveParsing = { "", "-" + tArgument };
-		  while (tNumArgs > 0 && i < argc) {
-		    i += 1;
-		    if (i < argc) {
-		      tArgumentsForRecursiveParsing.emplace_back(argv[i]);
-		      tNumArgs -= 1;
-		    }
-		  }
-		  parse_args_internal(tArgumentsForRecursiveParsing);
+                  std::vector<std::string> tArgumentsForRecursiveParsing = {"", "-" + tArgument};
+                  while (tNumArgs > 0 && i < argc) {
+                    i += 1;
+                    if (i < argc) {
+                      tArgumentsForRecursiveParsing.emplace_back(argv[i]);
+                      tNumArgs -= 1;
+                    }
+                  }
+                  parse_args_internal(tArgumentsForRecursiveParsing);
                 }
-		else {
-		  if (!tArgument.empty() && tArgument[0] == '-')
-		    std::cout << "warning: unrecognized optional argument " << tArgument
-			      << std::endl;
-		  else
-		    std::cout << "warning: unrecognized optional argument -" << tArgument
-			      << std::endl;
-		}
+                else {
+                  if (!tArgument.empty() && tArgument[0] == '-')
+                    std::cout << "warning: unrecognized optional argument " << tArgument
+                              << std::endl;
+                  else
+                    std::cout << "warning: unrecognized optional argument -" << tArgument
+                              << std::endl;
+                }
               }
             }
             else {
@@ -583,7 +583,7 @@ class ArgumentParser {
                 break;
               }
               if (i < argc) {
-		tArgument->mUsedName = tCurrentArgument;
+                tArgument->mUsedName = tCurrentArgument;
                 tArgument->mRawValues.emplace_back(argv[i]);
                 if (tArgument->mAction != nullptr)
                   tArgument->mValues.push_back(tArgument->mAction(argv[i]));
