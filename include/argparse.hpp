@@ -186,7 +186,7 @@ public:
         if (mDefaultValue.has_value()) {
           T tDefaultValues = std::any_cast<T>(mDefaultValue);
           for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
+            tResult.emplace_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
           }
           return tResult;
         }
@@ -196,7 +196,7 @@ public:
       else {
         if (!mRawValues.empty()) {
           for (const auto& mValue : mValues) {
-            tResult.push_back(std::any_cast<typename T::value_type>(mValue));
+            tResult.emplace_back(std::any_cast<typename T::value_type>(mValue));
           }
           return tResult;
         }
@@ -204,7 +204,7 @@ public:
           if (mDefaultValue.has_value()) {
             std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
             for (size_t i = 0; i < tDefaultValues.size(); i++) {
-              tResult.push_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
+              tResult.emplace_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
             }
             return tResult;
           }
@@ -222,7 +222,7 @@ public:
         if (mDefaultValue.has_value()) {
           T tDefaultValues = std::any_cast<T>(mDefaultValue);
           for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
+            tResult.emplace_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
           }
           return tResult;
         }
@@ -232,7 +232,7 @@ public:
       else {
         if (!mRawValues.empty()) {
           for (const auto& mValue : mValues) {
-            tResult.push_back(std::any_cast<typename T::value_type>(mValue));
+            tResult.emplace_back(std::any_cast<typename T::value_type>(mValue));
           }
           return tResult;
         }
@@ -240,7 +240,7 @@ public:
           if (mDefaultValue.has_value()) {
             std::list<T> tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
             for (size_t i = 0; i < tDefaultValues.size(); i++) {
-              tResult.push_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
+              tResult.emplace_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
             }
             return tResult;
           }
@@ -273,7 +273,7 @@ class ArgumentParser {
       tArgument->mNumArgs = 0;
       tArgument->mDefaultValue = false;
       tArgument->mImplicitValue = true;
-      mOptionalArguments.push_back(tArgument);
+      mOptionalArguments.emplace_back(tArgument);
       mArgumentMap.insert_or_assign(std::string("-h"), tArgument);
       mArgumentMap.insert_or_assign(std::string("--help"), tArgument);
     }
@@ -285,9 +285,9 @@ class ArgumentParser {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>(std::move(Fargs)...);
 
       if (!tArgument->mIsOptional)
-        mPositionalArguments.push_back(tArgument);
+        mPositionalArguments.emplace_back(tArgument);
       else
-        mOptionalArguments.push_back(tArgument);
+        mOptionalArguments.emplace_back(tArgument);
 
       for (auto& mName : tArgument->mNames) {
         mArgumentMap.insert_or_assign(mName, tArgument);
@@ -300,11 +300,11 @@ class ArgumentParser {
       for (const auto& tParentParser : mParentParsers) {
         auto tPositionalArguments = tParentParser.mPositionalArguments;
         for (auto& tArgument : tPositionalArguments) {
-          mPositionalArguments.push_back(tArgument);
+          mPositionalArguments.emplace_back(tArgument);
         }
         auto tOptionalArguments = tParentParser.mOptionalArguments;
         for (auto& tArgument : tOptionalArguments) {
-          mOptionalArguments.push_back(tArgument);
+          mOptionalArguments.emplace_back(tArgument);
         }
         auto tArgumentMap = tParentParser.mArgumentMap;
         for (auto&[tKey, tValue] : tArgumentMap) {
@@ -317,7 +317,7 @@ class ArgumentParser {
     // Accepts a variadic number of ArgumentParser objects
     template<typename T, typename... Targs>
     void add_parents(T aArgumentParser, Targs... Fargs) {
-      mParentParsers.push_back(aArgumentParser);
+      mParentParsers.emplace_back(aArgumentParser);
       add_parents(Fargs...);
     }
 
@@ -489,7 +489,7 @@ class ArgumentParser {
           // (2) User has provided an implicit value, which also sets nargs to 0
           if (tCount == 0) {
             // Use implicit value for this optional argument
-            tArgument->mValues.push_back(tArgument->mImplicitValue);
+            tArgument->mValues.emplace_back(tArgument->mImplicitValue);
             tArgument->mRawValues.emplace_back();
             tCount = 0;
           }
@@ -499,10 +499,10 @@ class ArgumentParser {
               tArgument->mUsedName = tCurrentArgument;
               tArgument->mRawValues.emplace_back(argv[i]);
               if (tArgument->mAction != nullptr)
-                tArgument->mValues.push_back(tArgument->mAction(argv[i]));
+                tArgument->mValues.emplace_back(tArgument->mAction(argv[i]));
               else {
                 if (tArgument->mDefaultValue.has_value())
-                  tArgument->mValues.push_back(tArgument->mDefaultValue);
+                  tArgument->mValues.emplace_back(tArgument->mDefaultValue);
                 else
                   tArgument->mValues.emplace_back(std::string(argv[i]));
               }
@@ -569,10 +569,10 @@ class ArgumentParser {
                 tArgument->mUsedName = tCurrentArgument;
                 tArgument->mRawValues.emplace_back(argv[i]);
                 if (tArgument->mAction != nullptr)
-                  tArgument->mValues.push_back(tArgument->mAction(argv[i]));
+                  tArgument->mValues.emplace_back(tArgument->mAction(argv[i]));
                 else {
                   if (tArgument->mDefaultValue.has_value())
-                    tArgument->mValues.push_back(tArgument->mDefaultValue);
+                    tArgument->mValues.emplace_back(tArgument->mDefaultValue);
                   else
                     tArgument->mValues.emplace_back(std::string(argv[i]));
                 }
