@@ -77,8 +77,8 @@ public:
     , mIsOptional((is_optional(args) || ...))
   {}
 
-  Argument& help(const std::string& aHelp) {
-    mHelp = aHelp;
+  Argument& help(std::string aHelp) {
+    mHelp = std::move(aHelp);
     return *this;
   }
 
