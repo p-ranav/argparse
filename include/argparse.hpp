@@ -265,11 +265,10 @@ public:
 
 class ArgumentParser {
   public:
-    explicit ArgumentParser(std::string aProgramName = "") :
-      mProgramName(std::move(aProgramName)),
-      mNextPositionalArgument(0) {
-      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>();
-      tArgument->mNames = { "-h", "--help" };
+    explicit ArgumentParser(std::string aProgramName = {}) :
+      mProgramName(std::move(aProgramName))
+    {
+      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>("-h", "--help");
       tArgument->mHelp = "show this help message and exit";
       tArgument->mNumArgs = 0;
       tArgument->mDefaultValue = false;
@@ -654,7 +653,7 @@ class ArgumentParser {
     std::vector<ArgumentParser> mParentParsers;
     std::vector<std::shared_ptr<Argument>> mPositionalArguments;
     std::vector<std::shared_ptr<Argument>> mOptionalArguments;
-    size_t mNextPositionalArgument;
+    size_t mNextPositionalArgument = 0;
     std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
 };
 
