@@ -49,22 +49,6 @@ struct is_specialization : std::false_type {};
 template<template<typename...> class Ref, typename... Args>
 struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
 
-// Upsert into std::map
-template <class KeyType, class ElementType>
-bool upsert(std::map<KeyType, ElementType>& aMap, KeyType const& aKey, ElementType const& aNewValue) {
-  auto tResult = aMap.insert(typename std::map<KeyType, ElementType>::value_type(aKey, aNewValue));
-  if (!tResult.second) {
-    if (!(tResult.first->second == aNewValue)) {
-      tResult.first->second = aNewValue;
-      return true;
-    }
-    else
-      return false; // it was the same
-  }
-  else
-    return true;  // changed cause not existing
-}
-
 // Check if string (haystack) starts with a substring (needle)
 bool starts_with(const std::string& haystack, const std::string& needle) {
   return needle.length() <= haystack.length()
@@ -291,8 +275,8 @@ class ArgumentParser {
       tArgument->mDefaultValue = false;
       tArgument->mImplicitValue = true;
       mOptionalArguments.push_back(tArgument);
-      upsert(mArgumentMap, std::string("-h"), tArgument);
-      upsert(mArgumentMap, std::string("--help"), tArgument);
+      mArgumentMap.insert_or_assign(std::string("-h"), tArgument);
+      mArgumentMap.insert_or_assign(std::string("--help"), tArgument);
     }
 
     // Parameter packing
@@ -307,7 +291,7 @@ class ArgumentParser {
         mOptionalArguments.push_back(tArgument);
 
       for (auto& mName : tArgument->mNames) {
-        upsert(mArgumentMap, mName, tArgument);
+        mArgumentMap.insert_or_assign(mName, tArgument);
       }
       return *tArgument;
     }
@@ -325,7 +309,7 @@ class ArgumentParser {
         }
         auto tArgumentMap = tParentParser.mArgumentMap;
         for (auto&[tKey, tValue] : tArgumentMap) {
-          upsert(mArgumentMap, tKey, tValue);
+          mArgumentMap.insert_or_assign(tKey, tValue);
         }
       }
     }
