@@ -564,9 +564,10 @@ class ArgumentParser {
             // This is a positional argument.
             // Parse and save into mPositionalArguments vector
             if (mNextPositionalArgument >= mPositionalArguments.size()) {
-              std::cout << "error: unexpected positional argument " << argv[i] << std::endl;
+              std::stringstream stream;
+              stream << "error: unexpected positional argument " << argv[i] << std::endl;
               print_help();
-              throw std::runtime_error("unexpected positional argument");
+              throw std::runtime_error(stream.str());
             }
             auto tArgument = mPositionalArguments[mNextPositionalArgument];
             auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
@@ -605,11 +606,12 @@ class ArgumentParser {
       // Check if all positional arguments are parsed
       for (const auto& tArgument : mPositionalArguments) {
         if (tArgument->mValues.size() != tArgument->mNumArgs) {
-          std::cout << "error: " << tArgument->mUsedName << ": expected "
+          std::stringstream stream;
+          stream << "error: " << tArgument->mUsedName << ": expected "
             << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
             << tArgument->mValues.size() << " provided.\n" << std::endl;
           print_help();
-          throw std::runtime_error("wrong number of arguments");
+          throw std::runtime_error(stream.str());
         }
       }
 
@@ -620,11 +622,12 @@ class ArgumentParser {
             // All cool if there's a default value to return
             // If no default value, then there's a problem
             if (!tArgument->mDefaultValue.has_value()) {
-              std::cout << "error: " << tArgument->mUsedName << ": expected "
+              std::stringstream stream;
+              stream << "error: " << tArgument->mUsedName << ": expected "
                 << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
                 << tArgument->mValues.size() << " provided.\n" << std::endl;
               print_help();
-              throw std::runtime_error("wrong number of arguments");
+              throw std::runtime_error(stream.str());
             }
           }
         }
@@ -675,6 +678,7 @@ class ArgumentParser {
 try { \
   parser.parse_args(argc, argv); \
 } catch (const std::runtime_error& err) { \
+  std::cerr << err.what() << std::endl; \
   exit(0); \
 }
 
