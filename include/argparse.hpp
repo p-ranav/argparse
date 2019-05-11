@@ -483,7 +483,6 @@ class ArgumentParser {
       for (int i = 1; i < argc; i++) {
         auto tCurrentArgument = std::string(argv[i]);
         if (tCurrentArgument == "-h" || tCurrentArgument == "--help") {
-          print_help();
           throw std::runtime_error("help called");
         }
         auto tIterator = mArgumentMap.find(argv[i]);
@@ -566,7 +565,6 @@ class ArgumentParser {
             if (mNextPositionalArgument >= mPositionalArguments.size()) {
               std::stringstream stream;
               stream << "error: unexpected positional argument " << argv[i] << std::endl;
-              print_help();
               throw std::runtime_error(stream.str());
             }
             auto tArgument = mPositionalArguments[mNextPositionalArgument];
@@ -610,7 +608,6 @@ class ArgumentParser {
           stream << "error: " << tArgument->mUsedName << ": expected "
             << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
             << tArgument->mValues.size() << " provided.\n" << std::endl;
-          print_help();
           throw std::runtime_error(stream.str());
         }
       }
@@ -626,7 +623,6 @@ class ArgumentParser {
               stream << "error: " << tArgument->mUsedName << ": expected "
                 << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
                 << tArgument->mValues.size() << " provided.\n" << std::endl;
-              print_help();
               throw std::runtime_error(stream.str());
             }
           }
@@ -679,6 +675,7 @@ try { \
   parser.parse_args(argc, argv); \
 } catch (const std::runtime_error& err) { \
   std::cerr << err.what() << std::endl; \
+  parser.print_help(); \
   exit(0); \
 }
 
