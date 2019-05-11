@@ -110,16 +110,11 @@ public:
    */
   void validate() const {
     if (mIsOptional) {
-      if (mIsUsed && mNumArgs > 0) {
-        if (mValues.size() != mNumArgs) {
-          // All cool if there's a default value to return
-          // If no default value, then there's a problem
-          if (!mDefaultValue.has_value()) {
-            std::cout << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
-                      << mValues.size() << " provided.\n" << std::endl;
-            throw std::runtime_error("wrong number of arguments");
-          }
-        }
+      if (mIsUsed && mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
+        std::stringstream stream;
+        stream << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.\n" << std::endl;
+        throw std::runtime_error(stream.str());
       }
       else {
         // TODO: check if an implicit value was programmed for this argument
@@ -127,9 +122,10 @@ public:
     }
     else {
       if (mValues.size() != mNumArgs) {
-        std::cout << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
-                  << mValues.size() << " provided.\n" << std::endl;
-        throw std::runtime_error("wrong number of arguments");
+        std::stringstream stream;
+        stream << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.\n" << std::endl;
+        throw std::runtime_error(stream.str());
       }
     }
   }
