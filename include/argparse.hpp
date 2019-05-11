@@ -39,6 +39,7 @@ SOFTWARE.
 #include <type_traits>
 #include <algorithm>
 #include <sstream>
+#include <stdexcept>
 
 namespace argparse {
 
@@ -321,15 +322,19 @@ class ArgumentParser {
       add_parents(Fargs...);
     }
 
-    // Call parse_args_internal - which does all the work
-    // Then, validate the parsed arguments
-    // This variant is used mainly for testing
+    /* Call parse_args_internal - which does all the work
+     * Then, validate the parsed arguments
+     * This variant is used mainly for testing
+     * @throws std::runtime_error in case of any invalid argument
+     */
     void parse_args(const std::vector<std::string>& aArguments) {
       parse_args_internal(aArguments);
       parse_args_validate();
     }
 
-    // Main entry point for parsing command-line arguments using this ArgumentParser
+    /* Main entry point for parsing command-line arguments using this ArgumentParser
+     * @throws std::runtime_error in case of any invalid argument
+     */
     void parse_args(int argc, char * argv[]) {
       parse_args_internal(argc, argv);
       parse_args_validate();
@@ -458,6 +463,9 @@ class ArgumentParser {
       return (tIterator != mArgumentMap.end());
     }
 
+    /*
+     * @throws std::runtime_error in case of any invalid argument
+     */
     void parse_args_internal(const std::vector<std::string>& aArguments) {
       std::vector<char*> argv;
       for (const auto& arg : aArguments)
@@ -466,6 +474,9 @@ class ArgumentParser {
       return parse_args_internal(int(argv.size()) - 1, argv.data());
     }
 
+    /*
+     * @throws std::runtime_error in case of any invalid argument
+     */
     void parse_args_internal(int argc, char * argv[]) {
       if (mProgramName.empty() && argc > 0)
         mProgramName = argv[0];
@@ -473,7 +484,7 @@ class ArgumentParser {
         auto tCurrentArgument = std::string(argv[i]);
         if (tCurrentArgument == "-h" || tCurrentArgument == "--help") {
           print_help();
-          exit(0);
+          throw std::runtime_error("help called");
         }
         auto tIterator = mArgumentMap.find(argv[i]);
         if (tIterator != mArgumentMap.end()) {
@@ -555,7 +566,7 @@ class ArgumentParser {
             if (mNextPositionalArgument >= mPositionalArguments.size()) {
               std::cout << "error: unexpected positional argument " << argv[i] << std::endl;
               print_help();
-              exit(0);
+              throw std::runtime_error("unexpected positional argument");
             }
             auto tArgument = mPositionalArguments[mNextPositionalArgument];
             auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
@@ -587,6 +598,9 @@ class ArgumentParser {
       }
     }
 
+    /*
+     * @throws std::runtime_error in case of any invalid argument
+     */
     void parse_args_validate() {
       // Check if all positional arguments are parsed
       for (const auto& tArgument : mPositionalArguments) {
@@ -595,7 +609,7 @@ class ArgumentParser {
             << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
             << tArgument->mValues.size() << " provided.\n" << std::endl;
           print_help();
-          exit(0);
+          throw std::runtime_error("wrong number of arguments");
         }
       }
 
@@ -610,7 +624,7 @@ class ArgumentParser {
                 << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
                 << tArgument->mValues.size() << " provided.\n" << std::endl;
               print_help();
-              exit(0);
+              throw std::runtime_error("wrong number of arguments");
             }
           }
         }
