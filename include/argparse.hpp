@@ -319,7 +319,7 @@ class ArgumentParser {
       else
         mPositionalArguments.emplace_back(tArgument);
 
-      for (auto& mName : tArgument->mNames) {
+      for (const auto& mName : tArgument->mNames) {
         mArgumentMap.insert_or_assign(mName, tArgument);
       }
       return *tArgument;
