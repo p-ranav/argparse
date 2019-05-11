@@ -634,23 +634,11 @@ class ArgumentParser {
     }
 
     // Used by print_help.
-    size_t get_length_of_longest_argument() {
+    size_t get_length_of_longest_argument(const std::vector<std::shared_ptr<Argument>>& aArguments) {
       size_t tResult = 0;
-      for (const auto& mPositionalArgument : mPositionalArguments) {
+      for (const auto& argument : aArguments) {
         size_t tCurrentArgumentLength = 0;
-        auto tNames = mPositionalArgument->mNames;
-        for (size_t j = 0; j < tNames.size() - 1; j++) {
-          auto tNameLength = tNames[j].length();
-          tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
-        }
-        tCurrentArgumentLength += tNames[tNames.size() - 1].length();
-        if (tCurrentArgumentLength > tResult)
-          tResult = tCurrentArgumentLength;
-      }
-
-      for (const auto& mOptionalArgument : mOptionalArguments) {
-        size_t tCurrentArgumentLength = 0;
-        auto tNames = mOptionalArgument->mNames;
+        auto tNames = argument->mNames;
         for (size_t j = 0; j < tNames.size() - 1; j++) {
           auto tNameLength = tNames[j].length();
           tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
@@ -660,6 +648,14 @@ class ArgumentParser {
           tResult = tCurrentArgumentLength;
       }
       return tResult;
+    }
+
+    // Used by print_help.
+    size_t get_length_of_longest_argument() {
+      const auto positionalArgMaxSize = get_length_of_longest_argument(mPositionalArguments);
+      const auto optionalArgMaxSize = get_length_of_longest_argument(mOptionalArguments);
+
+      return std::max(positionalArgMaxSize, optionalArgMaxSize);
     }
 
     std::string mProgramName;
