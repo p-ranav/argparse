@@ -325,30 +325,24 @@ class ArgumentParser {
       return *tArgument;
     }
 
-    // Base case for add_parents parameter packing
-    void add_parents() {
-      for (const auto& tParentParser : mParentParsers) {
-        auto tPositionalArguments = tParentParser.mPositionalArguments;
-        for (auto& tArgument : tPositionalArguments) {
-          mPositionalArguments.emplace_back(tArgument);
-        }
-        auto tOptionalArguments = tParentParser.mOptionalArguments;
-        for (auto& tArgument : tOptionalArguments) {
-          mOptionalArguments.emplace_back(tArgument);
-        }
-        auto tArgumentMap = tParentParser.mArgumentMap;
-        for (auto&[tKey, tValue] : tArgumentMap) {
+    // Parameter packed add_parents method
+    // Accepts a variadic number of ArgumentParser objects
+    template<typename... Targs>
+    void add_parents(Targs... Fargs) {
+      const auto tNewParentParsers = {Fargs...};
+      for (const auto& tParentParser : tNewParentParsers) {
+        const auto& tPositionalArguments = tParentParser.mPositionalArguments;
+        std::copy(std::begin(tPositionalArguments), std::end(tPositionalArguments), std::back_inserter(mPositionalArguments));
+
+        const auto& tOptionalArguments = tParentParser.mOptionalArguments;
+        std::copy(std::begin(tOptionalArguments), std::end(tOptionalArguments), std::back_inserter(mOptionalArguments));
+
+        const auto& tArgumentMap = tParentParser.mArgumentMap;
+        for (const auto&[tKey, tValue] : tArgumentMap) {
           mArgumentMap.insert_or_assign(tKey, tValue);
         }
       }
-    }
-
-    // Parameter packed add_parents method
-    // Accepts a variadic number of ArgumentParser objects
-    template<typename T, typename... Targs>
-    void add_parents(T aArgumentParser, Targs... Fargs) {
-      mParentParsers.emplace_back(aArgumentParser);
-      add_parents(Fargs...);
+      std::move(std::begin(tNewParentParsers), std::end(tNewParentParsers), std::back_inserter(mParentParsers));
     }
 
     /* Call parse_args_internal - which does all the work
