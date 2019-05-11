@@ -314,10 +314,10 @@ class ArgumentParser {
     Argument& add_argument(Targs... Fargs) {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>(std::move(Fargs)...);
 
-      if (!tArgument->mIsOptional)
-        mPositionalArguments.emplace_back(tArgument);
-      else
+      if (tArgument->mIsOptional)
         mOptionalArguments.emplace_back(tArgument);
+      else
+        mPositionalArguments.emplace_back(tArgument);
 
       for (auto& mName : tArgument->mNames) {
         mArgumentMap.insert_or_assign(mName, tArgument);
