@@ -44,6 +44,7 @@ SOFTWARE.
 
 namespace argparse {
 
+namespace { // anonymous namespace for helper methods - not visible outside this header file
 // Some utility structs to check template specialization
 template<typename Test, template<typename...> class Ref>
 struct is_specialization : std::false_type {};
@@ -66,6 +67,7 @@ T get_from_list(const std::list<T>& aList, size_t aIndex) {
     return *tIterator;
   }
   return T();
+}
 }
 
 class Argument {
