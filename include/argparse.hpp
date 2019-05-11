@@ -40,6 +40,7 @@ SOFTWARE.
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
+#include <numeric>
 
 namespace argparse {
 
@@ -635,19 +636,17 @@ class ArgumentParser {
 
     // Used by print_help.
     size_t get_length_of_longest_argument(const std::vector<std::shared_ptr<Argument>>& aArguments) {
-      size_t tResult = 0;
-      for (const auto& argument : aArguments) {
-        size_t tCurrentArgumentLength = 0;
-        auto tNames = argument->mNames;
-        for (size_t j = 0; j < tNames.size() - 1; j++) {
-          auto tNameLength = tNames[j].length();
-          tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
-        }
-        tCurrentArgumentLength += tNames[tNames.size() - 1].length();
-        if (tCurrentArgumentLength > tResult)
-          tResult = tCurrentArgumentLength;
-      }
-      return tResult;
+      if (aArguments.empty())
+        return 0;
+      std::vector<size_t> argumentLengths(aArguments.size());
+      std::transform(std::begin(aArguments), std::end(aArguments), std::begin(argumentLengths), [](const auto& arg) {
+        const auto& names = arg->mNames;
+        auto maxLength = std::accumulate(std::begin(names), std::end(names), 0, [](const auto& sum, const auto& s) {
+          return sum + s.size() + 2; // +2 for ", "
+        });
+        return maxLength - 2; // -2 since the last one doesn't need ", "
+      });
+      return *std::max_element(std::begin(argumentLengths), std::end(argumentLengths));
     }
 
     // Used by print_help.
@@ -670,7 +669,7 @@ class ArgumentParser {
 try { \
   parser.parse_args(argc, argv); \
 } catch (const std::runtime_error& err) { \
-  std::cerr << err.what() << std::endl; \
+  std::cout << err.what() << std::endl; \
   parser.print_help(); \
   exit(0); \
 }
