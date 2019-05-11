@@ -105,6 +105,36 @@ public:
     return *this;
   }
 
+  /*
+   * @throws std::runtime_error if argument values are not valid
+   */
+  void validate() const {
+    if (mIsOptional) {
+      if (mIsUsed && mNumArgs > 0) {
+        if (mValues.size() != mNumArgs) {
+          // All cool if there's a default value to return
+          // If no default value, then there's a problem
+          if (!mDefaultValue.has_value()) {
+            std::cout << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
+                      << mValues.size() << " provided.\n" << std::endl;
+            throw std::runtime_error("wrong number of arguments");
+          }
+        }
+      }
+      else {
+        // TODO: check if an implicit value was programmed for this argument
+      }
+    }
+    else {
+      if (mValues.size() != mNumArgs) {
+        std::cout << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
+                  << mValues.size() << " provided.\n" << std::endl;
+        throw std::runtime_error("wrong number of arguments");
+      }
+    }
+  }
+
+
   template <typename T>
   bool operator!=(const T& aRhs) const {
     return !(*this == aRhs);
@@ -602,35 +632,17 @@ class ArgumentParser {
      * @throws std::runtime_error in case of any invalid argument
      */
     void parse_args_validate() {
-      // Check if all positional arguments are parsed
-      for (const auto& tArgument : mPositionalArguments) {
-        if (tArgument->mValues.size() != tArgument->mNumArgs) {
-          std::stringstream stream;
-          stream << "error: " << tArgument->mUsedName << ": expected "
-            << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
-            << tArgument->mValues.size() << " provided.\n" << std::endl;
-          throw std::runtime_error(stream.str());
-        }
-      }
-
-      // Check if all user-provided optional argument values are parsed correctly
-      for (const auto& tArgument : mOptionalArguments) {
-        if (tArgument->mIsUsed && tArgument->mNumArgs > 0) {
-          if (tArgument->mValues.size() != tArgument->mNumArgs) {
-            // All cool if there's a default value to return
-            // If no default value, then there's a problem
-            if (!tArgument->mDefaultValue.has_value()) {
-              std::stringstream stream;
-              stream << "error: " << tArgument->mUsedName << ": expected "
-                << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
-                << tArgument->mValues.size() << " provided.\n" << std::endl;
-              throw std::runtime_error(stream.str());
-            }
-          }
-        }
-        else {
-          // TODO: check if an implicit value was programmed for this argument
-        }
+      try {
+        // Check if all positional arguments are parsed
+        std::for_each(std::begin(mPositionalArguments),
+                      std::end(mPositionalArguments),
+                      std::mem_fn(&Argument::validate));
+        // Check if all user-provided optional argument values are parsed correctly
+        std::for_each(std::begin(mOptionalArguments),
+                      std::end(mOptionalArguments),
+                      std::mem_fn(&Argument::validate));
+      } catch (const std::runtime_error& err) {
+        throw err;
       }
     }
 
