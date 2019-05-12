@@ -40,9 +40,11 @@ SOFTWARE.
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
+#include <numeric>
 
 namespace argparse {
 
+namespace { // anonymous namespace for helper methods - not visible outside this header file
 // Some utility structs to check template specialization
 template<typename Test, template<typename...> class Ref>
 struct is_specialization : std::false_type {};
@@ -65,6 +67,7 @@ T get_from_list(const std::list<T>& aList, size_t aIndex) {
     return *tIterator;
   }
   return T();
+}
 }
 
 class Argument {
@@ -104,6 +107,32 @@ public:
     return *this;
   }
 
+  /*
+   * @throws std::runtime_error if argument values are not valid
+   */
+  void validate() const {
+    if (mIsOptional) {
+      if (mIsUsed && mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
+        std::stringstream stream;
+        stream << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.\n" << std::endl;
+        throw std::runtime_error(stream.str());
+      }
+      else {
+        // TODO: check if an implicit value was programmed for this argument
+      }
+    }
+    else {
+      if (mValues.size() != mNumArgs) {
+        std::stringstream stream;
+        stream << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.\n" << std::endl;
+        throw std::runtime_error(stream.str());
+      }
+    }
+  }
+
+
   template <typename T>
   bool operator!=(const T& aRhs) const {
     return !(*this == aRhs);
@@ -121,7 +150,7 @@ public:
   template <typename T>
   typename std::enable_if<is_specialization<T, std::vector>::value, bool>::type
   operator==(const T& aRhs) const {
-    T tLhs = get_vector<T>();
+    T tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
@@ -138,7 +167,7 @@ public:
   template <typename T>
   typename std::enable_if<is_specialization<T, std::list>::value, bool>::type
     operator==(const T& aRhs) const {
-    T tLhs = get_list<T>();
+    T tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
@@ -159,7 +188,9 @@ public:
 
     // Getter for template types other than std::vector and std::list
     template <typename T>
-    T get() const {
+    typename std::enable_if<!is_specialization<T, std::vector>::value &&
+                            !is_specialization<T, std::list>::value, T>::type
+    get() const {
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
           return std::any_cast<T>(mDefaultValue);
@@ -181,7 +212,8 @@ public:
 
     // Getter for std::vector. Here T = std::vector<...>
     template <typename T>
-    T get_vector() const {
+    typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
+    get() const {
       T tResult;
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
@@ -217,7 +249,8 @@ public:
 
     // Getter for std::list. Here T = std::list<...>
     template <typename T>
-    T get_list() const {
+    typename std::enable_if<is_specialization<T, std::list>::value, T>::type
+    get() const {
       T tResult;
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
@@ -262,6 +295,10 @@ public:
     size_t mNumArgs = 1;
     bool mIsOptional = false;
     bool mIsUsed = false; // relevant for optional arguments. True if used by user
+
+  public:
+    static constexpr auto mHelpOption = "-h";
+    static constexpr auto mHelpOptionLong = "--help";
 };
 
 class ArgumentParser {
@@ -269,14 +306,11 @@ class ArgumentParser {
     explicit ArgumentParser(std::string aProgramName = {}) :
       mProgramName(std::move(aProgramName))
     {
-      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>("-h", "--help");
-      tArgument->mHelp = "show this help message and exit";
-      tArgument->mNumArgs = 0;
-      tArgument->mDefaultValue = false;
-      tArgument->mImplicitValue = true;
-      mOptionalArguments.emplace_back(tArgument);
-      mArgumentMap.insert_or_assign(std::string("-h"), tArgument);
-      mArgumentMap.insert_or_assign(std::string("--help"), tArgument);
+      add_argument(Argument::mHelpOption, Argument::mHelpOptionLong)
+        .help("show this help message and exit")
+        .nargs(0)
+        .default_value(false)
+        .implicit_value(true);
     }
 
     // Parameter packing
@@ -285,41 +319,35 @@ class ArgumentParser {
     Argument& add_argument(Targs... Fargs) {
       std::shared_ptr<Argument> tArgument = std::make_shared<Argument>(std::move(Fargs)...);
 
-      if (!tArgument->mIsOptional)
-        mPositionalArguments.emplace_back(tArgument);
-      else
+      if (tArgument->mIsOptional)
         mOptionalArguments.emplace_back(tArgument);
+      else
+        mPositionalArguments.emplace_back(tArgument);
 
-      for (auto& mName : tArgument->mNames) {
+      for (const auto& mName : tArgument->mNames) {
         mArgumentMap.insert_or_assign(mName, tArgument);
       }
       return *tArgument;
     }
 
-    // Base case for add_parents parameter packing
-    void add_parents() {
-      for (const auto& tParentParser : mParentParsers) {
-        auto tPositionalArguments = tParentParser.mPositionalArguments;
-        for (auto& tArgument : tPositionalArguments) {
-          mPositionalArguments.emplace_back(tArgument);
-        }
-        auto tOptionalArguments = tParentParser.mOptionalArguments;
-        for (auto& tArgument : tOptionalArguments) {
-          mOptionalArguments.emplace_back(tArgument);
-        }
-        auto tArgumentMap = tParentParser.mArgumentMap;
-        for (auto&[tKey, tValue] : tArgumentMap) {
+    // Parameter packed add_parents method
+    // Accepts a variadic number of ArgumentParser objects
+    template<typename... Targs>
+    void add_parents(Targs... Fargs) {
+      const auto tNewParentParsers = {Fargs...};
+      for (const auto& tParentParser : tNewParentParsers) {
+        const auto& tPositionalArguments = tParentParser.mPositionalArguments;
+        std::copy(std::begin(tPositionalArguments), std::end(tPositionalArguments), std::back_inserter(mPositionalArguments));
+
+        const auto& tOptionalArguments = tParentParser.mOptionalArguments;
+        std::copy(std::begin(tOptionalArguments), std::end(tOptionalArguments), std::back_inserter(mOptionalArguments));
+
+        const auto& tArgumentMap = tParentParser.mArgumentMap;
+        for (const auto&[tKey, tValue] : tArgumentMap) {
           mArgumentMap.insert_or_assign(tKey, tValue);
         }
       }
-    }
-
-    // Parameter packed add_parents method
-    // Accepts a variadic number of ArgumentParser objects
-    template<typename T, typename... Targs>
-    void add_parents(T aArgumentParser, Targs... Fargs) {
-      mParentParsers.emplace_back(aArgumentParser);
-      add_parents(Fargs...);
+      std::move(std::begin(tNewParentParsers), std::end(tNewParentParsers), std::back_inserter(mParentParsers));
     }
 
     /* Call parse_args_internal - which does all the work
@@ -342,34 +370,10 @@ class ArgumentParser {
 
     // Getter enabled for all template types other than std::vector and std::list
     template <typename T = std::string>
-    typename std::enable_if<!is_specialization<T, std::vector>::value &&
-                            !is_specialization<T, std::list>::value, T>::type
-    get(const char * aArgumentName) {
+    T get(const std::string& aArgumentName) {
       auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get<T>();
-      }
-      return T();
-    }
-
-    // Getter enabled for std::vector
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
-    get(const char * aArgumentName) {
-      auto tIterator = mArgumentMap.find(aArgumentName);
-      if (tIterator != mArgumentMap.end()) {
-        return tIterator->second->get_vector<T>();
-      }
-      return T();
-    }
-
-    // Getter enabled for std::list
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::list>::value, T>::type
-      get(const char * aArgumentName) {
-      auto tIterator = mArgumentMap.find(aArgumentName);
-      if (tIterator != mArgumentMap.end()) {
-        return tIterator->second->get_list<T>();
       }
       return T();
     }
@@ -482,7 +486,7 @@ class ArgumentParser {
         mProgramName = argv[0];
       for (int i = 1; i < argc; i++) {
         auto tCurrentArgument = std::string(argv[i]);
-        if (tCurrentArgument == "-h" || tCurrentArgument == "--help") {
+        if (tCurrentArgument == Argument::mHelpOption || tCurrentArgument == Argument::mHelpOptionLong) {
           throw std::runtime_error("help called");
         }
         auto tIterator = mArgumentMap.find(argv[i]);
@@ -601,65 +605,41 @@ class ArgumentParser {
      * @throws std::runtime_error in case of any invalid argument
      */
     void parse_args_validate() {
-      // Check if all positional arguments are parsed
-      for (const auto& tArgument : mPositionalArguments) {
-        if (tArgument->mValues.size() != tArgument->mNumArgs) {
-          std::stringstream stream;
-          stream << "error: " << tArgument->mUsedName << ": expected "
-            << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
-            << tArgument->mValues.size() << " provided.\n" << std::endl;
-          throw std::runtime_error(stream.str());
-        }
-      }
-
-      // Check if all user-provided optional argument values are parsed correctly
-      for (const auto& tArgument : mOptionalArguments) {
-        if (tArgument->mIsUsed && tArgument->mNumArgs > 0) {
-          if (tArgument->mValues.size() != tArgument->mNumArgs) {
-            // All cool if there's a default value to return
-            // If no default value, then there's a problem
-            if (!tArgument->mDefaultValue.has_value()) {
-              std::stringstream stream;
-              stream << "error: " << tArgument->mUsedName << ": expected "
-                << tArgument->mNumArgs << (tArgument->mNumArgs == 1 ? " argument. " : " arguments. ")
-                << tArgument->mValues.size() << " provided.\n" << std::endl;
-              throw std::runtime_error(stream.str());
-            }
-          }
-        }
-        else {
-          // TODO: check if an implicit value was programmed for this argument
-        }
+      try {
+        // Check if all positional arguments are parsed
+        std::for_each(std::begin(mPositionalArguments),
+                      std::end(mPositionalArguments),
+                      std::mem_fn(&Argument::validate));
+        // Check if all user-provided optional argument values are parsed correctly
+        std::for_each(std::begin(mOptionalArguments),
+                      std::end(mOptionalArguments),
+                      std::mem_fn(&Argument::validate));
+      } catch (const std::runtime_error& err) {
+        throw err;
       }
     }
 
     // Used by print_help.
-    size_t get_length_of_longest_argument() {
-      size_t tResult = 0;
-      for (const auto& mPositionalArgument : mPositionalArguments) {
-        size_t tCurrentArgumentLength = 0;
-        auto tNames = mPositionalArgument->mNames;
-        for (size_t j = 0; j < tNames.size() - 1; j++) {
-          auto tNameLength = tNames[j].length();
-          tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
-        }
-        tCurrentArgumentLength += tNames[tNames.size() - 1].length();
-        if (tCurrentArgumentLength > tResult)
-          tResult = tCurrentArgumentLength;
-      }
+    size_t get_length_of_longest_argument(const std::vector<std::shared_ptr<Argument>>& aArguments) {
+      if (aArguments.empty())
+        return 0;
+      std::vector<size_t> argumentLengths(aArguments.size());
+      std::transform(std::begin(aArguments), std::end(aArguments), std::begin(argumentLengths), [](const auto& arg) {
+        const auto& names = arg->mNames;
+        auto maxLength = std::accumulate(std::begin(names), std::end(names), 0, [](const auto& sum, const auto& s) {
+          return sum + s.size() + 2; // +2 for ", "
+        });
+        return maxLength - 2; // -2 since the last one doesn't need ", "
+      });
+      return *std::max_element(std::begin(argumentLengths), std::end(argumentLengths));
+    }
 
-      for (const auto& mOptionalArgument : mOptionalArguments) {
-        size_t tCurrentArgumentLength = 0;
-        auto tNames = mOptionalArgument->mNames;
-        for (size_t j = 0; j < tNames.size() - 1; j++) {
-          auto tNameLength = tNames[j].length();
-          tCurrentArgumentLength += tNameLength + 2; // +2 for ", "
-        }
-        tCurrentArgumentLength += tNames[tNames.size() - 1].length();
-        if (tCurrentArgumentLength > tResult)
-          tResult = tCurrentArgumentLength;
-      }
-      return tResult;
+    // Used by print_help.
+    size_t get_length_of_longest_argument() {
+      const auto positionalArgMaxSize = get_length_of_longest_argument(mPositionalArguments);
+      const auto optionalArgMaxSize = get_length_of_longest_argument(mOptionalArguments);
+
+      return std::max(positionalArgMaxSize, optionalArgMaxSize);
     }
 
     std::string mProgramName;
@@ -674,7 +654,7 @@ class ArgumentParser {
 try { \
   parser.parse_args(argc, argv); \
 } catch (const std::runtime_error& err) { \
-  std::cerr << err.what() << std::endl; \
+  std::cout << err.what() << std::endl; \
   parser.print_help(); \
   exit(0); \
 }
