@@ -57,17 +57,6 @@ bool starts_with(const std::string& haystack, const std::string& needle) {
   return needle.length() <= haystack.length()
     && std::equal(needle.begin(), needle.end(), haystack.begin());
 }
-
-// Get value at index from std::list
-template <typename T>
-T get_from_list(const std::list<T>& aList, size_t aIndex) {
-  if (aList.size() > aIndex) {
-    auto tIterator = aList.begin();
-    std::advance(tIterator, aIndex);
-    return *tIterator;
-  }
-  return T();
-}
 }
 
 class Argument {
@@ -150,33 +139,29 @@ public:
   template <typename T>
   typename std::enable_if<is_specialization<T, std::vector>::value, bool>::type
   operator==(const T& aRhs) const {
+    using ValueType = typename T::value_type;
     T tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
-      for (size_t i = 0; i < tLhs.size(); i++) {
-        auto tValueAtIndex = std::any_cast<typename T::value_type>(tLhs[i]);
-        if (tValueAtIndex != aRhs[i])
-          return false;
-      }
-      return true;
+      return std::equal(std::begin(tLhs), std::begin(tLhs), std::begin(aRhs), [](const auto& lhs, const auto& rhs) {
+        return std::any_cast<ValueType>(lhs) == rhs;
+      });
     }
   }
 
   // Template specialization for std::list<...>
   template <typename T>
   typename std::enable_if<is_specialization<T, std::list>::value, bool>::type
-    operator==(const T& aRhs) const {
+  operator==(const T& aRhs) const {
+    using ValueType = typename T::value_type;
     T tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
-      for (size_t i = 0; i < tLhs.size(); i++) {
-        auto tValueAtIndex = std::any_cast<typename T::value_type>(get_from_list(tLhs, i));
-        if (tValueAtIndex != get_from_list(aRhs, i))
-          return false;
-      }
-      return true;
+      return std::equal(std::begin(tLhs), std::begin(tLhs), std::begin(aRhs), [](const auto& lhs, const auto& rhs) {
+        return std::any_cast<ValueType>(lhs) == rhs;
+      });
     }
   }
 
@@ -214,13 +199,13 @@ public:
     template <typename T>
     typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
     get() const {
+      using ValueType = typename T::value_type;
       T tResult;
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
           T tDefaultValues = std::any_cast<T>(mDefaultValue);
-          for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
-          }
+          std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
+                         std::back_inserter(tResult), std::any_cast<ValueType>);
           return tResult;
         }
         else
@@ -229,16 +214,15 @@ public:
       else {
         if (!mRawValues.empty()) {
           for (const auto& mValue : mValues) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(mValue));
+            tResult.emplace_back(std::any_cast<ValueType>(mValue));
           }
           return tResult;
         }
         else {
           if (mDefaultValue.has_value()) {
-            std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
-            for (size_t i = 0; i < tDefaultValues.size(); i++) {
-              tResult.emplace_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
-            }
+            auto tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
+            std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
+                           std::back_inserter(tResult), std::any_cast<ValueType>);
             return tResult;
           }
           else
@@ -251,13 +235,13 @@ public:
     template <typename T>
     typename std::enable_if<is_specialization<T, std::list>::value, T>::type
     get() const {
+      using ValueType = typename T::value_type;
       T tResult;
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
           T tDefaultValues = std::any_cast<T>(mDefaultValue);
-          for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
-          }
+          std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
+                         std::back_inserter(tResult), std::any_cast<ValueType>);
           return tResult;
         }
         else
@@ -266,16 +250,15 @@ public:
       else {
         if (!mRawValues.empty()) {
           for (const auto& mValue : mValues) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(mValue));
+            tResult.emplace_back(std::any_cast<ValueType>(mValue));
           }
           return tResult;
         }
         else {
           if (mDefaultValue.has_value()) {
-            std::list<T> tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
-            for (size_t i = 0; i < tDefaultValues.size(); i++) {
-              tResult.emplace_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
-            }
+            auto tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
+            std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
+                           std::back_inserter(tResult), std::any_cast<ValueType>);
             return tResult;
           }
           else
