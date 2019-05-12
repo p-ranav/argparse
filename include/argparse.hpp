@@ -150,7 +150,7 @@ public:
   template <typename T>
   typename std::enable_if<is_specialization<T, std::vector>::value, bool>::type
   operator==(const T& aRhs) const {
-    T tLhs = get_vector<T>();
+    T tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
@@ -167,7 +167,7 @@ public:
   template <typename T>
   typename std::enable_if<is_specialization<T, std::list>::value, bool>::type
     operator==(const T& aRhs) const {
-    T tLhs = get_list<T>();
+    T tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
@@ -188,7 +188,9 @@ public:
 
     // Getter for template types other than std::vector and std::list
     template <typename T>
-    T get() const {
+    typename std::enable_if<!is_specialization<T, std::vector>::value &&
+                            !is_specialization<T, std::list>::value, T>::type
+    get() const {
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
           return std::any_cast<T>(mDefaultValue);
@@ -210,7 +212,8 @@ public:
 
     // Getter for std::vector. Here T = std::vector<...>
     template <typename T>
-    T get_vector() const {
+    typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
+    get() const {
       T tResult;
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
@@ -246,7 +249,8 @@ public:
 
     // Getter for std::list. Here T = std::list<...>
     template <typename T>
-    T get_list() const {
+    typename std::enable_if<is_specialization<T, std::list>::value, T>::type
+    get() const {
       T tResult;
       if (mValues.empty()) {
         if (mDefaultValue.has_value()) {
@@ -366,34 +370,10 @@ class ArgumentParser {
 
     // Getter enabled for all template types other than std::vector and std::list
     template <typename T = std::string>
-    typename std::enable_if<!is_specialization<T, std::vector>::value &&
-                            !is_specialization<T, std::list>::value, T>::type
-    get(const char * aArgumentName) {
+    T get(const std::string& aArgumentName) {
       auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get<T>();
-      }
-      return T();
-    }
-
-    // Getter enabled for std::vector
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
-    get(const char * aArgumentName) {
-      auto tIterator = mArgumentMap.find(aArgumentName);
-      if (tIterator != mArgumentMap.end()) {
-        return tIterator->second->get_vector<T>();
-      }
-      return T();
-    }
-
-    // Getter enabled for std::list
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::list>::value, T>::type
-      get(const char * aArgumentName) {
-      auto tIterator = mArgumentMap.find(aArgumentName);
-      if (tIterator != mArgumentMap.end()) {
-        return tIterator->second->get_list<T>();
       }
       return T();
     }
