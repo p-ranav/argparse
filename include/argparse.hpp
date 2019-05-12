@@ -363,7 +363,7 @@ class ArgumentParser {
     /* Main entry point for parsing command-line arguments using this ArgumentParser
      * @throws std::runtime_error in case of any invalid argument
      */
-    void parse_args(int argc, char * argv[]) {
+    void parse_args(int argc, const char * const argv[]) {
       parse_args_internal(argc, argv);
       parse_args_validate();
     }
@@ -481,7 +481,7 @@ class ArgumentParser {
     /*
      * @throws std::runtime_error in case of any invalid argument
      */
-    void parse_args_internal(int argc, char * argv[]) {
+    void parse_args_internal(int argc, const char * const argv[]) {
       if (mProgramName.empty() && argc > 0)
         mProgramName = argv[0];
       for (int i = 1; i < argc; i++) {
