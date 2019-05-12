@@ -626,7 +626,7 @@ class ArgumentParser {
       std::vector<size_t> argumentLengths(aArguments.size());
       std::transform(std::begin(aArguments), std::end(aArguments), std::begin(argumentLengths), [](const auto& arg) {
         const auto& names = arg->mNames;
-        auto maxLength = std::accumulate(std::begin(names), std::end(names), 0, [](const auto& sum, const auto& s) {
+        auto maxLength = std::accumulate(std::begin(names), std::end(names), std::string::size_type{0}, [](const auto& sum, const auto& s) {
           return sum + s.size() + 2; // +2 for ", "
         });
         return maxLength - 2; // -2 since the last one doesn't need ", "
