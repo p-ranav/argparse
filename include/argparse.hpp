@@ -291,6 +291,10 @@ public:
     size_t mNumArgs = 1;
     bool mIsOptional = false;
     bool mIsUsed = false; // relevant for optional arguments. True if used by user
+
+  public:
+    static constexpr auto mHelpOption = "-h";
+    static constexpr auto mHelpOptionLong = "--help";
 };
 
 class ArgumentParser {
@@ -298,14 +302,11 @@ class ArgumentParser {
     explicit ArgumentParser(std::string aProgramName = {}) :
       mProgramName(std::move(aProgramName))
     {
-      std::shared_ptr<Argument> tArgument = std::make_shared<Argument>("-h", "--help");
-      tArgument->mHelp = "show this help message and exit";
-      tArgument->mNumArgs = 0;
-      tArgument->mDefaultValue = false;
-      tArgument->mImplicitValue = true;
-      mOptionalArguments.emplace_back(tArgument);
-      mArgumentMap.insert_or_assign(std::string("-h"), tArgument);
-      mArgumentMap.insert_or_assign(std::string("--help"), tArgument);
+      add_argument(Argument::mHelpOption, Argument::mHelpOptionLong)
+        .help("show this help message and exit")
+        .nargs(0)
+        .default_value(false)
+        .implicit_value(true);
     }
 
     // Parameter packing
@@ -505,7 +506,7 @@ class ArgumentParser {
         mProgramName = argv[0];
       for (int i = 1; i < argc; i++) {
         auto tCurrentArgument = std::string(argv[i]);
-        if (tCurrentArgument == "-h" || tCurrentArgument == "--help") {
+        if (tCurrentArgument == Argument::mHelpOption || tCurrentArgument == Argument::mHelpOptionLong) {
           throw std::runtime_error("help called");
         }
         auto tIterator = mArgumentMap.find(argv[i]);
