@@ -304,7 +304,7 @@ class ArgumentParser {
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get<T>();
       }
-      return T();
+      throw std::logic_error("No such argument");
     }
 
     // Indexing operator. Return a reference to an Argument object
@@ -314,9 +314,7 @@ class ArgumentParser {
       if (tIterator != mArgumentMap.end()) {
         return *(tIterator->second);
       }
-      else {
-        throw std::runtime_error("Argument " + aArgumentName + " not found");
-      }
+      throw std::logic_error("No such argument");
     }
 
     // Printing the one and only help message
@@ -390,12 +388,6 @@ class ArgumentParser {
     }
 
   private:
-    // If the argument was defined by the user and can be found in mArgumentMap, then it's valid
-    bool is_valid_argument(const std::string& aName) {
-      auto tIterator = mArgumentMap.find(aName);
-      return (tIterator != mArgumentMap.end());
-    }
-
     /*
      * @throws std::runtime_error in case of any invalid argument
      */
