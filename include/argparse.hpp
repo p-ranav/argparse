@@ -52,6 +52,31 @@ struct is_specialization : std::false_type {};
 template<template<typename...> class Ref, typename... Args>
 struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
 
+template<typename... Ts>
+struct is_container_helper {};
+
+template<typename T, typename _ = void>
+struct is_container : std::false_type {};
+
+template<typename T>
+struct is_container<T, std::conditional_t<
+    false, is_container_helper<
+        typename T::value_type,
+        decltype(std::declval<T>().begin()),
+        decltype(std::declval<T>().end()),
+        decltype(std::declval<T>().size())
+    >, void>> : public std::true_type {
+};
+
+template<typename T>
+static constexpr bool is_container_v = is_container<T>::value;
+
+template <typename T>
+using enable_if_container = std::enable_if_t<is_container_v<T>, T>;
+
+template <typename T>
+using enable_if_not_container = std::enable_if_t<!is_container_v<T>, T>;
+
 // Check if string (haystack) starts with a substring (needle)
 bool starts_with(const std::string& haystack, const std::string& needle) {
   return needle.length() <= haystack.length()
@@ -129,38 +154,22 @@ public:
 
   // Entry point for template types other than std::vector and std::list
   template <typename T>
-  typename std::enable_if<!is_specialization<T, std::vector>::value &&
-                          !is_specialization<T, std::list>::value, bool>::type
-    operator==(const T& aRhs) const {
+  std::enable_if_t <!is_container_v<T>, bool>
+  operator==(const T& aRhs) const {
     return get<T>() == aRhs;
   }
 
-  // Template specialization for std::vector<...>
+  // Template specialization for containers
   template <typename T>
-  typename std::enable_if<is_specialization<T, std::vector>::value, bool>::type
+  std::enable_if_t <is_container_v<T>, bool>
   operator==(const T& aRhs) const {
     using ValueType = typename T::value_type;
-    T tLhs = get<T>();
+    auto tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
-      return std::equal(std::begin(tLhs), std::begin(tLhs), std::begin(aRhs), [](const auto& lhs, const auto& rhs) {
-        return std::any_cast<ValueType>(lhs) == rhs;
-      });
-    }
-  }
-
-  // Template specialization for std::list<...>
-  template <typename T>
-  typename std::enable_if<is_specialization<T, std::list>::value, bool>::type
-  operator==(const T& aRhs) const {
-    using ValueType = typename T::value_type;
-    T tLhs = get<T>();
-    if (tLhs.size() != aRhs.size())
-      return false;
-    else {
-      return std::equal(std::begin(tLhs), std::begin(tLhs), std::begin(aRhs), [](const auto& lhs, const auto& rhs) {
-        return std::any_cast<ValueType>(lhs) == rhs;
+      return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs), [](const auto& lhs, const auto& rhs) {
+        return std::any_cast<const ValueType&>(lhs) == rhs;
       });
     }
   }
