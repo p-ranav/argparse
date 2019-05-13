@@ -45,12 +45,6 @@ SOFTWARE.
 namespace argparse {
 
 namespace { // anonymous namespace for helper methods - not visible outside this header file
-// Some utility structs to check template specialization
-template<typename Test, template<typename...> class Ref>
-struct is_specialization : std::false_type {};
-
-template<template<typename...> class Ref, typename... Args>
-struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
 
 template<typename... Ts>
 struct is_container_helper {};
