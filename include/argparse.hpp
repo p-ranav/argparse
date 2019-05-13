@@ -182,98 +182,35 @@ public:
 
     // Getter for template types other than std::vector and std::list
     template <typename T>
-    typename std::enable_if<!is_specialization<T, std::vector>::value &&
-                            !is_specialization<T, std::list>::value, T>::type
+    enable_if_not_container<T>
     get() const {
-      if (mValues.empty()) {
-        if (mDefaultValue.has_value()) {
-          return std::any_cast<T>(mDefaultValue);
-        }
-        else
-          return T();
+      if (!mValues.empty()) {
+        return std::any_cast<T>(mValues.front());
       }
-      else {
-        if (!mRawValues.empty())
-          return std::any_cast<T>(mValues[0]);
-        else {
-          if (mDefaultValue.has_value())
-            return std::any_cast<T>(mDefaultValue);
-          else
-            return T();
-        }
+      if (mDefaultValue.has_value()) {
+        return std::any_cast<T>(mDefaultValue);
       }
+      throw std::logic_error("No value provided");
     }
 
-    // Getter for std::vector. Here T = std::vector<...>
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
+    // Getter for container types
+    template <typename CONTAINER>
+    enable_if_container<CONTAINER>
     get() const {
-      using ValueType = typename T::value_type;
-      T tResult;
-      if (mValues.empty()) {
-        if (mDefaultValue.has_value()) {
-          T tDefaultValues = std::any_cast<T>(mDefaultValue);
-          std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
-                         std::back_inserter(tResult), std::any_cast<ValueType>);
-          return tResult;
-        }
-        else
-          return T();
+      using ValueType = typename CONTAINER::value_type;
+      CONTAINER tResult;
+      if (!mValues.empty()) {
+        std::transform(std::begin(mValues),         std::end(mValues),
+                       std::back_inserter(tResult), std::any_cast<ValueType>);
+        return tResult;
       }
-      else {
-        if (!mRawValues.empty()) {
-          for (const auto& mValue : mValues) {
-            tResult.emplace_back(std::any_cast<ValueType>(mValue));
-          }
-          return tResult;
-        }
-        else {
-          if (mDefaultValue.has_value()) {
-            auto tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
-            std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
-                           std::back_inserter(tResult), std::any_cast<ValueType>);
-            return tResult;
-          }
-          else
-            return T();
-        }
+      if (mDefaultValue.has_value()) {
+        const auto& tDefaultValues = std::any_cast<const CONTAINER&>(mDefaultValue);
+        std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
+                       std::back_inserter(tResult), std::any_cast<ValueType>);
+        return tResult;
       }
-    }
-
-    // Getter for std::list. Here T = std::list<...>
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::list>::value, T>::type
-    get() const {
-      using ValueType = typename T::value_type;
-      T tResult;
-      if (mValues.empty()) {
-        if (mDefaultValue.has_value()) {
-          T tDefaultValues = std::any_cast<T>(mDefaultValue);
-          std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
-                         std::back_inserter(tResult), std::any_cast<ValueType>);
-          return tResult;
-        }
-        else
-          return T();
-      }
-      else {
-        if (!mRawValues.empty()) {
-          for (const auto& mValue : mValues) {
-            tResult.emplace_back(std::any_cast<ValueType>(mValue));
-          }
-          return tResult;
-        }
-        else {
-          if (mDefaultValue.has_value()) {
-            auto tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
-            std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
-                           std::back_inserter(tResult), std::any_cast<ValueType>);
-            return tResult;
-          }
-          else
-            return T();
-        }
-      }
+      throw std::logic_error("No value provided");
     }
 
     std::vector<std::string> mNames;
