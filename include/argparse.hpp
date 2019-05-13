@@ -152,14 +152,20 @@ public:
     return !(*this == aRhs);
   }
 
-  // Entry point for template types other than std::vector and std::list
+  /*
+   * Entry point for template non-container types
+   * @throws std::logic_error in case of incompatible types
+   */
   template <typename T>
   std::enable_if_t <!is_container_v<T>, bool>
   operator==(const T& aRhs) const {
     return get<T>() == aRhs;
   }
 
-  // Template specialization for containers
+  /*
+   * Template specialization for containers
+   * @throws std::logic_error in case of incompatible types
+   */
   template <typename T>
   std::enable_if_t <is_container_v<T>, bool>
   operator==(const T& aRhs) const {
@@ -180,7 +186,10 @@ public:
       return (starts_with(aName, "--") || starts_with(aName, "-"));
     }
 
-    // Getter for template types other than std::vector and std::list
+    /*
+     * Getter for template non-container types
+     * @throws std::logic_error in case of incompatible types
+     */
     template <typename T>
     enable_if_not_container<T>
     get() const {
@@ -193,7 +202,10 @@ public:
       throw std::logic_error("No value provided");
     }
 
-    // Getter for container types
+    /*
+     * Getter for container types
+     * @throws std::logic_error in case of incompatible types
+     */
     template <typename CONTAINER>
     enable_if_container<CONTAINER>
     get() const {
@@ -297,7 +309,10 @@ class ArgumentParser {
       parse_args_validate();
     }
 
-    // Getter enabled for all template types other than std::vector and std::list
+    /* Getter enabled for all template types other than std::vector and std::list
+     * @throws std::logic_error in case of an invalid argument name
+     * @throws std::logic_error in case of incompatible types
+     */
     template <typename T = std::string>
     T get(const std::string& aArgumentName) {
       auto tIterator = mArgumentMap.find(aArgumentName);
@@ -307,8 +322,10 @@ class ArgumentParser {
       throw std::logic_error("No such argument");
     }
 
-    // Indexing operator. Return a reference to an Argument object
-    // Used in conjuction with Argument.operator== e.g., parser["foo"] == true
+    /* Indexing operator. Return a reference to an Argument object
+     * Used in conjuction with Argument.operator== e.g., parser["foo"] == true
+     * @throws std::logic_error in case of an invalid argument name
+     */
     Argument& operator[](const std::string& aArgumentName) {
       auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
