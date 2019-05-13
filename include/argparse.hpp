@@ -58,6 +58,9 @@ struct is_container_helper {};
 template<typename T, typename _ = void>
 struct is_container : std::false_type {};
 
+template<>
+struct is_container<std::string> : std::false_type {};
+
 template<typename T>
 struct is_container<T, std::conditional_t<
     false, is_container_helper<
