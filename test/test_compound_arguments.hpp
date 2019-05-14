@@ -1,6 +1,7 @@
 #pragma once
 #include <catch.hpp>
 #include <argparse.hpp>
+#include <test_utility.hpp>
 
 TEST_CASE("Parse compound toggle arguments with implicit values", "[compound_arguments]") {
   argparse::ArgumentParser program("test");
@@ -97,9 +98,9 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and ot
   REQUIRE(numbers[2] == 3);
   auto numbers_list = program.get<std::list<int>>("numbers");
   REQUIRE(numbers.size() == 3);
-  REQUIRE(argparse::get_from_list(numbers_list, 0) == 1);
-  REQUIRE(argparse::get_from_list(numbers_list, 1) == 2);
-  REQUIRE(argparse::get_from_list(numbers_list, 2) == 3);
+  REQUIRE(testutility::get_from_list(numbers_list, 0) == 1);
+  REQUIRE(testutility::get_from_list(numbers_list, 1) == 2);
+  REQUIRE(testutility::get_from_list(numbers_list, 2) == 3);
 }
 
 TEST_CASE("Parse out-of-order compound arguments", "[compound_arguments]") {

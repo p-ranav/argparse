@@ -45,28 +45,39 @@ SOFTWARE.
 namespace argparse {
 
 namespace { // anonymous namespace for helper methods - not visible outside this header file
-// Some utility structs to check template specialization
-template<typename Test, template<typename...> class Ref>
-struct is_specialization : std::false_type {};
 
-template<template<typename...> class Ref, typename... Args>
-struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
+template<typename... Ts>
+struct is_container_helper {};
+
+template<typename T, typename _ = void>
+struct is_container : std::false_type {};
+
+template<>
+struct is_container<std::string> : std::false_type {};
+
+template<typename T>
+struct is_container<T, std::conditional_t<
+    false, is_container_helper<
+        typename T::value_type,
+        decltype(std::declval<T>().begin()),
+        decltype(std::declval<T>().end()),
+        decltype(std::declval<T>().size())
+    >, void>> : public std::true_type {
+};
+
+template<typename T>
+static constexpr bool is_container_v = is_container<T>::value;
+
+template <typename T>
+using enable_if_container = std::enable_if_t<is_container_v<T>, T>;
+
+template <typename T>
+using enable_if_not_container = std::enable_if_t<!is_container_v<T>, T>;
 
 // Check if string (haystack) starts with a substring (needle)
 bool starts_with(const std::string& haystack, const std::string& needle) {
   return needle.length() <= haystack.length()
     && std::equal(needle.begin(), needle.end(), haystack.begin());
-}
-
-// Get value at index from std::list
-template <typename T>
-T get_from_list(const std::list<T>& aList, size_t aIndex) {
-  if (aList.size() > aIndex) {
-    auto tIterator = aList.begin();
-    std::advance(tIterator, aIndex);
-    return *tIterator;
-  }
-  return T();
 }
 }
 
@@ -138,45 +149,31 @@ public:
     return !(*this == aRhs);
   }
 
-  // Entry point for template types other than std::vector and std::list
+  /*
+   * Entry point for template non-container types
+   * @throws std::logic_error in case of incompatible types
+   */
   template <typename T>
-  typename std::enable_if<!is_specialization<T, std::vector>::value &&
-                          !is_specialization<T, std::list>::value, bool>::type
-    operator==(const T& aRhs) const {
+  std::enable_if_t <!is_container_v<T>, bool>
+  operator==(const T& aRhs) const {
     return get<T>() == aRhs;
   }
 
-  // Template specialization for std::vector<...>
+  /*
+   * Template specialization for containers
+   * @throws std::logic_error in case of incompatible types
+   */
   template <typename T>
-  typename std::enable_if<is_specialization<T, std::vector>::value, bool>::type
+  std::enable_if_t <is_container_v<T>, bool>
   operator==(const T& aRhs) const {
-    T tLhs = get<T>();
+    using ValueType = typename T::value_type;
+    auto tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
       return false;
     else {
-      for (size_t i = 0; i < tLhs.size(); i++) {
-        auto tValueAtIndex = std::any_cast<typename T::value_type>(tLhs[i]);
-        if (tValueAtIndex != aRhs[i])
-          return false;
-      }
-      return true;
-    }
-  }
-
-  // Template specialization for std::list<...>
-  template <typename T>
-  typename std::enable_if<is_specialization<T, std::list>::value, bool>::type
-    operator==(const T& aRhs) const {
-    T tLhs = get<T>();
-    if (tLhs.size() != aRhs.size())
-      return false;
-    else {
-      for (size_t i = 0; i < tLhs.size(); i++) {
-        auto tValueAtIndex = std::any_cast<typename T::value_type>(get_from_list(tLhs, i));
-        if (tValueAtIndex != get_from_list(aRhs, i))
-          return false;
-      }
-      return true;
+      return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs), [](const auto& lhs, const auto& rhs) {
+        return std::any_cast<const ValueType&>(lhs) == rhs;
+      });
     }
   }
 
@@ -186,102 +183,43 @@ public:
       return (starts_with(aName, "--") || starts_with(aName, "-"));
     }
 
-    // Getter for template types other than std::vector and std::list
+    /*
+     * Getter for template non-container types
+     * @throws std::logic_error in case of incompatible types
+     */
     template <typename T>
-    typename std::enable_if<!is_specialization<T, std::vector>::value &&
-                            !is_specialization<T, std::list>::value, T>::type
+    enable_if_not_container<T>
     get() const {
-      if (mValues.empty()) {
-        if (mDefaultValue.has_value()) {
-          return std::any_cast<T>(mDefaultValue);
-        }
-        else
-          return T();
+      if (!mValues.empty()) {
+        return std::any_cast<T>(mValues.front());
       }
-      else {
-        if (!mRawValues.empty())
-          return std::any_cast<T>(mValues[0]);
-        else {
-          if (mDefaultValue.has_value())
-            return std::any_cast<T>(mDefaultValue);
-          else
-            return T();
-        }
+      if (mDefaultValue.has_value()) {
+        return std::any_cast<T>(mDefaultValue);
       }
+      throw std::logic_error("No value provided");
     }
 
-    // Getter for std::vector. Here T = std::vector<...>
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::vector>::value, T>::type
+    /*
+     * Getter for container types
+     * @throws std::logic_error in case of incompatible types
+     */
+    template <typename CONTAINER>
+    enable_if_container<CONTAINER>
     get() const {
-      T tResult;
-      if (mValues.empty()) {
-        if (mDefaultValue.has_value()) {
-          T tDefaultValues = std::any_cast<T>(mDefaultValue);
-          for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
-          }
-          return tResult;
-        }
-        else
-          return T();
+      using ValueType = typename CONTAINER::value_type;
+      CONTAINER tResult;
+      if (!mValues.empty()) {
+        std::transform(std::begin(mValues),         std::end(mValues),
+                       std::back_inserter(tResult), std::any_cast<ValueType>);
+        return tResult;
       }
-      else {
-        if (!mRawValues.empty()) {
-          for (const auto& mValue : mValues) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(mValue));
-          }
-          return tResult;
-        }
-        else {
-          if (mDefaultValue.has_value()) {
-            std::vector<T> tDefaultValues = std::any_cast<std::vector<T>>(mDefaultValue);
-            for (size_t i = 0; i < tDefaultValues.size(); i++) {
-              tResult.emplace_back(std::any_cast<typename T::value_type>(tDefaultValues[i]));
-            }
-            return tResult;
-          }
-          else
-            return T();
-        }
+      if (mDefaultValue.has_value()) {
+        const auto& tDefaultValues = std::any_cast<const CONTAINER&>(mDefaultValue);
+        std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
+                       std::back_inserter(tResult), std::any_cast<ValueType>);
+        return tResult;
       }
-    }
-
-    // Getter for std::list. Here T = std::list<...>
-    template <typename T>
-    typename std::enable_if<is_specialization<T, std::list>::value, T>::type
-    get() const {
-      T tResult;
-      if (mValues.empty()) {
-        if (mDefaultValue.has_value()) {
-          T tDefaultValues = std::any_cast<T>(mDefaultValue);
-          for (size_t i = 0; i < tDefaultValues.size(); i++) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
-          }
-          return tResult;
-        }
-        else
-          return T();
-      }
-      else {
-        if (!mRawValues.empty()) {
-          for (const auto& mValue : mValues) {
-            tResult.emplace_back(std::any_cast<typename T::value_type>(mValue));
-          }
-          return tResult;
-        }
-        else {
-          if (mDefaultValue.has_value()) {
-            std::list<T> tDefaultValues = std::any_cast<std::list<T>>(mDefaultValue);
-            for (size_t i = 0; i < tDefaultValues.size(); i++) {
-              tResult.emplace_back(std::any_cast<typename T::value_type>(get_from_list(tDefaultValues, i)));
-            }
-            return tResult;
-          }
-          else
-            return T();
-        }
-      }
+      throw std::logic_error("No value provided");
     }
 
     std::vector<std::string> mNames;
@@ -368,26 +306,29 @@ class ArgumentParser {
       parse_args_validate();
     }
 
-    // Getter enabled for all template types other than std::vector and std::list
+    /* Getter enabled for all template types other than std::vector and std::list
+     * @throws std::logic_error in case of an invalid argument name
+     * @throws std::logic_error in case of incompatible types
+     */
     template <typename T = std::string>
     T get(const std::string& aArgumentName) {
       auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return tIterator->second->get<T>();
       }
-      return T();
+      throw std::logic_error("No such argument");
     }
 
-    // Indexing operator. Return a reference to an Argument object
-    // Used in conjuction with Argument.operator== e.g., parser["foo"] == true
+    /* Indexing operator. Return a reference to an Argument object
+     * Used in conjuction with Argument.operator== e.g., parser["foo"] == true
+     * @throws std::logic_error in case of an invalid argument name
+     */
     Argument& operator[](const std::string& aArgumentName) {
       auto tIterator = mArgumentMap.find(aArgumentName);
       if (tIterator != mArgumentMap.end()) {
         return *(tIterator->second);
       }
-      else {
-        throw std::runtime_error("Argument " + aArgumentName + " not found");
-      }
+      throw std::logic_error("No such argument");
     }
 
     // Printing the one and only help message
@@ -461,12 +402,6 @@ class ArgumentParser {
     }
 
   private:
-    // If the argument was defined by the user and can be found in mArgumentMap, then it's valid
-    bool is_valid_argument(const std::string& aName) {
-      auto tIterator = mArgumentMap.find(aName);
-      return (tIterator != mArgumentMap.end());
-    }
-
     /*
      * @throws std::runtime_error in case of any invalid argument
      */
