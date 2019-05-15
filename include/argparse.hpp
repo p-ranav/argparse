@@ -112,6 +112,31 @@ public:
     return *this;
   }
 
+  template <typename Iterator>
+  Iterator consume(Iterator start, Iterator end) {
+    if (mIsUsed) {
+      throw std::runtime_error("Duplicate argument");
+    }
+    mIsUsed = true;
+    mUsedName = *start;
+    start = std::next(start);
+    if (mNumArgs == 0) {
+      mValues.emplace_back(mImplicitValue);
+      return start;
+    }
+    else if (mNumArgs <= std::distance(start, end)) {
+      end = std::next(start, mNumArgs);
+      std::transform(start, end, std::back_inserter(mValues), mAction);
+      return end;
+    }
+    else if (mDefaultValue.has_value()) {
+      return start;
+    }
+    else {
+      throw std::runtime_error("Too few arguments");
+    }
+  }
+
   /*
    * @throws std::runtime_error if argument values are not valid
    */
@@ -128,7 +153,7 @@ public:
       }
     }
     else {
-      if (mValues.size() != mNumArgs) {
+      if (mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
         stream << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
                << mValues.size() << " provided.\n" << std::endl;
@@ -400,11 +425,26 @@ class ArgumentParser {
      * @throws std::runtime_error in case of any invalid argument
      */
     void parse_args_internal(const std::vector<std::string>& aArguments) {
-      std::vector<char*> argv;
-      for (const auto& arg : aArguments)
-        argv.emplace_back(const_cast<char*>(arg.data()));
-      argv.emplace_back(nullptr);
-      return parse_args_internal(int(argv.size()) - 1, argv.data());
+      if (mProgramName.empty() && !aArguments.empty()) {
+        mProgramName = aArguments.front();
+      }
+      auto end = std::end(aArguments);
+      for (auto it = std::next(std::begin(aArguments)); it != end;) {
+        const auto& tCurrentArgument = *it;
+        if (tCurrentArgument == Argument::mHelpOption || tCurrentArgument == Argument::mHelpOptionLong) {
+          throw std::runtime_error("help called");
+        }
+        auto tIterator = mArgumentMap.find(tCurrentArgument);
+        if (tIterator != mArgumentMap.end()) {
+          // Start parsing optional argument
+          auto tArgument = tIterator->second;
+          it = tArgument->consume(it, end);
+        }
+        else {
+          // TODO: compound optional arguments
+          ++it;
+        }
+      }
     }
 
     /*
