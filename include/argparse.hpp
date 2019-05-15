@@ -113,19 +113,21 @@ public:
   }
 
   template <typename Iterator>
-  Iterator consume(Iterator start, Iterator end) {
+  Iterator consume(Iterator start, Iterator end, std::string usedName = {}) {
     if (mIsUsed) {
       throw std::runtime_error("Duplicate argument");
     }
     mIsUsed = true;
-    mUsedName = *start;
-    start = std::next(start);
+    mUsedName = std::move(usedName);
     if (mNumArgs == 0) {
       mValues.emplace_back(mImplicitValue);
       return start;
     }
     else if (mNumArgs <= std::distance(start, end)) {
       end = std::next(start, mNumArgs);
+      if (std::any_of(start, end, Argument::is_optional)) {
+          throw std::runtime_error("optional argument in parameter sequence");
+      }
       std::transform(start, end, std::back_inserter(mValues), mAction);
       return end;
     }
@@ -436,12 +438,17 @@ class ArgumentParser {
         }
         auto tIterator = mArgumentMap.find(tCurrentArgument);
         if (tIterator != mArgumentMap.end()) {
-          // Start parsing optional argument
           auto tArgument = tIterator->second;
+          it = tArgument->consume(std::next(it), end, tCurrentArgument);
+        }
+        else if (!Argument::is_optional(tCurrentArgument)) {
+          if (mNextPositionalArgument >= mPositionalArguments.size()) {
+            throw std::runtime_error("Maximum number of positional arguments exceeded");
+          }
+          auto tArgument = mPositionalArguments[mNextPositionalArgument++];
           it = tArgument->consume(it, end);
         }
-        else {
-          // TODO: compound optional arguments
+        else { // TODO: compound optional arguments
           ++it;
         }
       }
