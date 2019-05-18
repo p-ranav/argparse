@@ -73,12 +73,6 @@ using enable_if_container = std::enable_if_t<is_container_v<T>, T>;
 
 template <typename T>
 using enable_if_not_container = std::enable_if_t<!is_container_v<T>, T>;
-
-// Check if string (haystack) starts with a substring (needle)
-bool starts_with(const std::string& haystack, const std::string& needle) {
-  return needle.length() <= haystack.length()
-    && std::equal(needle.begin(), needle.end(), haystack.begin());
-}
 }
 
 class Argument {
@@ -180,7 +174,7 @@ public:
   private:
     // If an argument starts with "-" or "--", then it's optional
     static bool is_optional(const std::string& aName) {
-      return (starts_with(aName, "--") || starts_with(aName, "-"));
+      return (!aName.empty() && aName[0] == '-');
     }
 
     /*
