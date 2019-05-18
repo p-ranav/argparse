@@ -34,5 +34,5 @@ TEST_CASE("Parse unknown optional argument", "[compound_arguments]") {
     .action([](const std::string& val) { return std::stoull(val); })
     .help("memory in MB to give the VMM when loading");
 
-  bfm.parse_args({ "./test.exe", "-om" });
+  REQUIRE_THROWS(bfm.parse_args({ "./test.exe", "-om" }));
 }

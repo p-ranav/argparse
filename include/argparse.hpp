@@ -462,10 +462,13 @@ class ArgumentParser {
               auto tArgument = tIterator->second;
               it = tArgument->consume(it, end, tCurrentArgument);
             }
+            else {
+              throw std::runtime_error("Unknown argument");
+            }
           }
         }
         else {
-          ++it;
+          throw std::runtime_error("Unknown argument");
         }
       }
     }
