@@ -478,26 +478,20 @@ class ArgumentParser {
      * @throws std::runtime_error in case of any invalid argument
      */
     void parse_args_validate() {
-      try {
-        // Check if all positional arguments are parsed
-        std::for_each(std::begin(mPositionalArguments),
-                      std::end(mPositionalArguments),
-                      std::mem_fn(&Argument::validate));
-        // Check if all user-provided optional argument values are parsed correctly
-        std::for_each(std::begin(mOptionalArguments),
-                      std::end(mOptionalArguments),
-                      std::mem_fn(&Argument::validate));
-      } catch (const std::runtime_error& err) {
-        throw err;
-      }
+      // Check if all arguments are parsed
+      std::for_each(std::begin(mArgumentMap), std::end(mArgumentMap), [](const auto& argPair) {
+          const auto& [key, arg] = argPair;
+          arg->validate();
+      });
     }
 
     // Used by print_help.
-    size_t get_length_of_longest_argument(const std::vector<std::shared_ptr<Argument>>& aArguments) {
-      if (aArguments.empty())
+    size_t get_length_of_longest_argument() {
+      if (mArgumentMap.empty())
         return 0;
-      std::vector<size_t> argumentLengths(aArguments.size());
-      std::transform(std::begin(aArguments), std::end(aArguments), std::begin(argumentLengths), [](const auto& arg) {
+      std::vector<size_t> argumentLengths(mArgumentMap.size());
+      std::transform(std::begin(mArgumentMap), std::end(mArgumentMap), std::begin(argumentLengths), [](const auto& argPair) {
+        const auto& [key, arg] = argPair;
         const auto& names = arg->mNames;
         auto maxLength = std::accumulate(std::begin(names), std::end(names), std::string::size_type{0}, [](const auto& sum, const auto& s) {
           return sum + s.size() + 2; // +2 for ", "
@@ -505,14 +499,6 @@ class ArgumentParser {
         return maxLength - 2; // -2 since the last one doesn't need ", "
       });
       return *std::max_element(std::begin(argumentLengths), std::end(argumentLengths));
-    }
-
-    // Used by print_help.
-    size_t get_length_of_longest_argument() {
-      const auto positionalArgMaxSize = get_length_of_longest_argument(mPositionalArguments);
-      const auto optionalArgMaxSize = get_length_of_longest_argument(mOptionalArguments);
-
-      return std::max(positionalArgMaxSize, optionalArgMaxSize);
     }
 
     std::string mProgramName;
