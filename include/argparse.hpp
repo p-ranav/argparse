@@ -451,7 +451,20 @@ class ArgumentParser {
             auto tArgument = tIterator->second;
             it = tArgument->consume(std::next(it), end, tCurrentArgument);
         }
-        else { // TODO: compound optional arguments
+        else if (const auto& tCompoundArgument = tCurrentArgument;
+                 tCompoundArgument.size() > 1 &&
+                 tCompoundArgument[0] == '-'  &&
+                 tCompoundArgument[1] != '-') {
+          ++it;
+          for (size_t j = 1; j < tCompoundArgument.size(); j++) {
+            auto tCurrentArgument = std::string{'-', tCompoundArgument[j]};
+            if (auto tIterator = mArgumentMap.find(tCurrentArgument); tIterator != mArgumentMap.end()) {
+              auto tArgument = tIterator->second;
+              it = tArgument->consume(it, end, tCurrentArgument);
+            }
+          }
+        }
+        else {
           ++it;
         }
       }
