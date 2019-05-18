@@ -436,16 +436,17 @@ class ArgumentParser {
         mProgramName = aArguments.front();
       }
       auto end = std::end(aArguments);
+      auto positionalArgumentIt = std::begin(mPositionalArguments);
       for (auto it = std::next(std::begin(aArguments)); it != end;) {
         const auto& tCurrentArgument = *it;
         if (tCurrentArgument == Argument::mHelpOption || tCurrentArgument == Argument::mHelpOptionLong) {
           throw std::runtime_error("help called");
         }
         if (Argument::is_positional(tCurrentArgument)) {
-          if (mNextPositionalArgument >= mPositionalArguments.size()) {
+          if (positionalArgumentIt == std::end(mPositionalArguments)) {
             throw std::runtime_error("Maximum number of positional arguments exceeded");
           }
-          auto tArgument = mPositionalArguments[mNextPositionalArgument++];
+          auto tArgument = *(positionalArgumentIt++);
           it = tArgument->consume(it, end);
         }
         else if (auto tIterator = mArgumentMap.find(tCurrentArgument); tIterator != mArgumentMap.end()) {
@@ -505,7 +506,6 @@ class ArgumentParser {
     std::vector<ArgumentParser> mParentParsers;
     std::vector<std::shared_ptr<Argument>> mPositionalArguments;
     std::vector<std::shared_ptr<Argument>> mOptionalArguments;
-    size_t mNextPositionalArgument = 0;
     std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
 };
 
