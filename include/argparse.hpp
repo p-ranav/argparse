@@ -327,8 +327,9 @@ class ArgumentParser {
      * @throws std::runtime_error in case of any invalid argument
      */
     void parse_args(int argc, const char * const argv[]) {
-      parse_args_internal(argc, argv);
-      parse_args_validate();
+      std::vector<std::string> arguments;
+      std::copy(argv, argv + argc, std::back_inserter(arguments));
+      parse_args(arguments);
     }
 
     /* Getter enabled for all template types other than std::vector and std::list
@@ -469,129 +470,6 @@ class ArgumentParser {
         }
         else {
           throw std::runtime_error("Unknown argument");
-        }
-      }
-    }
-
-    /*
-     * @throws std::runtime_error in case of any invalid argument
-     */
-    void parse_args_internal(int argc, const char * const argv[]) {
-      if (mProgramName.empty() && argc > 0)
-        mProgramName = argv[0];
-      for (int i = 1; i < argc; i++) {
-        auto tCurrentArgument = std::string(argv[i]);
-        if (tCurrentArgument == Argument::mHelpOption || tCurrentArgument == Argument::mHelpOptionLong) {
-          throw std::runtime_error("help called");
-        }
-        auto tIterator = mArgumentMap.find(argv[i]);
-        if (tIterator != mArgumentMap.end()) {
-          // Start parsing optional argument
-          auto tArgument = tIterator->second;
-          tArgument->mUsedName = tCurrentArgument;
-          tArgument->mIsUsed = true;
-          auto tCount = tArgument->mNumArgs;
-
-          // Check to see if implicit value should be used
-          // Two cases to handle here:
-          // (1) User has explicitly programmed nargs to be 0
-          // (2) User has provided an implicit value, which also sets nargs to 0
-          if (tCount == 0) {
-            // Use implicit value for this optional argument
-            tArgument->mValues.emplace_back(tArgument->mImplicitValue);
-            tArgument->mRawValues.emplace_back();
-            tCount = 0;
-          }
-          while (tCount > 0) {
-            i = i + 1;
-            if (i < argc) {
-              tArgument->mUsedName = tCurrentArgument;
-              tArgument->mRawValues.emplace_back(argv[i]);
-              if (tArgument->mAction != nullptr)
-                tArgument->mValues.emplace_back(tArgument->mAction(argv[i]));
-              else {
-                if (tArgument->mDefaultValue.has_value())
-                  tArgument->mValues.emplace_back(tArgument->mDefaultValue);
-                else
-                  tArgument->mValues.emplace_back(std::string(argv[i]));
-              }
-            }
-            tCount -= 1;
-          }
-        }
-        else {
-          if (Argument::is_optional(argv[i])) {
-            // This is possibly a compound optional argument
-            // Example: We have three optional arguments -a, -u and -x
-            // The user provides ./main -aux ...
-            // Here -aux is a compound optional argument
-            std::string tCompoundArgument = std::string(argv[i]);
-            if (tCompoundArgument.size() > 1 && tCompoundArgument[0] == '-' && tCompoundArgument[1] != '-') {
-              for (size_t j = 1; j < tCompoundArgument.size(); j++) {
-                std::string tArgument(1, tCompoundArgument[j]);
-                size_t tNumArgs = 0;
-                tIterator = mArgumentMap.find("-" + tArgument);
-                if (tIterator != mArgumentMap.end()) {
-                  auto tArgumentObject = tIterator->second;
-                  tNumArgs = tArgumentObject->mNumArgs;
-                  std::vector<std::string> tArgumentsForRecursiveParsing = {"", "-" + tArgument};
-                  while (tNumArgs > 0 && i < argc) {
-                    i += 1;
-                    if (i < argc) {
-                      tArgumentsForRecursiveParsing.emplace_back(argv[i]);
-                      tNumArgs -= 1;
-                    }
-                  }
-                  parse_args_internal(tArgumentsForRecursiveParsing);
-                }
-                else {
-                  if (!tArgument.empty() && tArgument[0] == '-')
-                    std::cout << "warning: unrecognized optional argument " << tArgument
-                              << std::endl;
-                  else
-                    std::cout << "warning: unrecognized optional argument -" << tArgument
-                              << std::endl;
-                }
-              }
-            }
-            else {
-              std::cout << "warning: unrecognized optional argument " << tCompoundArgument << std::endl;
-            }
-          }
-          else {
-            // This is a positional argument.
-            // Parse and save into mPositionalArguments vector
-            if (mNextPositionalArgument >= mPositionalArguments.size()) {
-              std::stringstream stream;
-              stream << "error: unexpected positional argument " << argv[i] << std::endl;
-              throw std::runtime_error(stream.str());
-            }
-            auto tArgument = mPositionalArguments[mNextPositionalArgument];
-            auto tCount = tArgument->mNumArgs - tArgument->mRawValues.size();
-            while (tCount > 0) {
-              tIterator = mArgumentMap.find(argv[i]);
-              if (tIterator != mArgumentMap.end() || Argument::is_optional(argv[i])) {
-                i = i - 1;
-                break;
-              }
-              if (i < argc) {
-                tArgument->mUsedName = tCurrentArgument;
-                tArgument->mRawValues.emplace_back(argv[i]);
-                if (tArgument->mAction != nullptr)
-                  tArgument->mValues.emplace_back(tArgument->mAction(argv[i]));
-                else {
-                  if (tArgument->mDefaultValue.has_value())
-                    tArgument->mValues.emplace_back(tArgument->mDefaultValue);
-                  else
-                    tArgument->mValues.emplace_back(std::string(argv[i]));
-                }
-              }
-              tCount -= 1;
-              if (tCount > 0) i += 1;
-            }
-            if (tCount == 0)
-              mNextPositionalArgument += 1;
-          }
         }
       }
     }
