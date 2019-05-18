@@ -204,6 +204,10 @@ public:
       return (!aName.empty() && aName[0] == '-');
     }
 
+    static bool is_positional(const std::string& aName) {
+      return !is_optional(aName);
+    }
+
     /*
      * Getter for template non-container types
      * @throws std::logic_error in case of incompatible types
@@ -436,17 +440,16 @@ class ArgumentParser {
         if (tCurrentArgument == Argument::mHelpOption || tCurrentArgument == Argument::mHelpOptionLong) {
           throw std::runtime_error("help called");
         }
-        auto tIterator = mArgumentMap.find(tCurrentArgument);
-        if (tIterator != mArgumentMap.end()) {
-          auto tArgument = tIterator->second;
-          it = tArgument->consume(std::next(it), end, tCurrentArgument);
-        }
-        else if (!Argument::is_optional(tCurrentArgument)) {
+        if (Argument::is_positional(tCurrentArgument)) {
           if (mNextPositionalArgument >= mPositionalArguments.size()) {
             throw std::runtime_error("Maximum number of positional arguments exceeded");
           }
           auto tArgument = mPositionalArguments[mNextPositionalArgument++];
           it = tArgument->consume(it, end);
+        }
+        else if (auto tIterator = mArgumentMap.find(tCurrentArgument); tIterator != mArgumentMap.end()) {
+            auto tArgument = tIterator->second;
+            it = tArgument->consume(std::next(it), end, tCurrentArgument);
         }
         else { // TODO: compound optional arguments
           ++it;
