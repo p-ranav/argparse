@@ -44,13 +44,7 @@ TEST_CASE("Parse positional arguments with optional arguments in the middle", "[
   program.add_argument("output").nargs(2);
   program.add_argument("--num_iterations")
     .action([](const std::string& value) { return std::stoi(value); });
-  program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv", "--num_iterations", "15", "output.mesh" });
-  REQUIRE(program.get<int>("--num_iterations") == 15);
-  REQUIRE(program.get("input") == "rocket.mesh");
-  auto outputs = program.get<std::vector<std::string>>("output");
-  REQUIRE(outputs.size() == 2);
-  REQUIRE(outputs[0] == "thrust_profile.csv");
-  REQUIRE(outputs[1] == "output.mesh");
+  REQUIRE_THROWS(program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv", "--num_iterations", "15", "output.mesh" }));
 }
 
 TEST_CASE("Square a number", "[positional_arguments]") {
