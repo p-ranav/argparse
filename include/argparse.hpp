@@ -381,26 +381,25 @@ class ArgumentParser {
     std::string print_help() {
       std::stringstream stream;
       stream << std::left;
-      stream << "Usage: " << mProgramName << " [options]";
+      stream << "Usage: " << mProgramName << " [options] ";
       size_t tLongestArgumentLength = get_length_of_longest_argument();
 
-      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
-        auto tNames = mPositionalArguments[i]->mNames;
-        stream << (i == 0 ? " " : "") << tNames[0] << " ";
+      for (const auto& argument : mPositionalArguments) {
+        stream << argument->mNames.front() << " ";
       }
       stream << "\n\n";
 
       if (!mPositionalArguments.empty())
         stream << "Positional arguments:\n";
+
       for (const auto& mPositionalArgument : mPositionalArguments) {
         stream.width(tLongestArgumentLength);
         stream << *mPositionalArgument;
       }
 
-      if (!mOptionalArguments.empty() && !mPositionalArguments.empty())
-        stream << "\nOptional arguments:\n";
-      else if (!mOptionalArguments.empty())
-        stream << "Optional arguments:\n";
+      if (!mOptionalArguments.empty())
+        stream << (mPositionalArguments.empty() ? "" : "\n") << "Optional arguments:\n";
+
       for (const auto & mOptionalArgument : mOptionalArguments) {
         stream.width(tLongestArgumentLength);
         stream << *mOptionalArgument;
