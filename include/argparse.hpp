@@ -84,7 +84,11 @@ public:
   explicit Argument(Args... args)
     : mNames({std::move(args)...})
     , mIsOptional((is_optional(args) || ...))
-  {}
+  {
+    std::sort(mNames.begin(), mNames.end(), [](const auto& lhs, const auto& rhs) {
+      return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
+    });
+  }
 
   Argument& help(std::string aHelp) {
     mHelp = std::move(aHelp);
@@ -401,10 +405,6 @@ class ArgumentParser {
       for (const auto & mOptionalArgument : mOptionalArguments) {
         size_t tCurrentLength = 0;
         auto tNames = mOptionalArgument->mNames;
-        std::sort(tNames.begin(), tNames.end(),
-          [](const std::string& lhs, const std::string& rhs) {
-            return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
-        });
         for (size_t j = 0; j < tNames.size() - 1; j++) {
           auto tCurrentName = tNames[j];
           stream << tCurrentName;
