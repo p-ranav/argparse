@@ -41,6 +41,8 @@ SOFTWARE.
 #include <sstream>
 #include <stdexcept>
 #include <numeric>
+#include <iomanip>
+#include <iterator>
 
 namespace argparse {
 
@@ -84,7 +86,11 @@ public:
   explicit Argument(Args... args)
     : mNames({std::move(args)...})
     , mIsOptional((is_optional(args) || ...))
-  {}
+  {
+    std::sort(mNames.begin(), mNames.end(), [](const auto& lhs, const auto& rhs) {
+      return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
+    });
+  }
 
   Argument& help(std::string aHelp) {
     mHelp = std::move(aHelp);
@@ -162,6 +168,18 @@ public:
         throw std::runtime_error(stream.str());
       }
     }
+  }
+
+  size_t get_arguments_length() const {
+    return std::accumulate(std::begin(mNames), std::end(mNames), size_t(0), [](const auto& sum, const auto& s) {
+      return sum + s.size() + 1; // +1 for space between names
+    });
+  }
+
+  friend std::ostream& operator<<(std::ostream& stream, const Argument& argument) {
+    std::stringstream nameStream;
+    std::copy(std::begin(argument.mNames), std::end(argument.mNames), std::ostream_iterator<std::string>(nameStream, " "));
+    return stream << nameStream.str() << "\t" << argument.mHelp << "\n";
   }
 
 
@@ -362,65 +380,29 @@ class ArgumentParser {
     // TODO: support user-defined help and usage messages for the ArgumentParser
     std::string print_help() {
       std::stringstream stream;
-      stream << "Usage: " << mProgramName << " [options]";
+      stream << std::left;
+      stream << "Usage: " << mProgramName << " [options] ";
       size_t tLongestArgumentLength = get_length_of_longest_argument();
 
-      for (size_t i = 0; i < mPositionalArguments.size(); i++) {
-        auto tNames = mPositionalArguments[i]->mNames;
-        stream << (i == 0 ? " " : "") << tNames[0] << " ";
+      for (const auto& argument : mPositionalArguments) {
+        stream << argument->mNames.front() << " ";
       }
       stream << "\n\n";
 
       if (!mPositionalArguments.empty())
         stream << "Positional arguments:\n";
-      for (const auto& mPositionalArgument : mPositionalArguments) {
-        size_t tCurrentLength = 0;
-        auto tNames = mPositionalArgument->mNames;
-        for (size_t j = 0; j < tNames.size() - 1; j++) {
-          auto tCurrentName = tNames[j];
-          stream << tCurrentName;
-          stream << ", ";
-          tCurrentLength += tCurrentName.length() + 2;
-        }
-        stream << tNames[tNames.size() - 1];
-        tCurrentLength += tNames[tNames.size() - 1].length();
-        if (tCurrentLength < tLongestArgumentLength)
-          stream << std::string((tLongestArgumentLength - tCurrentLength) + 2, ' ');
-        else if (tCurrentLength == tLongestArgumentLength)
-          stream << std::string(2, ' ');
-        else
-          stream << std::string((tCurrentLength - tLongestArgumentLength) + 2, ' ');
 
-        stream << mPositionalArgument->mHelp << "\n";
+      for (const auto& mPositionalArgument : mPositionalArguments) {
+        stream.width(tLongestArgumentLength);
+        stream << *mPositionalArgument;
       }
 
-      if (!mOptionalArguments.empty() && !mPositionalArguments.empty())
-        stream << "\nOptional arguments:\n";
-      else if (!mOptionalArguments.empty())
-        stream << "Optional arguments:\n";
-      for (const auto & mOptionalArgument : mOptionalArguments) {
-        size_t tCurrentLength = 0;
-        auto tNames = mOptionalArgument->mNames;
-        std::sort(tNames.begin(), tNames.end(),
-          [](const std::string& lhs, const std::string& rhs) {
-            return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
-        });
-        for (size_t j = 0; j < tNames.size() - 1; j++) {
-          auto tCurrentName = tNames[j];
-          stream << tCurrentName;
-          stream << ", ";
-          tCurrentLength += tCurrentName.length() + 2;
-        }
-        stream << tNames[tNames.size() - 1];
-        tCurrentLength += tNames[tNames.size() - 1].length();
-        if (tCurrentLength < tLongestArgumentLength)
-          stream << std::string((tLongestArgumentLength - tCurrentLength) + 2, ' ');
-        else if (tCurrentLength == tLongestArgumentLength)
-          stream << std::string(2, ' ');
-        else
-          stream << std::string((tCurrentLength - tLongestArgumentLength) + 2, ' ');
+      if (!mOptionalArguments.empty())
+        stream << (mPositionalArguments.empty() ? "" : "\n") << "Optional arguments:\n";
 
-        stream << mOptionalArgument->mHelp << "\n";
+      for (const auto & mOptionalArgument : mOptionalArguments) {
+        stream.width(tLongestArgumentLength);
+        stream << *mOptionalArgument;
       }
 
       std::cout << stream.str();
@@ -493,11 +475,7 @@ class ArgumentParser {
       std::vector<size_t> argumentLengths(mArgumentMap.size());
       std::transform(std::begin(mArgumentMap), std::end(mArgumentMap), std::begin(argumentLengths), [](const auto& argPair) {
         const auto& [key, arg] = argPair;
-        const auto& names = arg->mNames;
-        auto maxLength = std::accumulate(std::begin(names), std::end(names), std::string::size_type{0}, [](const auto& sum, const auto& s) {
-          return sum + s.size() + 2; // +2 for ", "
-        });
-        return maxLength - 2; // -2 since the last one doesn't need ", "
+        return arg->get_arguments_length();
       });
       return *std::max_element(std::begin(argumentLengths), std::end(argumentLengths));
     }
