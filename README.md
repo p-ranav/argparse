@@ -45,7 +45,14 @@ int main(int argc, char *argv[]) {
     .help("display the square of a given integer")
     .action([](const std::string& value) { return std::stoi(value); });
 
-  program.parse_args(argc, argv);
+  try {
+    program.parse_args({ "./main", "--help" });
+  }
+  catch (const std::runtime_error& err) {
+    std::cout << err.what() << std::endl;
+    program.print_help();
+    exit(0);
+  }
   
   auto input = program.get<int>("square");
   std::cout << (input * input) << std::endl;
@@ -80,7 +87,14 @@ program.add_argument("--verbose")
   .default_value(false)
   .implicit_value(true);
 
-program.parse_args(argc, argv);
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 if (program["--verbose"] == true) {
     std::cout << "Verbosity enabled" << std::endl;
@@ -110,7 +124,14 @@ program.add_argument("--verbose")
   .default_value(false)
   .implicit_value(true);
 
-program.parse_args(argc, argv);
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 int input = program.get<int>("square");
 
@@ -160,7 +181,14 @@ program.add_argument("--input_files")
   .help("The list of input files")
   .nargs(2);
 
-program.parse_args(argc, argv);  // Example: ./main --input_files config.yml System.xml
+try {
+  program.parse_args(argc, argv);   // Example: ./main --input_files config.yml System.xml
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
@@ -182,7 +210,14 @@ program.add_argument("--query_point")
   .default_value(std::vector<double>{0.0, 0.0, 0.0})
   .action([](const std::string& value) { return std::stod(value); });
 
-program.parse_args(argc, argv);  // Example: ./main --query_point 3.5 4.7 9.2
+try {
+  program.parse_args(argc, argv); // Example: ./main --query_point 3.5 4.7 9.2
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 auto query_point = program.get<std::vector<double>>("--query_point");  // {3.5, 4.7, 9.2}
 ```
@@ -207,7 +242,14 @@ program.add_argument("-c")
   .default_value(std::vector<float>{0.0f, 0.0f})
   .action([](const std::string& value) { return std::stof(value); });
 
-program.parse_args(argc, argv);                    // Example: ./main -abc 1.95 2.47 
+try {
+  program.parse_args(argc, argv);                  // Example: ./main -abc 1.95 2.47
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 auto a = program.get<bool>("-a");                  // true
 auto b = program.get<bool>("-b");                  // true
@@ -276,7 +318,14 @@ program.add_argument("config")
     return config_json;
   });
 
-program.parse_args({"./test", "config.json"});
+try {
+  program.parse_args({"./test", "config.json"});
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 nlohmann::json config = program.get<nlohmann::json>("config");
 ```
@@ -305,7 +354,14 @@ program.add_argument("-c")
 program.add_argument("--files")
   .nargs(3);
 
-program.parse_args(argc, argv);
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 auto numbers = program.get<std::vector<int>>("numbers");        // {1, 2, 3}
 auto a = program.get<bool>("-a");                               // true
@@ -340,7 +396,14 @@ program.add_argument("input")
     return std::string{ "baz" };
   });
 
-program.parse_args(argc, argv);
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
 
 auto input = program.get("input");
 std::cout << input << std::endl;
