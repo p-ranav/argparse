@@ -129,7 +129,7 @@ public:
       mValues.emplace_back(mImplicitValue);
       return start;
     }
-    else if (mNumArgs <= std::distance(start, end)) {
+    else if (mNumArgs <= static_cast<size_t>(std::distance(start, end))) {
       end = std::next(start, mNumArgs);
       if (std::any_of(start, end, Argument::is_optional)) {
           throw std::runtime_error("optional argument in parameter sequence");
@@ -252,14 +252,16 @@ public:
       using ValueType = typename CONTAINER::value_type;
       CONTAINER tResult;
       if (!mValues.empty()) {
-        std::transform(std::begin(mValues),         std::end(mValues),
-                       std::back_inserter(tResult), std::any_cast<ValueType>);
+        std::transform(std::begin(mValues), std::end(mValues), std::back_inserter(tResult), [](const auto & value) {
+			return std::any_cast<ValueType>(value);
+		});
         return tResult;
       }
       if (mDefaultValue.has_value()) {
         const auto& tDefaultValues = std::any_cast<const CONTAINER&>(mDefaultValue);
-        std::transform(std::begin(tDefaultValues),  std::end(tDefaultValues),
-                       std::back_inserter(tResult), std::any_cast<ValueType>);
+        std::transform(std::begin(tDefaultValues), std::end(tDefaultValues), std::back_inserter(tResult), [](const auto & value) {
+			return std::any_cast<ValueType>(value);
+		});
         return tResult;
       }
       throw std::logic_error("No value provided");
