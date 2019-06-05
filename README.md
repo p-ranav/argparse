@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     .action([](const std::string& value) { return std::stoi(value); });
 
   try {
-    program.parse_args({ "./main", "--help" });
+    program.parse_args(argc, argv);
   }
   catch (const std::runtime_error& err) {
     std::cout << err.what() << std::endl;
