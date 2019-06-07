@@ -63,3 +63,33 @@ TEST_CASE("Parse negative floats into a vector", "[positional_arguments]") {
   program.parse_args({"./main", "-1.001", "-2.002", "3.003"});
   REQUIRE(program["number"] == std::vector<double>{-1.001, -2.002, 3.003});
 }
+
+TEST_CASE("Parse numbers in E notation", "[positional_arguments]") {
+  argparse::ArgumentParser program;
+  program.add_argument("--verbose", "-v")
+    .help("enable verbose logging")
+    .default_value(false)
+    .implicit_value(true);
+
+  program.add_argument("number")
+    .help("Input number")
+    .action([](const std::string& value) { return std::stod(value); });
+
+  program.parse_args({"./main", "-1.2e3"});
+  REQUIRE(program.get<double>("number") == -1200.0);
+}
+
+TEST_CASE("Parse numbers in E notation (capital E)", "[positional_arguments]") {
+  argparse::ArgumentParser program;
+  program.add_argument("--verbose", "-v")
+    .help("enable verbose logging")
+    .default_value(false)
+    .implicit_value(true);
+
+  program.add_argument("number")
+    .help("Input number")
+    .action([](const std::string& value) { return std::stod(value); });
+
+  program.parse_args({"./main", "-1.32E4"});
+  REQUIRE(program.get<double>("number") == -13200.0);
+}
