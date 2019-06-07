@@ -217,9 +217,30 @@ public:
   }
 
   private:
+
+    static bool is_integer(const std::string& aValue) {
+      if(aValue.empty() ||
+	 ((!isdigit(aValue[0])) && (aValue[0] != '-') && (aValue[0] != '+')))
+	return false;   
+      char * tPtr;
+      strtol(aValue.c_str(), &tPtr, 10);
+      return (*tPtr == 0);
+    }
+
+    static bool is_float(const std::string& aValue) {
+      std::istringstream tStream(aValue);
+      float tFloat;
+      // noskipws considers leading whitespace invalid
+      tStream >> std::noskipws >> tFloat; 
+      // Check the entire string was consumed
+      // and if either failbit or badbit is set
+      return tStream.eof() && !tStream.fail();
+    }
+  
     // If an argument starts with "-" or "--", then it's optional
     static bool is_optional(const std::string& aName) {
-      return (!aName.empty() && aName[0] == '-');
+      return (!aName.empty() && aName[0] == '-' &&
+	      !is_integer(aName) && !is_float(aName));
     }
 
     static bool is_positional(const std::string& aName) {
@@ -464,10 +485,11 @@ class ArgumentParser {
      */
     void parse_args_validate() {
       // Check if all arguments are parsed
-      std::for_each(std::begin(mArgumentMap), std::end(mArgumentMap), [](const auto& argPair) {
-          const auto& [key, arg] = argPair;
-          arg->validate();
-      });
+      std::for_each(std::begin(mArgumentMap), std::end(mArgumentMap),
+		    [](const auto& argPair) {
+		      const auto& tArgument = argPair.second;
+		      tArgument->validate();
+		    });
     }
 
     // Used by print_help.
@@ -475,11 +497,13 @@ class ArgumentParser {
       if (mArgumentMap.empty())
         return 0;
       std::vector<size_t> argumentLengths(mArgumentMap.size());
-      std::transform(std::begin(mArgumentMap), std::end(mArgumentMap), std::begin(argumentLengths), [](const auto& argPair) {
-        const auto& [key, arg] = argPair;
-        return arg->get_arguments_length();
-      });
-      return *std::max_element(std::begin(argumentLengths), std::end(argumentLengths));
+      std::transform(std::begin(mArgumentMap), std::end(mArgumentMap),
+		     std::begin(argumentLengths), [](const auto& argPair) {
+		       const auto& tArgument = argPair.second;	  
+		       return tArgument->get_arguments_length();
+		     });
+      return *std::max_element(std::begin(argumentLengths),
+			       std::end(argumentLengths));
     }
 
     std::string mProgramName;

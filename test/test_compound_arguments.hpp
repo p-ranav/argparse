@@ -100,6 +100,9 @@ TEST_CASE("Parse out-of-order compound arguments", "[compound_arguments]") {
   auto a = program.get<bool>("-a");                // true
   auto b = program.get<bool>("-b");                // true
   auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
+  REQUIRE(a == true);
+  REQUIRE(b == true);
+  REQUIRE(program["-c"] == std::vector<float>{3.14f, 2.718f});  
 }
 
 TEST_CASE("Parse out-of-order compound arguments. Second variation", "[compound_arguments]") {

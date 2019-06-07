@@ -9,3 +9,4 @@
 #include <test_container_arguments.hpp>
 #include <test_parent_parsers.hpp>
 #include <test_invalid_arguments.hpp>
+#include <test_negative_numbers.hpp>
