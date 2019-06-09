@@ -111,6 +111,42 @@ Here's what's happening:
 * Since the argument is actually optional, no error is thrown when running the program without ```--verbose```. Note that by using ```.default_value(false)```, if the optional argument isn’t used, it's value is automatically set to false. 
 * By using ```.implicit_value(true)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, it's value is set to true. 
 
+### Negative Numbers
+
+Optional arguments start with ```-```. Can ```argparse``` handle negative numbers? The answer is yes!
+
+```cpp
+argparse::ArgumentParser program;
+
+program.add_argument("integer")
+  .help("Input number")
+  .action([](const std::string& value) { return std::stoi(value); });
+  
+program.add_argument("floats")
+  .help("Vector of floats")
+  .nargs(4)
+  .action([](const std::string& value) { return std::stof(value); });
+
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  program.print_help();
+  exit(0);
+}
+
+// Some code to print arguments
+```
+
+```bash
+$ ./main -5 -1.1 -3.1415 -3.1e2 -4.51329E3
+integer : -5
+floats  : -1.1 -3.1415 -310 -4513.29
+```
+
+As you can see here, ```argparse``` supports negative integers, negative floats and scientific notation. 
+
 ### Combining Positional and Optional Arguments
 
 ```cpp
