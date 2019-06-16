@@ -20,4 +20,4 @@ script:
   - cd test
   - mkdir build && cd build
   - cmake ../. 
-  - make && make check
+  - make && ./tests
