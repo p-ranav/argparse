@@ -17,6 +17,7 @@ install:
 - "[ $CXX = g++ ] && export CXX=g++-7 || true"
 - "[ $CXX = clang++ ] && export CXX=clang++-5.0 || true"
 script:
+  - cd test
   - mkdir build && cd build
   - cmake ../. 
   - make && make check
