@@ -153,7 +153,7 @@ public:
       if (mIsUsed && mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
         stream << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
-               << mValues.size() << " provided." << std::endl;
+               << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       }
       else {
@@ -164,7 +164,7 @@ public:
       if (mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
         stream << "error: " << mUsedName << ": expected " << mNumArgs << " argument(s). "
-               << mValues.size() << " provided." << std::endl;
+               << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       }
     }
