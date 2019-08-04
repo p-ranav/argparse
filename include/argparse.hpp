@@ -110,6 +110,7 @@ public:
   }
 
   Argument& required() {
+	  mDefaultValue.reset();
 	  mIsRequired = true;
 	  return *this;
   }
