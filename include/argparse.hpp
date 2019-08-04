@@ -169,6 +169,11 @@ public:
 			  stream << "error: " << mNames[0] << ": required.";
 			  throw std::runtime_error(stream.str());
 		  }
+		  if (mIsUsed && mValues.size() == 0) {
+			  std::stringstream stream;
+			  stream << "error: " << mUsedName << ": no value provided.";
+			  throw std::runtime_error(stream.str());
+		  }
       }
     }
     else {
