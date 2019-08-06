@@ -194,7 +194,11 @@ public:
   friend std::ostream& operator<<(std::ostream& stream, const Argument& argument) {
     std::stringstream nameStream;
     std::copy(std::begin(argument.mNames), std::end(argument.mNames), std::ostream_iterator<std::string>(nameStream, " "));
-    return stream << nameStream.str() << "\t" << argument.mHelp << "\n";
+	stream << nameStream.str() << "\t" << argument.mHelp;
+    if (argument.mIsRequired)
+      stream << "[Required]";
+    stream << "\n";
+    return stream;
   }
 
 
