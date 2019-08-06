@@ -99,7 +99,6 @@ public:
 
   Argument& default_value(std::any aDefaultValue) {
     mDefaultValue = std::move(aDefaultValue);
-	mIsRequired = false;
     return *this;
   }
 
@@ -110,7 +109,6 @@ public:
   }
 
   Argument& required() {
-	  mDefaultValue.reset();
 	  mIsRequired = true;
 	  return *this;
   }
@@ -165,12 +163,12 @@ public:
       }
       else {
         // TODO: check if an implicit value was programmed for this argument
-		  if (!mIsUsed && mIsRequired) {
+		  if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
 			  std::stringstream stream;
 			  stream << "error: " << mNames[0] << ": required.";
 			  throw std::runtime_error(stream.str());
 		  }
-		  if (mIsUsed && mValues.size() == 0) {
+		  if (mIsUsed && mIsRequired && mValues.size() == 0) {
 			  std::stringstream stream;
 			  stream << "error: " << mUsedName << ": no value provided.";
 			  throw std::runtime_error(stream.str());
