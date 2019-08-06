@@ -102,6 +102,11 @@ public:
     return *this;
   }
 
+  Argument& required() {
+    mIsRequired = true;
+    return *this;
+  }
+
   Argument& implicit_value(std::any aImplicitValue) {
     mImplicitValue = std::move(aImplicitValue);
     mNumArgs = 0;
@@ -158,6 +163,16 @@ public:
       }
       else {
         // TODO: check if an implicit value was programmed for this argument
+        if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
+          std::stringstream stream;
+          stream << "error: " << mNames[0] << ": required.";
+          throw std::runtime_error(stream.str());
+        }
+        if (mIsUsed && mIsRequired && mValues.size() == 0) {
+          std::stringstream stream;
+          stream << "error: " << mUsedName << ": no value provided.";
+          throw std::runtime_error(stream.str());
+        }
       }
     }
     else {
@@ -179,7 +194,11 @@ public:
   friend std::ostream& operator<<(std::ostream& stream, const Argument& argument) {
     std::stringstream nameStream;
     std::copy(std::begin(argument.mNames), std::end(argument.mNames), std::ostream_iterator<std::string>(nameStream, " "));
-    return stream << nameStream.str() << "\t" << argument.mHelp << "\n";
+	stream << nameStream.str() << "\t" << argument.mHelp;
+    if (argument.mIsRequired)
+      stream << "[Required]";
+    stream << "\n";
+    return stream;
   }
 
 
@@ -298,6 +317,7 @@ public:
     std::vector<std::string> mRawValues;
     size_t mNumArgs = 1;
     bool mIsOptional = false;
+    bool mIsRequired = false;
     bool mIsUsed = false; // relevant for optional arguments. True if used by user
 
   public:
