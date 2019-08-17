@@ -153,26 +153,26 @@ public:
     if (mIsOptional) {
       if (mIsUsed && mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
-        stream << "error: " << mUsedName << ": expected " << mNumArgs
+        stream << mUsedName << ": expected " << mNumArgs
                << " argument(s). " << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       } else {
         // TODO: check if an implicit value was programmed for this argument
         if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
           std::stringstream stream;
-          stream << "error: " << mNames[0] << ": required.";
+          stream << mNames[0] << ": required.";
           throw std::runtime_error(stream.str());
         }
         if (mIsUsed && mIsRequired && mValues.size() == 0) {
           std::stringstream stream;
-          stream << "error: " << mUsedName << ": no value provided.";
+          stream << mUsedName << ": no value provided.";
           throw std::runtime_error(stream.str());
         }
       }
     } else {
       if (mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
-        stream << "error: " << mUsedName << ": expected " << mNumArgs
+        stream << mUsedName << ": expected " << mNumArgs
                << " argument(s). " << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       }
