@@ -10,3 +10,4 @@
 #include <test_parent_parsers.hpp>
 #include <test_invalid_arguments.hpp>
 #include <test_negative_numbers.hpp>
+#include <test_required_arguments.hpp>
