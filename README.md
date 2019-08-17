@@ -111,6 +111,27 @@ Here's what's happening:
 * Since the argument is actually optional, no error is thrown when running the program without ```--verbose```. Note that by using ```.default_value(false)```, if the optional argument isn’t used, it's value is automatically set to false. 
 * By using ```.implicit_value(true)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, it's value is set to true. 
 
+#### Requiring optional arguments
+
+There are scenarios where you would like to make an optional argument ***required***. As discussed above, optional arguments either begin with `-` or `--`. You can make these types of arguments required like so:
+
+```cpp
+	program.add_argument("-o", "--output")
+		.required()
+		.help("specify the output file.");
+```
+
+If the user does not provide a value for this parameter, an exception is thrown. 
+
+Alternatively, you could provide a default value like so:
+
+```cpp
+	program.add_argument("-o", "--output")
+		.default_value(std::string("-"))
+                .required()
+		.help("specify the output file.");
+```
+
 ### Negative Numbers
 
 Optional arguments start with ```-```. Can ```argparse``` handle negative numbers? The answer is yes!
