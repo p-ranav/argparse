@@ -1,5 +1,5 @@
 <p align="center">
-  <img height="100" src="https://i.imgur.com/oDXeMUQ.png" alt="pprint"/>
+  <img height="100" src="https://i.imgur.com/oDXeMUQ.png" alt="argparse"/>
 </p>
 
 <p align="center">
