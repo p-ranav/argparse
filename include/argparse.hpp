@@ -46,8 +46,7 @@ SOFTWARE.
 
 namespace argparse {
 
-namespace { // anonymous namespace for helper methods - not visible outside this
-            // header file
+namespace details { // namespace for helper methods
 
 template <typename... Ts> struct is_container_helper {};
 
@@ -208,7 +207,7 @@ public:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T>
-  std::enable_if_t<!is_container_v<T>, bool> operator==(const T &aRhs) const {
+  std::enable_if_t<!details::is_container_v<T>, bool> operator==(const T &aRhs) const {
     return get<T>() == aRhs;
   }
 
@@ -217,7 +216,7 @@ public:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T>
-  std::enable_if_t<is_container_v<T>, bool> operator==(const T &aRhs) const {
+  std::enable_if_t<details::is_container_v<T>, bool> operator==(const T &aRhs) const {
     using ValueType = typename T::value_type;
     auto tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
@@ -264,7 +263,7 @@ private:
    * Getter for template non-container types
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T> enable_if_not_container<T> get() const {
+  template <typename T> details::enable_if_not_container<T> get() const {
     if (!mValues.empty()) {
       return std::any_cast<T>(mValues.front());
     }
@@ -278,7 +277,7 @@ private:
    * Getter for container types
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename CONTAINER> enable_if_container<CONTAINER> get() const {
+  template <typename CONTAINER> details::enable_if_container<CONTAINER> get() const {
     using ValueType = typename CONTAINER::value_type;
     CONTAINER tResult;
     if (!mValues.empty()) {
