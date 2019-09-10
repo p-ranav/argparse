@@ -124,9 +124,9 @@ Here's what's happening:
 There are scenarios where you would like to make an optional argument ***required***. As discussed above, optional arguments either begin with `-` or `--`. You can make these types of arguments required like so:
 
 ```cpp
-	program.add_argument("-o", "--output")
-		.required()
-		.help("specify the output file.");
+program.add_argument("-o", "--output")
+  .required()
+  .help("specify the output file.");
 ```
 
 If the user does not provide a value for this parameter, an exception is thrown. 
@@ -134,10 +134,10 @@ If the user does not provide a value for this parameter, an exception is thrown.
 Alternatively, you could provide a default value like so:
 
 ```cpp
-	program.add_argument("-o", "--output")
-		.default_value(std::string("-"))
-                .required()
-		.help("specify the output file.");
+program.add_argument("-o", "--output")
+  .default_value(std::string("-"))
+  .required()
+  .help("specify the output file.");
 ```
 
 ### Negative Numbers
