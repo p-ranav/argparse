@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include <iostream>
 #include <argparse.hpp>
+#include <test_help.hpp>
 #include <test_parse_args.hpp>
 #include <test_positional_arguments.hpp>
 #include <test_optional_arguments.hpp>
