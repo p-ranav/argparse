@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   }
   catch (const std::runtime_error& err) {
     std::cout << err.what() << std::endl;
-    program.print_help();
+    std::cout << program;
     exit(0);
   }
   
@@ -100,7 +100,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -161,7 +161,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -194,7 +194,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -221,7 +221,7 @@ The square of 4 is 16
 
 ### Printing Help
 
-```ArgumentParser.print_help()``` print a help message, including the program usage and information about the arguments registered with the ArgumentParser. For the previous example, here's the default help message:
+`std::cout << program` prints a help message, including the program usage and information about the arguments registered with the `ArgumentParser`. For the previous example, here's the default help message:
 
 ```
 $ ./main --help
@@ -234,6 +234,8 @@ Optional arguments:
 -h, --help     show this help message and exit
 -v, --verbose  enable verbose logging
 ```
+
+You may also get the help message in string via `program.help().str()`.
 
 ### List of Arguments
 
@@ -251,7 +253,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -280,7 +282,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -312,7 +314,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -388,7 +390,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -424,7 +426,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 
@@ -466,7 +468,7 @@ try {
 }
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
-  program.print_help();
+  std::cout << program;
   exit(0);
 }
 

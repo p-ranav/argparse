@@ -31,7 +31,6 @@ SOFTWARE.
 #include <algorithm>
 #include <any>
 #include <functional>
-#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <list>
@@ -75,8 +74,12 @@ template <typename T>
 using enable_if_not_container = std::enable_if_t<!is_container_v<T>, T>;
 } // namespace
 
+class ArgumentParser;
+
 class Argument {
   friend class ArgumentParser;
+  friend auto operator<<(std::ostream &, ArgumentParser const &)
+      -> std::ostream &;
 
 public:
   Argument() = default;
@@ -412,39 +415,54 @@ public:
     throw std::logic_error("No such argument");
   }
 
+  // Print help message
+  friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
+      -> std::ostream & {
+    if (auto sen = std::ostream::sentry(stream)) {
+      stream.setf(std::ios_base::left);
+      stream << "Usage: " << parser.mProgramName << " [options] ";
+      size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
+
+      for (const auto &argument : parser.mPositionalArguments) {
+        stream << argument->mNames.front() << " ";
+      }
+      stream << "\n\n";
+
+      if (!parser.mPositionalArguments.empty())
+        stream << "Positional arguments:\n";
+
+      for (const auto &mPositionalArgument : parser.mPositionalArguments) {
+        stream.width(tLongestArgumentLength);
+        stream << *mPositionalArgument;
+      }
+
+      if (!parser.mOptionalArguments.empty())
+        stream << (parser.mPositionalArguments.empty() ? "" : "\n")
+               << "Optional arguments:\n";
+
+      for (const auto &mOptionalArgument : parser.mOptionalArguments) {
+        stream.width(tLongestArgumentLength);
+        stream << *mOptionalArgument;
+      }
+    }
+
+    return stream;
+  }
+
+  // Format help message
+  auto help() const -> std::ostringstream {
+    std::ostringstream out;
+    out << *this;
+    return out;
+  }
+
   // Printing the one and only help message
   // I've stuck with a simple message format, nothing fancy.
-  // TODO: support user-defined help and usage messages for the ArgumentParser
-  std::string print_help() {
-    std::stringstream stream;
-    stream << std::left;
-    stream << "Usage: " << mProgramName << " [options] ";
-    size_t tLongestArgumentLength = get_length_of_longest_argument();
-
-    for (const auto &argument : mPositionalArguments) {
-      stream << argument->mNames.front() << " ";
-    }
-    stream << "\n\n";
-
-    if (!mPositionalArguments.empty())
-      stream << "Positional arguments:\n";
-
-    for (const auto &mPositionalArgument : mPositionalArguments) {
-      stream.width(tLongestArgumentLength);
-      stream << *mPositionalArgument;
-    }
-
-    if (!mOptionalArguments.empty())
-      stream << (mPositionalArguments.empty() ? "" : "\n")
-             << "Optional arguments:\n";
-
-    for (const auto &mOptionalArgument : mOptionalArguments) {
-      stream.width(tLongestArgumentLength);
-      stream << *mOptionalArgument;
-    }
-
-    std::cout << stream.str();
-    return stream.str();
+  [[deprecated("Use cout << program; instead.  See also help().")]] std::string
+  print_help() {
+    auto out = help();
+    std::cout << out.rdbuf();
+    return out.str();
   }
 
 private:
@@ -507,7 +525,7 @@ private:
   }
 
   // Used by print_help.
-  size_t get_length_of_longest_argument() {
+  size_t get_length_of_longest_argument() const {
     if (mArgumentMap.empty())
       return 0;
     std::vector<size_t> argumentLengths(mArgumentMap.size());
