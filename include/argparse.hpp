@@ -527,13 +527,4 @@ private:
   std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
 };
 
-#define PARSE_ARGS(parser, argc, argv)                                         \
-  try {                                                                        \
-    parser.parse_args(argc, argv);                                             \
-  } catch (const std::runtime_error &err) {                                    \
-    std::cout << err.what() << std::endl;                                      \
-    parser.print_help();                                                       \
-    exit(0);                                                                   \
-  }
-
 } // namespace argparse
