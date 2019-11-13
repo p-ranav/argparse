@@ -458,7 +458,8 @@ public:
 
   // Printing the one and only help message
   // I've stuck with a simple message format, nothing fancy.
-  std::string print_help() {
+  [[deprecated("Use cout << program; instead.  See also help().")]] std::string
+  print_help() {
     auto out = help();
     std::cout << out.rdbuf();
     return out.str();
