@@ -11,3 +11,4 @@
 #include <test_invalid_arguments.hpp>
 #include <test_negative_numbers.hpp>
 #include <test_required_arguments.hpp>
+#include <test_issue_37.hpp>
