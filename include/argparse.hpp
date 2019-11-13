@@ -41,6 +41,7 @@ SOFTWARE.
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <variant>
 #include <vector>
 
 namespace argparse {
@@ -114,8 +115,14 @@ public:
     return *this;
   }
 
-  Argument &action(std::function<std::any(const std::string &)> aAction) {
-    mAction = std::move(aAction);
+  template <class F>
+  auto action(F &&aAction)
+      -> std::enable_if_t<std::is_invocable_v<F, std::string const>,
+                          Argument &> {
+    if constexpr (std::is_void_v<std::invoke_result_t<F, std::string const>>)
+      mAction.emplace<void_action>(std::forward<F>(aAction));
+    else
+      mAction.emplace<valued_action>(std::forward<F>(aAction));
     return *this;
   }
 
@@ -139,7 +146,21 @@ public:
       if (std::any_of(start, end, Argument::is_optional)) {
         throw std::runtime_error("optional argument in parameter sequence");
       }
-      std::transform(start, end, std::back_inserter(mValues), mAction);
+      struct action_apply {
+        void operator()(valued_action &f) {
+          std::transform(start, end, std::back_inserter(self.mValues), f);
+        }
+
+        void operator()(void_action &f) {
+          std::for_each(start, end, f);
+          if (!self.mDefaultValue.has_value())
+            self.mValues.resize(self.mNumArgs);
+        }
+
+        Iterator start, end;
+        Argument &self;
+      };
+      std::visit(action_apply{start, end, *this}, mAction);
       return end;
     } else if (mDefaultValue.has_value()) {
       return start;
@@ -306,8 +327,11 @@ private:
   std::string mHelp;
   std::any mDefaultValue;
   std::any mImplicitValue;
-  std::function<std::any(const std::string &)> mAction =
-      [](const std::string &aValue) { return aValue; };
+  using valued_action = std::function<std::any(const std::string &)>;
+  using void_action = std::function<void(const std::string &)>;
+  std::variant<valued_action, void_action> mAction{
+      std::in_place_type<valued_action>,
+      [](const std::string &aValue) { return aValue; }};
   std::vector<std::any> mValues;
   std::vector<std::string> mRawValues;
   size_t mNumArgs = 1;
