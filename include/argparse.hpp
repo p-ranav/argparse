@@ -40,6 +40,7 @@ SOFTWARE.
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -73,7 +74,23 @@ using enable_if_container = std::enable_if_t<is_container_v<T>, T>;
 
 template <typename T>
 using enable_if_not_container = std::enable_if_t<!is_container_v<T>, T>;
-} // namespace
+
+template <class F, class Tuple, class Extra, size_t... I>
+constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
+                                             std::index_sequence<I...>) {
+  return std::invoke(std::forward<F>(f), std::get<I>(std::forward<Tuple>(t))...,
+                     std::forward<Extra>(x));
+}
+
+template <class F, class Tuple, class Extra>
+constexpr decltype(auto) apply_plus_one(F &&f, Tuple &&t, Extra &&x) {
+  return details::apply_plus_one_impl(
+      std::forward<F>(f), std::forward<Tuple>(t), std::forward<Extra>(x),
+      std::make_index_sequence<
+          std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
+}
+
+} // namespace details
 
 class ArgumentParser;
 
@@ -115,14 +132,22 @@ public:
     return *this;
   }
 
-  template <class F>
-  auto action(F &&aAction)
-      -> std::enable_if_t<std::is_invocable_v<F, std::string const>,
+  template <class F, class... Args>
+  auto action(F &&aAction, Args &&... aBound)
+      -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string const>,
                           Argument &> {
-    if constexpr (std::is_void_v<std::invoke_result_t<F, std::string const>>)
-      mAction.emplace<void_action>(std::forward<F>(aAction));
+    using action_type = std::conditional_t<
+        std::is_void_v<std::invoke_result_t<F, Args..., std::string const>>,
+        void_action, valued_action>;
+    if constexpr (sizeof...(Args) == 0)
+      mAction.emplace<action_type>(std::forward<F>(aAction));
     else
-      mAction.emplace<valued_action>(std::forward<F>(aAction));
+      mAction.emplace<action_type>(
+          [f = std::forward<F>(aAction),
+           tup = std::make_tuple(std::forward<Args>(aBound)...)](
+              std::string const &opt) mutable {
+            return details::apply_plus_one(f, tup, opt);
+          });
     return *this;
   }
 
