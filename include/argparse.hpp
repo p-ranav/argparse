@@ -416,8 +416,6 @@ public:
         mArgumentMap.insert_or_assign(tKey, tValue);
       }
     }
-    std::move(std::begin(tNewParentParsers), std::end(tNewParentParsers),
-              std::back_inserter(mParentParsers));
   }
 
   /* Call parse_args_internal - which does all the work
@@ -588,7 +586,6 @@ private:
   }
 
   std::string mProgramName;
-  std::vector<ArgumentParser> mParentParsers;
   std::vector<std::shared_ptr<Argument>> mPositionalArguments;
   std::vector<std::shared_ptr<Argument>> mOptionalArguments;
   std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
