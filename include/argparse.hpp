@@ -35,11 +35,11 @@ SOFTWARE.
 #include <iterator>
 #include <list>
 #include <map>
-#include <memory>
 #include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <variant>
@@ -380,44 +380,56 @@ public:
         .implicit_value(true);
   }
 
+  ArgumentParser(ArgumentParser &&) noexcept = default;
+  ArgumentParser &operator=(ArgumentParser &&) = default;
+
+  ArgumentParser(const ArgumentParser &other)
+      : mProgramName(other.mProgramName),
+        mPositionalArguments(other.mPositionalArguments),
+        mOptionalArguments(other.mOptionalArguments) {
+    for (auto it = begin(mPositionalArguments); it != end(mPositionalArguments);
+         ++it)
+      index_argument(it);
+    for (auto it = begin(mOptionalArguments); it != end(mOptionalArguments);
+         ++it)
+      index_argument(it);
+  }
+
+  ArgumentParser &operator=(const ArgumentParser &other) {
+    auto tmp = other;
+    std::swap(*this, tmp);
+    return *this;
+  }
+
   // Parameter packing
   // Call add_argument with variadic number of string arguments
   template <typename... Targs> Argument &add_argument(Targs... Fargs) {
-    std::shared_ptr<Argument> tArgument =
-        std::make_shared<Argument>(std::move(Fargs)...);
+    auto tArgument = mOptionalArguments.emplace(cend(mOptionalArguments),
+                                                std::move(Fargs)...);
 
-    if (tArgument->mIsOptional)
-      mOptionalArguments.emplace_back(tArgument);
-    else
-      mPositionalArguments.emplace_back(tArgument);
+    if (!tArgument->mIsOptional)
+      mPositionalArguments.splice(cend(mPositionalArguments),
+                                  mOptionalArguments, tArgument);
 
-    for (const auto &mName : tArgument->mNames) {
-      mArgumentMap.insert_or_assign(mName, tArgument);
-    }
+    index_argument(tArgument);
     return *tArgument;
   }
 
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
-  template <typename... Targs> void add_parents(Targs... Fargs) {
-    const auto tNewParentParsers = {Fargs...};
-    for (const auto &tParentParser : tNewParentParsers) {
-      const auto &tPositionalArguments = tParentParser.mPositionalArguments;
-      std::copy(std::begin(tPositionalArguments),
-                std::end(tPositionalArguments),
-                std::back_inserter(mPositionalArguments));
-
-      const auto &tOptionalArguments = tParentParser.mOptionalArguments;
-      std::copy(std::begin(tOptionalArguments), std::end(tOptionalArguments),
-                std::back_inserter(mOptionalArguments));
-
-      const auto &tArgumentMap = tParentParser.mArgumentMap;
-      for (const auto &[tKey, tValue] : tArgumentMap) {
-        mArgumentMap.insert_or_assign(tKey, tValue);
+  template <typename... Targs> void add_parents(const Targs &... Fargs) {
+    for (auto &tParentParser : {Fargs...}) {
+      for (auto &tArgument : tParentParser.mPositionalArguments) {
+        auto it =
+            mPositionalArguments.insert(cend(mPositionalArguments), tArgument);
+        index_argument(it);
+      }
+      for (auto &tArgument : tParentParser.mOptionalArguments) {
+        auto it =
+            mOptionalArguments.insert(cend(mOptionalArguments), tArgument);
+        index_argument(it);
       }
     }
-    std::move(std::begin(tNewParentParsers), std::end(tNewParentParsers),
-              std::back_inserter(mParentParsers));
   }
 
   /* Call parse_args_internal - which does all the work
@@ -473,7 +485,7 @@ public:
       size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
 
       for (const auto &argument : parser.mPositionalArguments) {
-        stream << argument->mNames.front() << " ";
+        stream << argument.mNames.front() << " ";
       }
       stream << "\n\n";
 
@@ -482,7 +494,7 @@ public:
 
       for (const auto &mPositionalArgument : parser.mPositionalArguments) {
         stream.width(tLongestArgumentLength);
-        stream << *mPositionalArgument;
+        stream << mPositionalArgument;
       }
 
       if (!parser.mOptionalArguments.empty())
@@ -491,7 +503,7 @@ public:
 
       for (const auto &mOptionalArgument : parser.mOptionalArguments) {
         stream.width(tLongestArgumentLength);
-        stream << *mOptionalArgument;
+        stream << mOptionalArgument;
       }
     }
 
@@ -535,7 +547,7 @@ private:
           throw std::runtime_error(
               "Maximum number of positional arguments exceeded");
         }
-        auto tArgument = *(positionalArgumentIt++);
+        auto tArgument = positionalArgumentIt++;
         it = tArgument->consume(it, end);
       } else if (auto tIterator = mArgumentMap.find(tCurrentArgument);
                  tIterator != mArgumentMap.end()) {
@@ -587,11 +599,17 @@ private:
                              std::end(argumentLengths));
   }
 
+  using list_iterator = std::list<Argument>::iterator;
+
+  void index_argument(list_iterator argIt) {
+    for (auto &mName : std::as_const(argIt->mNames))
+      mArgumentMap.emplace(mName, argIt);
+  }
+
   std::string mProgramName;
-  std::vector<ArgumentParser> mParentParsers;
-  std::vector<std::shared_ptr<Argument>> mPositionalArguments;
-  std::vector<std::shared_ptr<Argument>> mOptionalArguments;
-  std::map<std::string, std::shared_ptr<Argument>> mArgumentMap;
+  std::list<Argument> mPositionalArguments;
+  std::list<Argument> mOptionalArguments;
+  std::map<std::string_view, list_iterator, std::less<>> mArgumentMap;
 };
 
 } // namespace argparse

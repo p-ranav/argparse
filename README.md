@@ -349,7 +349,7 @@ Here's what's happening:
 
 ### Parent Parsers
 
-Sometimes, several parsers share a common set of arguments. Rather than repeating the definitions of these arguments, a single parser with all the shared arguments can be added as a parent to another ArgumentParser instance. The ```.add_parents``` method takes a list of ArgumentParser objects, collects all the positional and optional actions from them, and adds these actions to the ArgumentParser object being constructed:
+Sometimes, several parsers share a common set of arguments. Rather than repeating the definitions of these arguments, a single parser with all the common arguments can be added as a parent to another ArgumentParser instance. The ```.add_parents``` method takes a list of ArgumentParser objects, collects all the positional and optional actions from them, and adds these actions to the ArgumentParser object being constructed:
 
 ```cpp
 argparse::ArgumentParser parent_parser("main");
