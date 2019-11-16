@@ -380,6 +380,27 @@ public:
         .implicit_value(true);
   }
 
+  ArgumentParser(ArgumentParser &&) noexcept = default;
+  ArgumentParser &operator=(ArgumentParser &&) = default;
+
+  ArgumentParser(const ArgumentParser &other)
+      : mProgramName(other.mProgramName),
+        mPositionalArguments(other.mPositionalArguments),
+        mOptionalArguments(other.mOptionalArguments) {
+    for (auto it = begin(mPositionalArguments); it != end(mPositionalArguments);
+         ++it)
+      index_argument(it);
+    for (auto it = begin(mOptionalArguments); it != end(mOptionalArguments);
+         ++it)
+      index_argument(it);
+  }
+
+  ArgumentParser &operator=(const ArgumentParser &other) {
+    auto tmp = other;
+    std::swap(*this, tmp);
+    return *this;
+  }
+
   // Parameter packing
   // Call add_argument with variadic number of string arguments
   template <typename... Targs> Argument &add_argument(Targs... Fargs) {
