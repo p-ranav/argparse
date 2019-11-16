@@ -39,6 +39,7 @@ SOFTWARE.
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <variant>
@@ -581,13 +582,13 @@ private:
 
   void index_argument(list_iterator argIt) {
     for (auto &mName : std::as_const(argIt->mNames))
-      mArgumentMap.insert_or_assign(mName, argIt);
+      mArgumentMap.emplace(mName, argIt);
   }
 
   std::string mProgramName;
   std::list<Argument> mPositionalArguments;
   std::list<Argument> mOptionalArguments;
-  std::map<std::string, list_iterator, std::less<>> mArgumentMap;
+  std::map<std::string_view, list_iterator, std::less<>> mArgumentMap;
 };
 
 } // namespace argparse
