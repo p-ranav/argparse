@@ -454,19 +454,15 @@ public:
    * @throws std::logic_error in case of an invalid argument name
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T = std::string> T get(const std::string &aArgumentName) {
-    auto tIterator = mArgumentMap.find(aArgumentName);
-    if (tIterator != mArgumentMap.end()) {
-      return tIterator->second->get<T>();
-    }
-    throw std::logic_error("No such argument");
+  template <typename T = std::string> T get(std::string_view aArgumentName) {
+    return (*this)[aArgumentName].get<T>();
   }
 
   /* Indexing operator. Return a reference to an Argument object
    * Used in conjuction with Argument.operator== e.g., parser["foo"] == true
    * @throws std::logic_error in case of an invalid argument name
    */
-  Argument &operator[](const std::string &aArgumentName) {
+  Argument &operator[](std::string_view aArgumentName) {
     auto tIterator = mArgumentMap.find(aArgumentName);
     if (tIterator != mArgumentMap.end()) {
       return *(tIterator->second);
