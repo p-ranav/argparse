@@ -561,11 +561,11 @@ private:
                  tCompoundArgument[1] != '-') {
         ++it;
         for (size_t j = 1; j < tCompoundArgument.size(); j++) {
-          auto tCurrentArgument = std::string{'-', tCompoundArgument[j]};
-          if (auto tIterator = mArgumentMap.find(tCurrentArgument);
-              tIterator != mArgumentMap.end()) {
-            auto tArgument = tIterator->second;
-            it = tArgument->consume(it, end, tCurrentArgument);
+          auto tHypotheticalArgument = std::string{'-', tCompoundArgument[j]};
+          auto tIterator2 = mArgumentMap.find(tHypotheticalArgument);
+          if (tIterator2 != mArgumentMap.end()) {
+            auto tArgument = tIterator2->second;
+            it = tArgument->consume(it, end, tHypotheticalArgument);
           } else {
             throw std::runtime_error("Unknown argument");
           }
