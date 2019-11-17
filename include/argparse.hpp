@@ -64,7 +64,7 @@ struct is_container<
                                            decltype(std::declval<T>().begin()),
                                            decltype(std::declval<T>().end()),
                                            decltype(std::declval<T>().size())>,
-                       void>> : public std::true_type {};
+                       void>> : std::true_type {};
 
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
@@ -363,7 +363,6 @@ private:
   bool mIsRequired = false;
   bool mIsUsed = false; // relevant for optional arguments. True if used by user
 
-public:
   static constexpr auto mHelpOption = "-h";
   static constexpr auto mHelpOptionLong = "--help";
 };
