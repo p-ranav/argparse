@@ -64,7 +64,7 @@ struct is_container<
                                            decltype(std::declval<T>().begin()),
                                            decltype(std::declval<T>().end()),
                                            decltype(std::declval<T>().size())>,
-                       void>> : public std::true_type {};
+                       void>> : std::true_type {};
 
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
@@ -99,17 +99,27 @@ class Argument {
   friend auto operator<<(std::ostream &, ArgumentParser const &)
       -> std::ostream &;
 
-public:
-  Argument() = default;
-
-  template <typename... Args>
-  explicit Argument(Args... args)
-      : mNames({std::move(args)...}), mIsOptional((is_optional(args) || ...)) {
+  template <size_t N, size_t... I>
+  explicit Argument(std::string(&&a)[N], std::index_sequence<I...>)
+      : mIsOptional((is_optional(a[I]) || ...)), mIsRequired(false),
+        mIsUsed(false) {
+    ((void)mNames.push_back(std::move(a[I])), ...);
     std::sort(
         mNames.begin(), mNames.end(), [](const auto &lhs, const auto &rhs) {
           return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
         });
   }
+
+public:
+  Argument() = default;
+
+  template <typename... Args,
+            std::enable_if_t<
+                std::conjunction_v<std::is_constructible<std::string, Args>...>,
+                int> = 0>
+  explicit Argument(Args &&... args)
+      : Argument({std::string(std::forward<Args>(args))...},
+                 std::make_index_sequence<sizeof...(Args)>{}) {}
 
   Argument &help(std::string aHelp) {
     mHelp = std::move(aHelp);
@@ -201,8 +211,8 @@ public:
     if (mIsOptional) {
       if (mIsUsed && mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
-        stream << mUsedName << ": expected " << mNumArgs
-               << " argument(s). " << mValues.size() << " provided.";
+        stream << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       } else {
         // TODO: check if an implicit value was programmed for this argument
@@ -220,8 +230,8 @@ public:
     } else {
       if (mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
-        stream << mUsedName << ": expected " << mNumArgs
-               << " argument(s). " << mValues.size() << " provided.";
+        stream << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       }
     }
@@ -256,7 +266,8 @@ public:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T>
-  std::enable_if_t<!details::is_container_v<T>, bool> operator==(const T &aRhs) const {
+  std::enable_if_t<!details::is_container_v<T>, bool>
+  operator==(const T &aRhs) const {
     return get<T>() == aRhs;
   }
 
@@ -265,17 +276,14 @@ public:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T>
-  std::enable_if_t<details::is_container_v<T>, bool> operator==(const T &aRhs) const {
+  std::enable_if_t<details::is_container_v<T>, bool>
+  operator==(const T &aRhs) const {
     using ValueType = typename T::value_type;
     auto tLhs = get<T>();
-    if (tLhs.size() != aRhs.size())
-      return false;
-    else {
-      return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
-                        [](const auto &lhs, const auto &rhs) {
-                          return std::any_cast<const ValueType &>(lhs) == rhs;
-                        });
-    }
+    return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
+                      std::end(aRhs), [](const auto &lhs, const auto &rhs) {
+                        return std::any_cast<const ValueType &>(lhs) == rhs;
+                      });
   }
 
 private:
@@ -326,7 +334,8 @@ private:
    * Getter for container types
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename CONTAINER> details::enable_if_container<CONTAINER> get() const {
+  template <typename CONTAINER>
+  details::enable_if_container<CONTAINER> get() const {
     using ValueType = typename CONTAINER::value_type;
     CONTAINER tResult;
     if (!mValues.empty()) {
@@ -358,13 +367,11 @@ private:
       std::in_place_type<valued_action>,
       [](const std::string &aValue) { return aValue; }};
   std::vector<std::any> mValues;
-  std::vector<std::string> mRawValues;
   size_t mNumArgs = 1;
-  bool mIsOptional = false;
-  bool mIsRequired = false;
-  bool mIsUsed = false; // relevant for optional arguments. True if used by user
+  bool mIsOptional : 1;
+  bool mIsRequired : 1;
+  bool mIsUsed : 1; // True if the optional argument is used by user
 
-public:
   static constexpr auto mHelpOption = "-h";
   static constexpr auto mHelpOptionLong = "--help";
 };
@@ -418,7 +425,7 @@ public:
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
   template <typename... Targs> void add_parents(const Targs &... Fargs) {
-    for (auto &tParentParser : {Fargs...}) {
+    for (const ArgumentParser &tParentParser : {std::ref(Fargs)...}) {
       for (auto &tArgument : tParentParser.mPositionalArguments) {
         auto it =
             mPositionalArguments.insert(cend(mPositionalArguments), tArgument);
@@ -456,19 +463,15 @@ public:
    * @throws std::logic_error in case of an invalid argument name
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T = std::string> T get(const std::string &aArgumentName) {
-    auto tIterator = mArgumentMap.find(aArgumentName);
-    if (tIterator != mArgumentMap.end()) {
-      return tIterator->second->get<T>();
-    }
-    throw std::logic_error("No such argument");
+  template <typename T = std::string> T get(std::string_view aArgumentName) {
+    return (*this)[aArgumentName].get<T>();
   }
 
   /* Indexing operator. Return a reference to an Argument object
    * Used in conjuction with Argument.operator== e.g., parser["foo"] == true
    * @throws std::logic_error in case of an invalid argument name
    */
-  Argument &operator[](const std::string &aArgumentName) {
+  Argument &operator[](std::string_view aArgumentName) {
     auto tIterator = mArgumentMap.find(aArgumentName);
     if (tIterator != mArgumentMap.end()) {
       return *(tIterator->second);
