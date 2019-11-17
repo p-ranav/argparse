@@ -99,18 +99,27 @@ class Argument {
   friend auto operator<<(std::ostream &, ArgumentParser const &)
       -> std::ostream &;
 
-public:
-  Argument() = default;
-
-  template <typename... Args>
-  explicit Argument(Args... args)
-      : mNames({std::move(args)...}), mIsOptional((is_optional(args) || ...)),
-        mIsRequired(false), mIsUsed(false) {
+  template <size_t N, size_t... I>
+  explicit Argument(std::string(&&a)[N], std::index_sequence<I...>)
+      : mIsOptional((is_optional(a[I]) || ...)), mIsRequired(false),
+        mIsUsed(false) {
+    ((void)mNames.push_back(std::move(a[I])), ...);
     std::sort(
         mNames.begin(), mNames.end(), [](const auto &lhs, const auto &rhs) {
           return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
         });
   }
+
+public:
+  Argument() = default;
+
+  template <typename... Args,
+            std::enable_if_t<
+                std::conjunction_v<std::is_constructible<std::string, Args>...>,
+                int> = 0>
+  explicit Argument(Args &&... args)
+      : Argument({std::string(std::forward<Args>(args))...},
+                 std::make_index_sequence<sizeof...(Args)>{}) {}
 
   Argument &help(std::string aHelp) {
     mHelp = std::move(aHelp);
