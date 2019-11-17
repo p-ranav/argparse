@@ -201,8 +201,8 @@ public:
     if (mIsOptional) {
       if (mIsUsed && mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
-        stream << mUsedName << ": expected " << mNumArgs
-               << " argument(s). " << mValues.size() << " provided.";
+        stream << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       } else {
         // TODO: check if an implicit value was programmed for this argument
@@ -220,8 +220,8 @@ public:
     } else {
       if (mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
         std::stringstream stream;
-        stream << mUsedName << ": expected " << mNumArgs
-               << " argument(s). " << mValues.size() << " provided.";
+        stream << mUsedName << ": expected " << mNumArgs << " argument(s). "
+               << mValues.size() << " provided.";
         throw std::runtime_error(stream.str());
       }
     }
@@ -256,7 +256,8 @@ public:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T>
-  std::enable_if_t<!details::is_container_v<T>, bool> operator==(const T &aRhs) const {
+  std::enable_if_t<!details::is_container_v<T>, bool>
+  operator==(const T &aRhs) const {
     return get<T>() == aRhs;
   }
 
@@ -265,7 +266,8 @@ public:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T>
-  std::enable_if_t<details::is_container_v<T>, bool> operator==(const T &aRhs) const {
+  std::enable_if_t<details::is_container_v<T>, bool>
+  operator==(const T &aRhs) const {
     using ValueType = typename T::value_type;
     auto tLhs = get<T>();
     if (tLhs.size() != aRhs.size())
@@ -326,7 +328,8 @@ private:
    * Getter for container types
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename CONTAINER> details::enable_if_container<CONTAINER> get() const {
+  template <typename CONTAINER>
+  details::enable_if_container<CONTAINER> get() const {
     using ValueType = typename CONTAINER::value_type;
     CONTAINER tResult;
     if (!mValues.empty()) {
