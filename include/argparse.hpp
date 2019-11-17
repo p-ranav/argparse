@@ -416,7 +416,7 @@ public:
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
   template <typename... Targs> void add_parents(const Targs &... Fargs) {
-    for (auto &tParentParser : {Fargs...}) {
+    for (const ArgumentParser &tParentParser : {std::ref(Fargs)...}) {
       for (auto &tArgument : tParentParser.mPositionalArguments) {
         auto it =
             mPositionalArguments.insert(cend(mPositionalArguments), tArgument);
