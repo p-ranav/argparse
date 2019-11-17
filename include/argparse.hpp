@@ -104,7 +104,8 @@ public:
 
   template <typename... Args>
   explicit Argument(Args... args)
-      : mNames({std::move(args)...}), mIsOptional((is_optional(args) || ...)) {
+      : mNames({std::move(args)...}), mIsOptional((is_optional(args) || ...)),
+        mIsRequired(false), mIsUsed(false) {
     std::sort(
         mNames.begin(), mNames.end(), [](const auto &lhs, const auto &rhs) {
           return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
@@ -357,11 +358,10 @@ private:
       std::in_place_type<valued_action>,
       [](const std::string &aValue) { return aValue; }};
   std::vector<std::any> mValues;
-  std::vector<std::string> mRawValues;
   size_t mNumArgs = 1;
-  bool mIsOptional = false;
-  bool mIsRequired = false;
-  bool mIsUsed = false; // relevant for optional arguments. True if used by user
+  bool mIsOptional : 1;
+  bool mIsRequired : 1;
+  bool mIsUsed : 1; // True if the optional argument is used by user
 
   static constexpr auto mHelpOption = "-h";
   static constexpr auto mHelpOptionLong = "--help";
