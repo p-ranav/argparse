@@ -270,14 +270,10 @@ public:
   operator==(const T &aRhs) const {
     using ValueType = typename T::value_type;
     auto tLhs = get<T>();
-    if (tLhs.size() != aRhs.size())
-      return false;
-    else {
-      return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
-                        [](const auto &lhs, const auto &rhs) {
-                          return std::any_cast<const ValueType &>(lhs) == rhs;
-                        });
-    }
+    return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
+                      std::end(aRhs), [](const auto &lhs, const auto &rhs) {
+                        return std::any_cast<const ValueType &>(lhs) == rhs;
+                      });
   }
 
 private:
