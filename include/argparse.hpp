@@ -341,17 +341,23 @@ private:
   template <typename CONTAINER>
   details::enable_if_container<CONTAINER> get() const {
     if (!mValues.empty()) {
-      using ValueType = typename CONTAINER::value_type;
-      CONTAINER tResult;
-      std::transform(
-          std::begin(mValues), std::end(mValues), std::back_inserter(tResult),
-          [](const auto &value) { return std::any_cast<ValueType>(value); });
-      return tResult;
+      return any_cast_container<CONTAINER>(mValues);
     }
     if (mDefaultValue.has_value()) {
       return std::any_cast<CONTAINER>(mDefaultValue);
     }
     throw std::logic_error("No value provided");
+  }
+
+  template <typename T>
+  static auto any_cast_container(const std::vector<std::any> &aOperand) -> T {
+    using ValueType = typename T::value_type;
+
+    T tResult;
+    std::transform(
+        begin(aOperand), end(aOperand), std::back_inserter(tResult),
+        [](const auto &value) { return std::any_cast<ValueType>(value); });
+    return tResult;
   }
 
   std::vector<std::string> mNames;
