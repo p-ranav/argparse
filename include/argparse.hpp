@@ -70,10 +70,9 @@ template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
 
 template <typename T>
-using enable_if_container = std::enable_if_t<is_container_v<T>, T>;
-
-template <typename T>
-using enable_if_not_container = std::enable_if_t<!is_container_v<T>, T>;
+struct is_string_like
+    : std::conjunction<std::is_constructible<std::string, T>,
+                       std::is_convertible<T, std::string_view>> {};
 
 template <class F, class Tuple, class Extra, size_t... I>
 constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
@@ -115,8 +114,7 @@ public:
 
   template <typename... Args,
             std::enable_if_t<
-                std::conjunction_v<std::is_constructible<std::string, Args>...>,
-                int> = 0>
+                std::conjunction_v<details::is_string_like<Args>...>, int> = 0>
   explicit Argument(Args &&... args)
       : Argument({std::string(std::forward<Args>(args))...},
                  std::make_index_sequence<sizeof...(Args)>{}) {}
@@ -262,28 +260,20 @@ public:
   }
 
   /*
-   * Entry point for template non-container types
+   * Compare to an argument value of known type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T>
-  std::enable_if_t<!details::is_container_v<T>, bool>
-  operator==(const T &aRhs) const {
-    return get<T>() == aRhs;
-  }
-
-  /*
-   * Template specialization for containers
-   * @throws std::logic_error in case of incompatible types
-   */
-  template <typename T>
-  std::enable_if_t<details::is_container_v<T>, bool>
-  operator==(const T &aRhs) const {
-    using ValueType = typename T::value_type;
-    auto tLhs = get<T>();
-    return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
-                      std::end(aRhs), [](const auto &lhs, const auto &rhs) {
-                        return std::any_cast<const ValueType &>(lhs) == rhs;
-                      });
+  template <typename T> bool operator==(const T &aRhs) const {
+    if constexpr (!details::is_container_v<T>) {
+      return get<T>() == aRhs;
+    } else {
+      using ValueType = typename T::value_type;
+      auto tLhs = get<T>();
+      return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
+                        std::end(aRhs), [](const auto &lhs, const auto &rhs) {
+                          return std::any_cast<const ValueType &>(lhs) == rhs;
+                        });
+    }
   }
 
 private:
@@ -317,12 +307,15 @@ private:
   }
 
   /*
-   * Getter for template non-container types
+   * Get argument value given a type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T> details::enable_if_not_container<T> get() const {
+  template <typename T> T get() const {
     if (!mValues.empty()) {
-      return std::any_cast<T>(mValues.front());
+      if constexpr (details::is_container_v<T>)
+        return any_cast_container<T>(mValues);
+      else
+        return std::any_cast<T>(mValues.front());
     }
     if (mDefaultValue.has_value()) {
       return std::any_cast<T>(mDefaultValue);
@@ -330,30 +323,15 @@ private:
     throw std::logic_error("No value provided");
   }
 
-  /*
-   * Getter for container types
-   * @throws std::logic_error in case of incompatible types
-   */
-  template <typename CONTAINER>
-  details::enable_if_container<CONTAINER> get() const {
-    using ValueType = typename CONTAINER::value_type;
-    CONTAINER tResult;
-    if (!mValues.empty()) {
-      std::transform(
-          std::begin(mValues), std::end(mValues), std::back_inserter(tResult),
-          [](const auto &value) { return std::any_cast<ValueType>(value); });
-      return tResult;
-    }
-    if (mDefaultValue.has_value()) {
-      const auto &tDefaultValues =
-          std::any_cast<const CONTAINER &>(mDefaultValue);
-      std::transform(std::begin(tDefaultValues), std::end(tDefaultValues),
-                     std::back_inserter(tResult), [](const auto &value) {
-                       return std::any_cast<ValueType>(value);
-                     });
-      return tResult;
-    }
-    throw std::logic_error("No value provided");
+  template <typename T>
+  static auto any_cast_container(const std::vector<std::any> &aOperand) -> T {
+    using ValueType = typename T::value_type;
+
+    T tResult;
+    std::transform(
+        begin(aOperand), end(aOperand), std::back_inserter(tResult),
+        [](const auto &value) { return std::any_cast<ValueType>(value); });
+    return tResult;
   }
 
   std::vector<std::string> mNames;
@@ -561,11 +539,11 @@ private:
                  tCompoundArgument[1] != '-') {
         ++it;
         for (size_t j = 1; j < tCompoundArgument.size(); j++) {
-          auto tCurrentArgument = std::string{'-', tCompoundArgument[j]};
-          if (auto tIterator = mArgumentMap.find(tCurrentArgument);
-              tIterator != mArgumentMap.end()) {
-            auto tArgument = tIterator->second;
-            it = tArgument->consume(it, end, tCurrentArgument);
+          auto tHypotheticalArgument = std::string{'-', tCompoundArgument[j]};
+          auto tIterator2 = mArgumentMap.find(tHypotheticalArgument);
+          if (tIterator2 != mArgumentMap.end()) {
+            auto tArgument = tIterator2->second;
+            it = tArgument->consume(it, end, tHypotheticalArgument);
           } else {
             throw std::runtime_error("Unknown argument");
           }
