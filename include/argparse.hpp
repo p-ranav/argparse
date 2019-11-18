@@ -340,22 +340,16 @@ private:
    */
   template <typename CONTAINER>
   details::enable_if_container<CONTAINER> get() const {
-    using ValueType = typename CONTAINER::value_type;
-    CONTAINER tResult;
     if (!mValues.empty()) {
+      using ValueType = typename CONTAINER::value_type;
+      CONTAINER tResult;
       std::transform(
           std::begin(mValues), std::end(mValues), std::back_inserter(tResult),
           [](const auto &value) { return std::any_cast<ValueType>(value); });
       return tResult;
     }
     if (mDefaultValue.has_value()) {
-      const auto &tDefaultValues =
-          std::any_cast<const CONTAINER &>(mDefaultValue);
-      std::transform(std::begin(tDefaultValues), std::end(tDefaultValues),
-                     std::back_inserter(tResult), [](const auto &value) {
-                       return std::any_cast<ValueType>(value);
-                     });
-      return tResult;
+      return std::any_cast<CONTAINER>(mDefaultValue);
     }
     throw std::logic_error("No value provided");
   }
