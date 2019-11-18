@@ -70,6 +70,11 @@ template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
 
 template <typename T>
+struct is_string_like
+    : std::conjunction<std::is_constructible<std::string, T>,
+                       std::is_convertible<T, std::string_view>> {};
+
+template <typename T>
 using enable_if_container = std::enable_if_t<is_container_v<T>, T>;
 
 template <typename T>
@@ -115,8 +120,7 @@ public:
 
   template <typename... Args,
             std::enable_if_t<
-                std::conjunction_v<std::is_constructible<std::string, Args>...>,
-                int> = 0>
+                std::conjunction_v<details::is_string_like<Args>...>, int> = 0>
   explicit Argument(Args &&... args)
       : Argument({std::string(std::forward<Args>(args))...},
                  std::make_index_sequence<sizeof...(Args)>{}) {}
