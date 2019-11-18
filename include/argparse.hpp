@@ -74,12 +74,6 @@ struct is_string_like
     : std::conjunction<std::is_constructible<std::string, T>,
                        std::is_convertible<T, std::string_view>> {};
 
-template <typename T>
-using enable_if_container = std::enable_if_t<is_container_v<T>, T>;
-
-template <typename T>
-using enable_if_not_container = std::enable_if_t<!is_container_v<T>, T>;
-
 template <class F, class Tuple, class Extra, size_t... I>
 constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
                                              std::index_sequence<I...>) {
@@ -266,28 +260,20 @@ public:
   }
 
   /*
-   * Entry point for template non-container types
+   * Compare to an argument value of known type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T>
-  std::enable_if_t<!details::is_container_v<T>, bool>
-  operator==(const T &aRhs) const {
-    return get<T>() == aRhs;
-  }
-
-  /*
-   * Template specialization for containers
-   * @throws std::logic_error in case of incompatible types
-   */
-  template <typename T>
-  std::enable_if_t<details::is_container_v<T>, bool>
-  operator==(const T &aRhs) const {
-    using ValueType = typename T::value_type;
-    auto tLhs = get<T>();
-    return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
-                      std::end(aRhs), [](const auto &lhs, const auto &rhs) {
-                        return std::any_cast<const ValueType &>(lhs) == rhs;
-                      });
+  template <typename T> bool operator==(const T &aRhs) const {
+    if constexpr (!details::is_container_v<T>) {
+      return get<T>() == aRhs;
+    } else {
+      using ValueType = typename T::value_type;
+      auto tLhs = get<T>();
+      return std::equal(std::begin(tLhs), std::end(tLhs), std::begin(aRhs),
+                        std::end(aRhs), [](const auto &lhs, const auto &rhs) {
+                          return std::any_cast<const ValueType &>(lhs) == rhs;
+                        });
+    }
   }
 
 private:
@@ -321,30 +307,18 @@ private:
   }
 
   /*
-   * Getter for template non-container types
+   * Get argument value given a type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T> details::enable_if_not_container<T> get() const {
+  template <typename T> T get() const {
     if (!mValues.empty()) {
-      return std::any_cast<T>(mValues.front());
+      if constexpr (details::is_container_v<T>)
+        return any_cast_container<T>(mValues);
+      else
+        return std::any_cast<T>(mValues.front());
     }
     if (mDefaultValue.has_value()) {
       return std::any_cast<T>(mDefaultValue);
-    }
-    throw std::logic_error("No value provided");
-  }
-
-  /*
-   * Getter for container types
-   * @throws std::logic_error in case of incompatible types
-   */
-  template <typename CONTAINER>
-  details::enable_if_container<CONTAINER> get() const {
-    if (!mValues.empty()) {
-      return any_cast_container<CONTAINER>(mValues);
-    }
-    if (mDefaultValue.has_value()) {
-      return std::any_cast<CONTAINER>(mDefaultValue);
     }
     throw std::logic_error("No value provided");
   }
