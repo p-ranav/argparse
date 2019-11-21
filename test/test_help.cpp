@@ -1,7 +1,9 @@
 #include <doctest.hpp>
 #include <argparse.hpp>
 
-DOCTEST_TEST_CASE("Users can format help message [help]") {
+using doctest::test_suite;
+
+TEST_CASE("Users can format help message" * test_suite("help")) {
   argparse::ArgumentParser program("test");
   program.add_argument("input")
     .help("positional input");

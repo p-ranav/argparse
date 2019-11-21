@@ -2,7 +2,10 @@
 #include <argparse.hpp>
 #include <test_utility.hpp>
 
-DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values [compound_arguments]") {
+using doctest::test_suite;
+
+TEST_CASE("Parse compound toggle arguments with implicit values" *
+          test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("-a")
     .default_value(false)
@@ -22,7 +25,8 @@ DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values [compoun
   REQUIRE(program.get<bool>("-x") == true);
 }
 
-DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values and nargs [compound_arguments]") {
+TEST_CASE("Parse compound toggle arguments with implicit values and nargs" *
+          test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("-a")
     .default_value(false)
@@ -54,7 +58,9 @@ DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values and narg
   REQUIRE(input_files[2] == "c.txt");
 }
 
-DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values and nargs and other positional arguments [compound_arguments]") {
+TEST_CASE("Parse compound toggle arguments with implicit values and nargs and "
+          "other positional arguments" *
+          test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
   program.add_argument("numbers")
@@ -79,7 +85,8 @@ DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values and narg
   REQUIRE_THROWS(program.parse_args({ "./test.exe", "1", "-abc", "3.14", "2.718", "2", "--input_files", "a.txt", "b.txt", "c.txt", "3" }));
 }
 
-DOCTEST_TEST_CASE("Parse out-of-order compound arguments [compound_arguments]") {
+TEST_CASE("Parse out-of-order compound arguments" *
+          test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
   program.add_argument("-a")
@@ -101,10 +108,11 @@ DOCTEST_TEST_CASE("Parse out-of-order compound arguments [compound_arguments]") 
   auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
   REQUIRE(a == true);
   REQUIRE(b == true);
-  REQUIRE(program["-c"] == std::vector<float>{3.14f, 2.718f});  
+  REQUIRE(program["-c"] == std::vector<float>{3.14f, 2.718f});
 }
 
-DOCTEST_TEST_CASE("Parse out-of-order compound arguments. Second variation [compound_arguments]") {
+TEST_CASE("Parse out-of-order compound arguments. Second variation" *
+          test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
   program.add_argument("-a")
