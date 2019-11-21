@@ -346,6 +346,112 @@ Here's what's happening:
   - argv is further parsed to identify the inputs mapped to ```-c```.
   - If argparse cannot find any arguments to map to c, then c defaults to {0.0, 0.0} as defined by ```.default_value```
 
+### Gathering Remaining Arguments
+
+`argparse` supports gathering "remaining" at the end of the command, e.g., for use in a compiler:
+
+```bash
+$ compiler file1 file2 file3
+```
+
+For enable this, simply create an argument and mark it as `remaining`. All remaining arguments passed to argparse are gathered here. 
+
+```cpp
+argparse::ArgumentParser program("compiler");                                                             
+                                                                                                          
+program.add_argument("files")                                                                             
+  .remaining();                                                                                           
+                                                                                                          
+try {                                                                                                     
+  program.parse_args(argc, argv);                                                                         
+}                                                                                                         
+catch (const std::runtime_error& err) {                                                                   
+  std::cout << err.what() << std::endl;                                                                   
+  std::cout << program;                                                                                   
+  exit(0);                                                                                                
+}                                                                                                         
+
+try {
+  auto files = program.get<std::vector<std::string>>("files");
+  std::cout << files.size() << " files provided" << std::endl;                                           
+  for (auto& file : files)                                                             
+    std::cout << file << std::endl;
+} catch (std::logic_error& e) {
+  std::cout << "No files provided" << std::endl;
+}                                                                                                  
+```
+
+When no arguments are provided:
+
+```bash
+$ ./compiler
+No files provided
+```
+
+and when multiple arguments are provided:
+
+```bash
+$ ./compiler foo.txt bar.txt baz.txt
+3 files provided
+foo.txt
+bar.txt
+baz.txt
+```
+
+The process of gathering remaining arguments plays nicely with optional arguments too:
+
+```cpp
+argparse::ArgumentParser program("compiler");                                                             
+
+program.add_arguments("-o")
+  .default_value(std::string("a.out"));
+
+program.add_argument("files")                                                                             
+  .remaining();                                                                                           
+                                                                                                          
+try {                                                                                                     
+  program.parse_args(argc, argv);                                                                         
+}                                                                                                         
+catch (const std::runtime_error& err) {                                                                   
+  std::cout << err.what() << std::endl;                                                                   
+  std::cout << program;                                                                                   
+  exit(0);                                                                                                
+}
+
+auto output_filename = program.get<std::string>("-o");
+std::cout << "Output filename: " << output_filename << std::endl;
+
+try {
+  auto files = program.get<std::vector<std::string>>("files");
+  std::cout << files.size() << " files provided" << std::endl;                                           
+  for (auto& file : files)                                                             
+    std::cout << file << std::endl;
+} catch (std::logic_error& e) {
+  std::cout << "No files provided" << std::endl;
+}
+
+```
+
+```bash
+$ ./compiler -o main foo.cpp bar.cpp baz.cpp
+Output filename: main
+3 files provided
+foo.cpp
+bar.cpp
+baz.cpp
+```
+
+***NOTE***: Remember to place all optional arguments BEFORE the remaining argument. If the optional argument is placed after the remaining arguments, it too will be deemed remaining:
+
+```bash
+$ ./compiler foo.cpp bar.cpp baz.cpp -o main
+5 arguments provided
+foo.cpp
+bar.cpp
+baz.cpp
+-o
+main
+```
 
 ### Parent Parsers
 
