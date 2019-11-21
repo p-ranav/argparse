@@ -354,7 +354,7 @@ Here's what's happening:
 $ compiler file1 file2 file3
 ```
 
-For enable this, simply create an argument and mark it as `remaining`. All remaining arguments passed to argparse are gathered here. 
+To enable this, simply create an argument and mark it as `remaining`. All remaining arguments passed to argparse are gathered here.
 
 ```cpp
 argparse::ArgumentParser program("compiler");                                                             
