@@ -45,6 +45,35 @@ TEST_CASE("Parse multiple toggle arguments with implicit values", "[optional_arg
   REQUIRE(program.get<bool>("-x") == true);
 }
 
+TEST_CASE("Parse optional arguments of many values", "[optional_arguments]") {
+  GIVEN("a program that accepts an optional argument of many values") {
+    argparse::ArgumentParser program("test");
+    program.add_argument("-i").remaining().action(
+        [](const std::string &value) { return std::stoi(value); });
+
+    WHEN("provided no argument") {
+      THEN("the program accepts it but gets nothing") {
+        REQUIRE_NOTHROW(program.parse_args({"test"}));
+        REQUIRE_THROWS_AS(program.get<std::vector<int>>("-i"),
+                          std::logic_error);
+      }
+    }
+
+    WHEN("provided remaining arguments follow the option") {
+      program.parse_args({"test", "-i", "-42", "8", "100", "300"});
+
+      THEN("the optional parameter consumes all of them") {
+        auto inputs = program.get<std::vector<int>>("-i");
+        REQUIRE(inputs.size() == 4);
+        REQUIRE(inputs[0] == -42);
+        REQUIRE(inputs[1] == 8);
+        REQUIRE(inputs[2] == 100);
+        REQUIRE(inputs[3] == 300);
+      }
+    }
+  }
+}
+
 TEST_CASE("Parse arguments of different types", "[optional_arguments]") {
   using namespace std::literals;
 

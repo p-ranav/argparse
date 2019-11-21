@@ -36,6 +36,7 @@ SOFTWARE.
 #include <list>
 #include <map>
 #include <numeric>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -159,8 +160,15 @@ public:
     return *this;
   }
 
-  Argument &nargs(size_t aNumArgs) {
+  Argument &nargs(int aNumArgs) {
+    if (aNumArgs < 0)
+      throw std::logic_error("Number of arguments must be non-negative");
     mNumArgs = aNumArgs;
+    return *this;
+  }
+
+  Argument &remaining() {
+    mNumArgs = -1;
     return *this;
   }
 
@@ -174,11 +182,14 @@ public:
     if (mNumArgs == 0) {
       mValues.emplace_back(mImplicitValue);
       return start;
-    } else if (mNumArgs <= static_cast<size_t>(std::distance(start, end))) {
-      end = std::next(start, mNumArgs);
-      if (std::any_of(start, end, Argument::is_optional)) {
-        throw std::runtime_error("optional argument in parameter sequence");
+    } else if (mNumArgs <= std::distance(start, end)) {
+      if (auto expected = maybe_nargs()) {
+        end = std::next(start, *expected);
+        if (std::any_of(start, end, Argument::is_optional)) {
+          throw std::runtime_error("optional argument in parameter sequence");
+        }
       }
+
       struct action_apply {
         void operator()(valued_action &f) {
           std::transform(start, end, std::back_inserter(self.mValues), f);
@@ -186,8 +197,10 @@ public:
 
         void operator()(void_action &f) {
           std::for_each(start, end, f);
-          if (!self.mDefaultValue.has_value())
-            self.mValues.resize(self.mNumArgs);
+          if (!self.mDefaultValue.has_value()) {
+            if (auto expected = self.maybe_nargs())
+              self.mValues.resize(*expected);
+          }
         }
 
         Iterator start, end;
@@ -206,33 +219,43 @@ public:
    * @throws std::runtime_error if argument values are not valid
    */
   void validate() const {
-    if (mIsOptional) {
-      if (mIsUsed && mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
-        std::stringstream stream;
-        stream << mUsedName << ": expected " << mNumArgs << " argument(s). "
-               << mValues.size() << " provided.";
-        throw std::runtime_error(stream.str());
+    if (auto expected = maybe_nargs()) {
+      if (mIsOptional) {
+        if (mIsUsed && mValues.size() != *expected &&
+            !mDefaultValue.has_value()) {
+          std::stringstream stream;
+          stream << mUsedName << ": expected " << *expected << " argument(s). "
+                 << mValues.size() << " provided.";
+          throw std::runtime_error(stream.str());
+        } else {
+          // TODO: check if an implicit value was programmed for this argument
+          if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
+            std::stringstream stream;
+            stream << mNames[0] << ": required.";
+            throw std::runtime_error(stream.str());
+          }
+          if (mIsUsed && mIsRequired && mValues.size() == 0) {
+            std::stringstream stream;
+            stream << mUsedName << ": no value provided.";
+            throw std::runtime_error(stream.str());
+          }
+        }
       } else {
-        // TODO: check if an implicit value was programmed for this argument
-        if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
+        if (mValues.size() != expected && !mDefaultValue.has_value()) {
           std::stringstream stream;
-          stream << mNames[0] << ": required.";
+          stream << mUsedName << ": expected " << *expected << " argument(s). "
+                 << mValues.size() << " provided.";
           throw std::runtime_error(stream.str());
         }
-        if (mIsUsed && mIsRequired && mValues.size() == 0) {
-          std::stringstream stream;
-          stream << mUsedName << ": no value provided.";
-          throw std::runtime_error(stream.str());
-        }
-      }
-    } else {
-      if (mValues.size() != mNumArgs && !mDefaultValue.has_value()) {
-        std::stringstream stream;
-        stream << mUsedName << ": expected " << mNumArgs << " argument(s). "
-               << mValues.size() << " provided.";
-        throw std::runtime_error(stream.str());
       }
     }
+  }
+
+  auto maybe_nargs() const -> std::optional<size_t> {
+    if (mNumArgs < 0)
+      return std::nullopt;
+    else
+      return static_cast<size_t>(mNumArgs);
   }
 
   size_t get_arguments_length() const {
@@ -345,7 +368,7 @@ private:
       std::in_place_type<valued_action>,
       [](const std::string &aValue) { return aValue; }};
   std::vector<std::any> mValues;
-  size_t mNumArgs = 1;
+  int mNumArgs = 1;
   bool mIsOptional : 1;
   bool mIsRequired : 1;
   bool mIsUsed : 1; // True if the optional argument is used by user

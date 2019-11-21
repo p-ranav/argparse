@@ -119,3 +119,15 @@ TEST_CASE("Users can bind arguments to actions", "[actions]") {
     }
   }
 }
+
+TEST_CASE("Users can use actions on remaining arguments", "[actions]") {
+  argparse::ArgumentParser program("sum");
+
+  int result = 0;
+  program.add_argument("all").remaining().action(
+      [](int &sum, std::string const &value) { sum += std::stoi(value); },
+      std::ref(result));
+
+  program.parse_args({"sum", "42", "100", "-3", "-20"});
+  REQUIRE(result == 119);
+}
