@@ -348,7 +348,7 @@ Here's what's happening:
 
 ### Gathering Remaining Arguments
 
-`argparse` supports gathering "remaining" at the end of the command, e.g., for use in a compiler:
+`argparse` supports gathering "remaining" arguments at the end of the command, e.g., for use in a compiler:
 
 ```bash
 $ compiler file1 file2 file3
