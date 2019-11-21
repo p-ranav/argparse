@@ -321,7 +321,7 @@ private:
 
   // If an argument starts with "-" or "--", then it's optional
   static bool is_optional(const std::string &aName) {
-    return (!aName.empty() && aName[0] == '-' && !is_integer(aName) &&
+    return (aName.size() > 1 && aName[0] == '-' && !is_integer(aName) &&
             !is_float(aName));
   }
 

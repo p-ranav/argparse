@@ -12,6 +12,13 @@ DOCTEST_TEST_CASE("Parse toggle arguments with default value [optional_arguments
   REQUIRE(program["--verbose"] == false);
 }
 
+DOCTEST_TEST_CASE("Argument '-' is not an optional argument [optional_arguments]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("input");
+  program.parse_args({ "./test.exe", "-"});
+  REQUIRE(program.get<std::string>("input") == "-");
+}
+
 DOCTEST_TEST_CASE("Parse toggle arguments with implicit value [optional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--verbose")
