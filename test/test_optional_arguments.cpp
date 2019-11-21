@@ -1,7 +1,10 @@
 #include <doctest.hpp>
 #include <argparse.hpp>
 
-DOCTEST_TEST_CASE("Parse toggle arguments with default value [optional_arguments]") {
+using doctest::test_suite;
+
+TEST_CASE("Parse toggle arguments with default value" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--verbose", "-v")
     .default_value(false)
@@ -12,14 +15,16 @@ DOCTEST_TEST_CASE("Parse toggle arguments with default value [optional_arguments
   REQUIRE(program["--verbose"] == false);
 }
 
-DOCTEST_TEST_CASE("Argument '-' is not an optional argument [optional_arguments]") {
+TEST_CASE("Argument '-' is not an optional argument" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.parse_args({ "./test.exe", "-"});
   REQUIRE(program.get<std::string>("input") == "-");
 }
 
-DOCTEST_TEST_CASE("Argument '-' is not an optional argument but '-l' is [optional_arguments]") {
+TEST_CASE("Argument '-' is not an optional argument but '-l' is" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("-l")
     .default_value(false)
@@ -30,7 +35,8 @@ DOCTEST_TEST_CASE("Argument '-' is not an optional argument but '-l' is [optiona
   REQUIRE(program.get<std::string>("input") == "-");
 }
 
-DOCTEST_TEST_CASE("Argument '-l' is an optional argument but '-' is not [optional_arguments]") {
+TEST_CASE("Argument '-l' is an optional argument but '-' is not" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("-l")
     .default_value(false)
@@ -41,7 +47,8 @@ DOCTEST_TEST_CASE("Argument '-l' is an optional argument but '-' is not [optiona
   REQUIRE(program.get<std::string>("input") == "-");
 }
 
-DOCTEST_TEST_CASE("Parse toggle arguments with implicit value [optional_arguments]") {
+TEST_CASE("Parse toggle arguments with implicit value" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--verbose")
     .default_value(false)
@@ -53,7 +60,8 @@ DOCTEST_TEST_CASE("Parse toggle arguments with implicit value [optional_argument
   REQUIRE(program["--verbose"] != false);
 }
 
-DOCTEST_TEST_CASE("Parse multiple toggle arguments with implicit values [optional_arguments]") {
+TEST_CASE("Parse multiple toggle arguments with implicit values" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("-a")
     .default_value(false)
@@ -73,7 +81,8 @@ DOCTEST_TEST_CASE("Parse multiple toggle arguments with implicit values [optiona
   REQUIRE(program.get<bool>("-x") == true);
 }
 
-DOCTEST_TEST_CASE("Parse optional arguments of many values [optional_arguments]") {
+TEST_CASE("Parse optional arguments of many values" *
+          test_suite("optional_arguments")) {
   GIVEN("a program that accepts an optional argument of many values") {
     argparse::ArgumentParser program("test");
     program.add_argument("-i").remaining().action(
@@ -102,7 +111,8 @@ DOCTEST_TEST_CASE("Parse optional arguments of many values [optional_arguments]"
   }
 }
 
-DOCTEST_TEST_CASE("Parse arguments of different types [optional_arguments]") {
+TEST_CASE("Parse arguments of different types" *
+          test_suite("optional_arguments")) {
   using namespace std::literals;
 
   argparse::ArgumentParser program("test");

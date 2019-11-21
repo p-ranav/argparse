@@ -24,8 +24,24 @@ endif()
 
 # ARGPARSE executable
 file(GLOB ARGPARSE_TEST_SOURCES
-    "*.cpp"
+    main.cpp
+    test_actions.cpp
+    test_compound_arguments.cpp
+    test_container_arguments.cpp
+    test_help.cpp
+    test_invalid_arguments.cpp
+    test_issue_37.cpp
+    test_negative_numbers.cpp
+    test_optional_arguments.cpp
+    test_parent_parsers.cpp
+    test_parse_args.cpp
+    test_positional_arguments.cpp
+    test_required_arguments.cpp
+    test_value_semantics.cpp
 )
+set_source_files_properties(main.cpp
+    PROPERTIES
+    COMPILE_DEFINITIONS DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
 ADD_EXECUTABLE(ARGPARSE ${ARGPARSE_TEST_SOURCES})
 INCLUDE_DIRECTORIES("../include" ".")
 set_target_properties(ARGPARSE PROPERTIES OUTPUT_NAME tests)

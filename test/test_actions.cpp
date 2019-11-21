@@ -1,8 +1,10 @@
 #include <doctest.hpp>
 #include <argparse.hpp>
-#include <string_view>
 
-DOCTEST_TEST_CASE("Users can use default value inside actions [actions]") {
+using doctest::test_suite;
+
+TEST_CASE("Users can use default value inside actions" *
+          test_suite("actions")) {
   argparse::ArgumentParser program("test");
   program.add_argument("input")
     .default_value("bar")
@@ -18,7 +20,7 @@ DOCTEST_TEST_CASE("Users can use default value inside actions [actions]") {
   REQUIRE(program.get("input") == "bar");
 }
 
-DOCTEST_TEST_CASE("Users can add actions that return nothing [actions]") {
+TEST_CASE("Users can add actions that return nothing" * test_suite("actions")) {
   argparse::ArgumentParser program("test");
   bool pressed = false;
   auto &arg = program.add_argument("button").action(
@@ -26,12 +28,12 @@ DOCTEST_TEST_CASE("Users can add actions that return nothing [actions]") {
 
   REQUIRE_FALSE(pressed);
 
-  DOCTEST_SUBCASE("action performed") {
+  SUBCASE("action performed") {
     program.parse_args({"test", "ignored"});
     REQUIRE(pressed);
   }
 
-  DOCTEST_SUBCASE("action performed and nothing overrides the default value") {
+  SUBCASE("action performed and nothing overrides the default value") {
     arg.default_value(42);
 
     program.parse_args({"test", "ignored"});
@@ -66,7 +68,7 @@ public:
   }
 };
 
-DOCTEST_TEST_CASE("Users can bind arguments to actions [actions]") {
+TEST_CASE("Users can bind arguments to actions" * test_suite("actions")) {
   argparse::ArgumentParser program("test");
 
   GIVEN("an default initialized object bounded by reference") {
@@ -119,7 +121,8 @@ DOCTEST_TEST_CASE("Users can bind arguments to actions [actions]") {
   }
 }
 
-DOCTEST_TEST_CASE("Users can use actions on remaining arguments [actions]") {
+TEST_CASE("Users can use actions on remaining arguments" *
+          test_suite("actions")) {
   argparse::ArgumentParser program("sum");
 
   int result = 0;

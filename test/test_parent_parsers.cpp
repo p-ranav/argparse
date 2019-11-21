@@ -1,7 +1,9 @@
 #include <doctest.hpp>
 #include <argparse.hpp>
 
-DOCTEST_TEST_CASE("Add parent parsers [parent_parsers]") {
+using doctest::test_suite;
+
+TEST_CASE("Add parent parsers" * test_suite("parent_parsers")) {
   argparse::ArgumentParser parent_parser("main");
   parent_parser.add_argument("--verbose")
     .default_value(false)
@@ -14,7 +16,8 @@ DOCTEST_TEST_CASE("Add parent parsers [parent_parsers]") {
   REQUIRE(parent_parser["--verbose"] == false);
 }
 
-DOCTEST_TEST_CASE("Add parent to multiple parent parsers [parent_parsers]") {
+TEST_CASE("Add parent to multiple parent parsers" *
+          test_suite("parent_parsers")) {
   argparse::ArgumentParser parent_parser("main");
   parent_parser.add_argument("--parent")
     .default_value(0)
