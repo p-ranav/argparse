@@ -595,5 +595,27 @@ baz
 ## Contributing
 Contributions are welcome, have a look at the [CONTRIBUTING.md](CONTRIBUTING.md) document for more information.
 
+## Contributors ✨
+
+Thanks goes to these wonderful people:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/svanveen"><img src="https://avatars1.githubusercontent.com/u/23560108?s=400&v=4" width="100px;" alt="svanveen"/><br /><sub><b>svanveen</b></sub></a></td>
+    <td align="center"><a href="https://github.com/lichray"><img src="https://avatars0.githubusercontent.com/u/433009?s=400&v=4" width="100px;" alt="Zhihao Yuan"/><br /><sub><b>Zhihao Yuan</b></sub></a></td>
+    <td align="center"><a href="https://github.com/wtdcode"><img src="https://avatars2.githubusercontent.com/u/30623163?s=400&v=4" width="100px;" alt="Mio"/><br /><sub><b>Mio</b></sub></a></td>
+    <td align="center"><a href="https://github.com/zhihaoy"><img src="https://avatars0.githubusercontent.com/u/43971430?s=400&v=4" width="100px;" alt="zhihaoy"/><br /><sub><b>zhihaoy</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Jackojc"><img src="https://avatars1.githubusercontent.com/u/4932816?s=400&v=4" width="100px;" alt="Jack Clarke"/><br /><sub><b>Jack Clarke</b></sub></a></td>
+    <td align="center"><a href="https://github.com/SuperWig"><img src="https://avatars2.githubusercontent.com/u/2692096?s=400&v=4" width="100px;" alt="Daniel Marshall"/><br /><sub><b>Daniel Marshall</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars3.githubusercontent.com/u/21022101?s=400&v=4" width="100px;" alt="mupp"/><br /><sub><b>mupp</b></sub></a></td>
+  </tr>
+</table>
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 ## License
 The project is available under the [MIT](https://opensource.org/licenses/MIT) license.
