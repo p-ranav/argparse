@@ -19,6 +19,28 @@ DOCTEST_TEST_CASE("Argument '-' is not an optional argument [optional_arguments]
   REQUIRE(program.get<std::string>("input") == "-");
 }
 
+DOCTEST_TEST_CASE("Argument '-' is not an optional argument but '-l' is [optional_arguments]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("-l")
+    .default_value(false)
+    .implicit_value(true);
+  program.add_argument("input");
+  program.parse_args({ "./test.exe", "-l", "-"});
+  REQUIRE(program.get<bool>("-l") == true);
+  REQUIRE(program.get<std::string>("input") == "-");
+}
+
+DOCTEST_TEST_CASE("Argument '-l' is an optional argument but '-' is not [optional_arguments]") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("-l")
+    .default_value(false)
+    .implicit_value(true);
+  program.add_argument("input");
+  program.parse_args({ "./test.exe", "-", "-l"});
+  REQUIRE(program.get<bool>("-l") == true);
+  REQUIRE(program.get<std::string>("input") == "-");
+}
+
 DOCTEST_TEST_CASE("Parse toggle arguments with implicit value [optional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--verbose")
