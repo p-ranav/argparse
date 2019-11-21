@@ -1,9 +1,8 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 #include <test_utility.hpp>
 
-TEST_CASE("Parse compound toggle arguments with implicit values", "[compound_arguments]") {
+DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values [compound_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("-a")
     .default_value(false)
@@ -23,7 +22,7 @@ TEST_CASE("Parse compound toggle arguments with implicit values", "[compound_arg
   REQUIRE(program.get<bool>("-x") == true);
 }
 
-TEST_CASE("Parse compound toggle arguments with implicit values and nargs", "[compound_arguments]") {
+DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values and nargs [compound_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("-a")
     .default_value(false)
@@ -55,7 +54,7 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs", "[co
   REQUIRE(input_files[2] == "c.txt");
 }
 
-TEST_CASE("Parse compound toggle arguments with implicit values and nargs and other positional arguments", "[compound_arguments]") {
+DOCTEST_TEST_CASE("Parse compound toggle arguments with implicit values and nargs and other positional arguments [compound_arguments]") {
   argparse::ArgumentParser program("test");
 
   program.add_argument("numbers")
@@ -80,7 +79,7 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and ot
   REQUIRE_THROWS(program.parse_args({ "./test.exe", "1", "-abc", "3.14", "2.718", "2", "--input_files", "a.txt", "b.txt", "c.txt", "3" }));
 }
 
-TEST_CASE("Parse out-of-order compound arguments", "[compound_arguments]") {
+DOCTEST_TEST_CASE("Parse out-of-order compound arguments [compound_arguments]") {
   argparse::ArgumentParser program("test");
 
   program.add_argument("-a")
@@ -105,7 +104,7 @@ TEST_CASE("Parse out-of-order compound arguments", "[compound_arguments]") {
   REQUIRE(program["-c"] == std::vector<float>{3.14f, 2.718f});  
 }
 
-TEST_CASE("Parse out-of-order compound arguments. Second variation", "[compound_arguments]") {
+DOCTEST_TEST_CASE("Parse out-of-order compound arguments. Second variation [compound_arguments]") {
   argparse::ArgumentParser program("test");
 
   program.add_argument("-a")

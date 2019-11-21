@@ -1,9 +1,7 @@
-#pragma once
 #include <argparse.hpp>
-#include <catch.hpp>
+#include <doctest.hpp>
 
-TEST_CASE("ArgumentParser is MoveConstructible and MoveAssignable",
-          "[value_semantics]") {
+DOCTEST_TEST_CASE("ArgumentParser is MoveConstructible and MoveAssignable [value_semantics]") {
   GIVEN("a parser that has two arguments") {
     argparse::ArgumentParser parser("test");
     parser.add_argument("foo");
@@ -34,8 +32,7 @@ TEST_CASE("ArgumentParser is MoveConstructible and MoveAssignable",
   }
 }
 
-TEST_CASE("ArgumentParser is CopyConstructible and CopyAssignable",
-          "[value_semantics]") {
+DOCTEST_TEST_CASE("ArgumentParser is CopyConstructible and CopyAssignable [value_semantics]") {
   GIVEN("a parser that has two arguments") {
     argparse::ArgumentParser parser("test");
     parser.add_argument("foo");

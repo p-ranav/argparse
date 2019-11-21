@@ -1,8 +1,7 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Issues with implicit values #37", "[implicit_values]") {
+DOCTEST_TEST_CASE("Issues with implicit values #37 [implicit_values]") {
   argparse::ArgumentParser m_bfm("test");
   m_bfm.add_argument("-l", "--load")
     .help("load a VMM into the kernel");

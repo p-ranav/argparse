@@ -25,8 +25,6 @@ endif()
 # ARGPARSE executable
 file(GLOB ARGPARSE_TEST_SOURCES
     "*.cpp"
-    "*.hpp"
-    "../include/argparse.hpp"
 )
 ADD_EXECUTABLE(ARGPARSE ${ARGPARSE_TEST_SOURCES})
 INCLUDE_DIRECTORIES("../include" ".")

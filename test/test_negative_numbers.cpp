@@ -1,8 +1,7 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Parse negative integer", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse negative integer [positional_arguments]") {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
     .help("enable verbose logging")
@@ -17,7 +16,7 @@ TEST_CASE("Parse negative integer", "[positional_arguments]") {
   REQUIRE(program.get<int>("number") == -1);
 }
 
-TEST_CASE("Parse negative integers into a vector", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse negative integers into a vector [positional_arguments]") {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
     .help("enable verbose logging")
@@ -33,7 +32,7 @@ TEST_CASE("Parse negative integers into a vector", "[positional_arguments]") {
   REQUIRE(program["number"] == std::vector<int>{-1, -2, 3});
 }
 
-TEST_CASE("Parse negative float", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse negative float [positional_arguments]") {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
     .help("enable verbose logging")
@@ -48,7 +47,7 @@ TEST_CASE("Parse negative float", "[positional_arguments]") {
   REQUIRE(program.get<float>("number") == -1.0);
 }
 
-TEST_CASE("Parse negative floats into a vector", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse negative floats into a vector [positional_arguments]") {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
     .help("enable verbose logging")
@@ -64,7 +63,7 @@ TEST_CASE("Parse negative floats into a vector", "[positional_arguments]") {
   REQUIRE(program["number"] == std::vector<double>{-1.001, -2.002, 3.003});
 }
 
-TEST_CASE("Parse numbers in E notation", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse numbers in E notation [positional_arguments]") {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
     .help("enable verbose logging")
@@ -79,7 +78,7 @@ TEST_CASE("Parse numbers in E notation", "[positional_arguments]") {
   REQUIRE(program.get<double>("number") == -1200.0);
 }
 
-TEST_CASE("Parse numbers in E notation (capital E)", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse numbers in E notation (capital E) [positional_arguments]") {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
     .help("enable verbose logging")

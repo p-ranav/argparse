@@ -1,8 +1,7 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Parse unknown optional argument", "[compound_arguments]") {
+DOCTEST_TEST_CASE("Parse unknown optional argument [compound_arguments]") {
 
   argparse::ArgumentParser bfm("bfm");
 

@@ -1,8 +1,7 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Users can format help message", "[help]") {
+DOCTEST_TEST_CASE("Users can format help message [help]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input")
     .help("positional input");

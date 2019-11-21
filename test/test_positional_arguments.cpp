@@ -1,8 +1,8 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
+#include <cmath>
 
-TEST_CASE("Parse positional arguments", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse positional arguments [positional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output");
@@ -11,7 +11,7 @@ TEST_CASE("Parse positional arguments", "[positional_arguments]") {
   REQUIRE(program.get("output") == "thrust_profile.csv");
 }
 
-TEST_CASE("Parse positional arguments with fixed nargs", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse positional arguments with fixed nargs [positional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);
@@ -23,7 +23,7 @@ TEST_CASE("Parse positional arguments with fixed nargs", "[positional_arguments]
   REQUIRE(outputs[1] == "output.mesh");
 }
 
-TEST_CASE("Parse positional arguments with optional arguments", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse positional arguments with optional arguments [positional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);
@@ -38,7 +38,7 @@ TEST_CASE("Parse positional arguments with optional arguments", "[positional_arg
   REQUIRE(outputs[1] == "output.mesh");
 }
 
-TEST_CASE("Parse positional arguments with optional arguments in the middle", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse positional arguments with optional arguments in the middle [positional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);
@@ -47,8 +47,7 @@ TEST_CASE("Parse positional arguments with optional arguments in the middle", "[
   REQUIRE_THROWS(program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv", "--num_iterations", "15", "output.mesh" }));
 }
 
-TEST_CASE("Parse remaining arguments deemed positional",
-          "[positional_arguments]") {
+DOCTEST_TEST_CASE("Parse remaining arguments deemed positional [positional_arguments]") {
   GIVEN("a program that accepts an optional argument and remaining arguments") {
     argparse::ArgumentParser program("test");
     program.add_argument("-o");
@@ -95,12 +94,12 @@ TEST_CASE("Parse remaining arguments deemed positional",
   }
 }
 
-TEST_CASE("Negative nargs is not allowed", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Negative nargs is not allowed [positional_arguments]") {
   argparse::ArgumentParser program("test");
   REQUIRE_THROWS_AS(program.add_argument("output").nargs(-1), std::logic_error);
 }
 
-TEST_CASE("Square a number", "[positional_arguments]") {
+DOCTEST_TEST_CASE("Square a number [positional_arguments]") {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
     .help("enable verbose logging")

@@ -1,8 +1,7 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Add parent parsers", "[parent_parsers]") {
+DOCTEST_TEST_CASE("Add parent parsers [parent_parsers]") {
   argparse::ArgumentParser parent_parser("main");
   parent_parser.add_argument("--verbose")
     .default_value(false)
@@ -15,7 +14,7 @@ TEST_CASE("Add parent parsers", "[parent_parsers]") {
   REQUIRE(parent_parser["--verbose"] == false);
 }
 
-TEST_CASE("Add parent to multiple parent parsers", "[parent_parsers]") {
+DOCTEST_TEST_CASE("Add parent to multiple parent parsers [parent_parsers]") {
   argparse::ArgumentParser parent_parser("main");
   parent_parser.add_argument("--parent")
     .default_value(0)

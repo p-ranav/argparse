@@ -1,8 +1,7 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Parse toggle arguments with default value", "[optional_arguments]") {
+DOCTEST_TEST_CASE("Parse toggle arguments with default value [optional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--verbose", "-v")
     .default_value(false)
@@ -13,7 +12,7 @@ TEST_CASE("Parse toggle arguments with default value", "[optional_arguments]") {
   REQUIRE(program["--verbose"] == false);
 }
 
-TEST_CASE("Parse toggle arguments with implicit value", "[optional_arguments]") {
+DOCTEST_TEST_CASE("Parse toggle arguments with implicit value [optional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--verbose")
     .default_value(false)
@@ -25,7 +24,7 @@ TEST_CASE("Parse toggle arguments with implicit value", "[optional_arguments]") 
   REQUIRE(program["--verbose"] != false);
 }
 
-TEST_CASE("Parse multiple toggle arguments with implicit values", "[optional_arguments]") {
+DOCTEST_TEST_CASE("Parse multiple toggle arguments with implicit values [optional_arguments]") {
   argparse::ArgumentParser program("test");
   program.add_argument("-a")
     .default_value(false)
@@ -45,7 +44,7 @@ TEST_CASE("Parse multiple toggle arguments with implicit values", "[optional_arg
   REQUIRE(program.get<bool>("-x") == true);
 }
 
-TEST_CASE("Parse optional arguments of many values", "[optional_arguments]") {
+DOCTEST_TEST_CASE("Parse optional arguments of many values [optional_arguments]") {
   GIVEN("a program that accepts an optional argument of many values") {
     argparse::ArgumentParser program("test");
     program.add_argument("-i").remaining().action(
@@ -74,7 +73,7 @@ TEST_CASE("Parse optional arguments of many values", "[optional_arguments]") {
   }
 }
 
-TEST_CASE("Parse arguments of different types", "[optional_arguments]") {
+DOCTEST_TEST_CASE("Parse arguments of different types [optional_arguments]") {
   using namespace std::literals;
 
   argparse::ArgumentParser program("test");

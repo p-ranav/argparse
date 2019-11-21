@@ -1,15 +1,14 @@
-#pragma once
-#include <catch.hpp>
+#include <doctest.hpp>
 #include <argparse.hpp>
 
-TEST_CASE("Parse a string argument with value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a string argument with value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--config");
   program.parse_args({ "test", "--config", "config.yml"});
   REQUIRE(program.get("--config") == "config.yml");
 }
 
-TEST_CASE("Parse a string argument with default value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a string argument with default value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--config")
     .default_value(std::string("foo.yml"));
@@ -17,7 +16,7 @@ TEST_CASE("Parse a string argument with default value", "[parse_args]") {
   REQUIRE(program.get("--config") == "foo.yml");
 }
 
-TEST_CASE("Parse an int argument with value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse an int argument with value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--count")
     .action([](const std::string& value) { return std::stoi(value); });
@@ -25,7 +24,7 @@ TEST_CASE("Parse an int argument with value", "[parse_args]") {
   REQUIRE(program.get<int>("--count") == 5);
 }
 
-TEST_CASE("Parse an int argument with default value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse an int argument with default value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--count")
     .default_value(2)
@@ -34,7 +33,7 @@ TEST_CASE("Parse an int argument with default value", "[parse_args]") {
   REQUIRE(program.get<int>("--count") == 2);
 }
 
-TEST_CASE("Parse a float argument with value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a float argument with value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
     .action([](const std::string& value) { return std::stof(value); });
@@ -42,7 +41,7 @@ TEST_CASE("Parse a float argument with value", "[parse_args]") {
   REQUIRE(program.get<float>("--ratio") == 5.6645f);
 }
 
-TEST_CASE("Parse a float argument with default value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a float argument with default value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
     .default_value(3.14f)
@@ -51,7 +50,7 @@ TEST_CASE("Parse a float argument with default value", "[parse_args]") {
   REQUIRE(program.get<float>("--ratio") == 3.14f);
 }
 
-TEST_CASE("Parse a double argument with value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a double argument with value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
     .action([](const std::string& value) { return std::stod(value); });
@@ -59,7 +58,7 @@ TEST_CASE("Parse a double argument with value", "[parse_args]") {
   REQUIRE(program.get<double>("--ratio") == 5.6645);
 }
 
-TEST_CASE("Parse a double argument with default value", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a double argument with default value [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
     .default_value(3.14)
@@ -68,7 +67,7 @@ TEST_CASE("Parse a double argument with default value", "[parse_args]") {
   REQUIRE(program.get<double>("--ratio") == 3.14);
 }
 
-TEST_CASE("Parse a vector of integer arguments", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a vector of integer arguments [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
@@ -83,7 +82,7 @@ TEST_CASE("Parse a vector of integer arguments", "[parse_args]") {
   REQUIRE(vector[4] == 5);
 }
 
-TEST_CASE("Parse a vector of float arguments", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a vector of float arguments [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
@@ -98,7 +97,7 @@ TEST_CASE("Parse a vector of float arguments", "[parse_args]") {
   REQUIRE(vector[4] == 5.5f);
 }
 
-TEST_CASE("Parse a vector of double arguments", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a vector of double arguments [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
@@ -113,7 +112,7 @@ TEST_CASE("Parse a vector of double arguments", "[parse_args]") {
   REQUIRE(vector[4] == 5.5);
 }
 
-TEST_CASE("Parse a vector of string arguments", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a vector of string arguments [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
@@ -128,7 +127,7 @@ TEST_CASE("Parse a vector of string arguments", "[parse_args]") {
   REQUIRE(vector[4] == "mno");
 }
 
-TEST_CASE("Parse a vector of character arguments", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a vector of character arguments [parse_args]") {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
@@ -143,7 +142,7 @@ TEST_CASE("Parse a vector of character arguments", "[parse_args]") {
   REQUIRE(vector[4] == 'e');
 }
 
-TEST_CASE("Parse a vector of string arguments and construct objects", "[parse_args]") {
+DOCTEST_TEST_CASE("Parse a vector of string arguments and construct objects [parse_args]") {
 
   class Foo {
   public:
