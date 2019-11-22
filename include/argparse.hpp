@@ -515,8 +515,8 @@ public:
   }
 
   // Format help message
-  auto help() const -> std::ostringstream {
-    std::ostringstream out;
+  auto help() const -> std::stringstream {
+    std::stringstream out;
     out << *this;
     return out;
   }
