@@ -30,6 +30,7 @@ SOFTWARE.
 #pragma once
 #include <algorithm>
 #include <any>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -372,20 +373,15 @@ private:
   bool mIsOptional : 1;
   bool mIsRequired : 1;
   bool mIsUsed : 1; // True if the optional argument is used by user
-
-  static constexpr auto mHelpOption = "-h";
-  static constexpr auto mHelpOptionLong = "--help";
 };
 
 class ArgumentParser {
 public:
   explicit ArgumentParser(std::string aProgramName = {})
       : mProgramName(std::move(aProgramName)) {
-    add_argument(Argument::mHelpOption, Argument::mHelpOptionLong)
+    add_argument("-h", "--help")
         .help("show this help message and exit")
-        .nargs(0)
-        .default_value(false)
-        .implicit_value(true);
+        .nargs(0);
   }
 
   ArgumentParser(ArgumentParser &&) noexcept = default;
@@ -542,10 +538,6 @@ private:
     auto positionalArgumentIt = std::begin(mPositionalArguments);
     for (auto it = std::next(std::begin(aArguments)); it != end;) {
       const auto &tCurrentArgument = *it;
-      if (tCurrentArgument == Argument::mHelpOption ||
-          tCurrentArgument == Argument::mHelpOptionLong) {
-        throw std::runtime_error("help called");
-      }
       if (Argument::is_positional(tCurrentArgument)) {
         if (positionalArgumentIt == std::end(mPositionalArguments)) {
           throw std::runtime_error(
@@ -553,9 +545,19 @@ private:
         }
         auto tArgument = positionalArgumentIt++;
         it = tArgument->consume(it, end);
-      } else if (auto tIterator = mArgumentMap.find(tCurrentArgument);
-                 tIterator != mArgumentMap.end()) {
+        continue;
+      }
+
+      auto tIterator = mArgumentMap.find(tCurrentArgument);
+      if (tIterator != mArgumentMap.end()) {
         auto tArgument = tIterator->second;
+
+        // the first optional argument is --help
+        if (tArgument == mOptionalArguments.begin()) {
+          std::cout << *this;
+          std::exit(0);
+        }
+
         it = tArgument->consume(std::next(it), end, tCurrentArgument);
       } else if (const auto &tCompoundArgument = tCurrentArgument;
                  tCompoundArgument.size() > 1 && tCompoundArgument[0] == '-' &&
@@ -607,7 +609,7 @@ private:
 
   void index_argument(list_iterator argIt) {
     for (auto &mName : std::as_const(argIt->mNames))
-      mArgumentMap.emplace(mName, argIt);
+      mArgumentMap.insert_or_assign(mName, argIt);
   }
 
   std::string mProgramName;
