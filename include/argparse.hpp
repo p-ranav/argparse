@@ -30,6 +30,7 @@ SOFTWARE.
 #pragma once
 #include <algorithm>
 #include <any>
+#include <charconv>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
