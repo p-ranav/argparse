@@ -301,33 +301,179 @@ public:
   }
 
 private:
-  static bool is_integer(const std::string &aValue) {
-    if (aValue.empty() ||
-        ((!isdigit(aValue[0])) && (aValue[0] != '-') && (aValue[0] != '+')))
+  static constexpr int eof = std::char_traits<char>::eof();
+
+  static auto lookahead(std::string_view s) -> int {
+    if (s.empty())
+      return eof;
+    else
+      return static_cast<int>(static_cast<unsigned char>(s[0]));
+  }
+
+  /*
+   * decimal-literal:
+   *    '0'
+   *    nonzero-digit digit-sequence_opt
+   *    integer-part fractional-part
+   *    fractional-part
+   *    integer-part '.' exponent-part_opt
+   *    integer-part exponent-part
+   *
+   * integer-part:
+   *    digit-sequence
+   *
+   * fractional-part:
+   *    '.' post-decimal-point
+   *
+   * post-decimal-point:
+   *    digit-sequence exponent-part_opt
+   *
+   * exponent-part:
+   *    'e' post-e
+   *    'E' post-e
+   *
+   * post-e:
+   *    sign_opt digit-sequence
+   *
+   * sign: one of
+   *    '+' '-'
+   */
+  static bool is_decimal_literal(std::string_view s) {
+    auto is_digit = [](auto c) constexpr {
+      switch (c) {
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        return true;
+      default:
+        return false;
+      }
+    };
+
+    // precondition: we have consumed or will consume at least one digit
+    auto consume_digits = [=](std::string_view s) {
+      auto it = std::find_if_not(begin(s), end(s), is_digit);
+      return s.substr(it - begin(s));
+    };
+
+    switch (lookahead(s)) {
+    case '0': {
+      s.remove_prefix(1);
+      if (s.empty())
+        return true;
+      else
+        goto integer_part;
+    }
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9': {
+      s = consume_digits(s);
+      if (s.empty())
+        return true;
+      else
+        goto integer_part_consumed;
+    }
+    case '.': {
+      s.remove_prefix(1);
+      goto post_decimal_point;
+    }
+    default:
       return false;
-    char *tPtr;
-    strtol(aValue.c_str(), &tPtr, 10);
-    return (*tPtr == 0);
+    }
+
+  integer_part:
+    s = consume_digits(s);
+  integer_part_consumed:
+    switch (lookahead(s)) {
+    case '.': {
+      s.remove_prefix(1);
+      if (is_digit(lookahead(s)))
+        goto post_decimal_point;
+      else
+        goto exponent_part_opt;
+    }
+    case 'e':
+    case 'E': {
+      s.remove_prefix(1);
+      goto post_e;
+    }
+    default:
+      return false;
+    }
+
+  post_decimal_point:
+    if (is_digit(lookahead(s))) {
+      s = consume_digits(s);
+      goto exponent_part_opt;
+    } else {
+      return false;
+    }
+
+  exponent_part_opt:
+    switch (lookahead(s)) {
+    case eof:
+      return true;
+    case 'e':
+    case 'E': {
+      s.remove_prefix(1);
+      goto post_e;
+    }
+    default:
+      return false;
+    }
+
+  post_e:
+    switch (lookahead(s)) {
+    case '-':
+    case '+':
+      s.remove_prefix(1);
+    }
+    if (is_digit(lookahead(s))) {
+      s = consume_digits(s);
+      return s.empty();
+    } else {
+      return false;
+    }
   }
 
-  static bool is_float(const std::string &aValue) {
-    std::istringstream tStream(aValue);
-    float tFloat;
-    // noskipws considers leading whitespace invalid
-    tStream >> std::noskipws >> tFloat;
-    // Check the entire string was consumed
-    // and if either failbit or badbit is set
-    return tStream.eof() && !tStream.fail();
+  static bool is_optional(std::string_view aName) {
+    return !is_positional(aName);
   }
 
-  // If an argument starts with "-" or "--", then it's optional
-  static bool is_optional(const std::string &aName) {
-    return (aName.size() > 1 && aName[0] == '-' && !is_integer(aName) &&
-            !is_float(aName));
-  }
-
-  static bool is_positional(const std::string &aName) {
-    return !is_optional(aName);
+  /*
+   * positional:
+   *    _empty_
+   *    '-'
+   *    '-' decimal-literal
+   *    !'-' anything
+   */
+  static bool is_positional(std::string_view aName) {
+    switch (lookahead(aName)) {
+    case eof:
+      return true;
+    case '-': {
+      aName.remove_prefix(1);
+      if (aName.empty())
+        return true;
+      else
+        return is_decimal_literal(aName);
+    }
+    default:
+      return true;
+    }
   }
 
   /*
