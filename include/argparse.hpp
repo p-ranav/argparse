@@ -77,6 +77,25 @@ struct is_string_like
     : std::conjunction<std::is_constructible<std::string, T>,
                        std::is_convertible<T, std::string_view>> {};
 
+template <typename T> constexpr bool standard_signed_integer = false;
+template <> constexpr bool standard_signed_integer<signed char> = true;
+template <> constexpr bool standard_signed_integer<short int> = true;
+template <> constexpr bool standard_signed_integer<int> = true;
+template <> constexpr bool standard_signed_integer<long int> = true;
+template <> constexpr bool standard_signed_integer<long long int> = true;
+
+template <typename T> constexpr bool standard_unsigned_integer = false;
+template <> constexpr bool standard_unsigned_integer<unsigned char> = true;
+template <> constexpr bool standard_unsigned_integer<unsigned short int> = true;
+template <> constexpr bool standard_unsigned_integer<unsigned int> = true;
+template <> constexpr bool standard_unsigned_integer<unsigned long int> = true;
+template <>
+constexpr bool standard_unsigned_integer<unsigned long long int> = true;
+
+template <typename T>
+constexpr bool standard_integer =
+    standard_signed_integer<T> || standard_unsigned_integer<T>;
+
 template <class F, class Tuple, class Extra, size_t... I>
 constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
                                              std::index_sequence<I...>) {
@@ -91,6 +110,85 @@ constexpr decltype(auto) apply_plus_one(F &&f, Tuple &&t, Extra &&x) {
       std::make_index_sequence<
           std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
 }
+
+constexpr auto pointer_range(std::string_view s) noexcept {
+  return std::tuple(s.data(), s.data() + s.size());
+}
+
+template <class CharT, class Traits>
+constexpr bool starts_with(std::basic_string_view<CharT, Traits> prefix,
+                           std::basic_string_view<CharT, Traits> s) noexcept {
+  return s.substr(0, prefix.size()) == prefix;
+}
+
+enum class chars_format {
+  scientific = 0x1,
+  fixed = 0x2,
+  hex = 0x4,
+  general = fixed | scientific
+};
+
+struct consume_hex_prefix_result {
+  bool is_hexadecimal;
+  std::string_view rest;
+};
+
+using namespace std::literals;
+
+constexpr auto consume_hex_prefix(std::string_view s)
+    -> consume_hex_prefix_result {
+  if (starts_with("0x"sv, s) || starts_with("0X"sv, s)) {
+    s.remove_prefix(2);
+    return {true, s};
+  } else {
+    return {false, s};
+  }
+}
+
+template <class T, auto Param>
+inline auto do_from_chars(std::string_view s) -> T {
+  T x;
+  auto [first, last] = pointer_range(s);
+  auto [ptr, ec] = std::from_chars(first, last, x, Param);
+  if (ec == std::errc()) {
+    if (ptr == last)
+      return x;
+    else
+      throw std::invalid_argument{"pattern does not match to the end"};
+  } else if (ec == std::errc::invalid_argument) {
+    throw std::invalid_argument{"pattern not found"};
+  } else if (ec == std::errc::result_out_of_range) {
+    throw std::range_error{"not representable"};
+  } else {
+    return x; // unreachable
+  }
+}
+
+template <class T, auto Param = 0> struct parse_number {
+  auto operator()(std::string_view s) -> T {
+    return do_from_chars<T, Param>(s);
+  }
+};
+
+template <class T> struct parse_number<T, 16> {
+  auto operator()(std::string_view s) -> T {
+    if (auto [ok, rest] = consume_hex_prefix(s); ok)
+      return do_from_chars<T, 16>(rest);
+    else
+      throw std::invalid_argument{"pattern not found"};
+  }
+};
+
+template <class T> struct parse_number<T> {
+  auto operator()(std::string_view s) -> T {
+    if (auto [ok, rest] = consume_hex_prefix(s); ok)
+      return do_from_chars<T, 16>(rest);
+    else if (starts_with("0"sv, s))
+      return do_from_chars<T, 8>(rest);
+    else
+      return do_from_chars<T, 10>(rest);
+  }
+};
 
 } // namespace details
 
@@ -159,6 +257,45 @@ public:
               std::string const &opt) mutable {
             return details::apply_plus_one(f, tup, opt);
           });
+    return *this;
+  }
+
+  template <char Shape, typename T>
+  auto scan() -> std::enable_if_t<std::is_arithmetic_v<T>, Argument &> {
+    static_assert(!(std::is_const_v<T> || std::is_volatile_v<T>),
+                  "T should not be cv-qualified");
+    auto is_one_of = [](char c, auto... x) constexpr {
+      return ((c == x) || ...);
+    };
+
+    if constexpr (is_one_of(Shape, 'd') && details::standard_integer<T>)
+      action(details::parse_number<T, 10>());
+    else if constexpr (is_one_of(Shape, 'i') && details::standard_integer<T>)
+      action(details::parse_number<T>());
+    else if constexpr (is_one_of(Shape, 'u') &&
+                       details::standard_unsigned_integer<T>)
+      action(details::parse_number<T, 10>());
+    else if constexpr (is_one_of(Shape, 'o') &&
+                       details::standard_unsigned_integer<T>)
+      action(details::parse_number<T, 8>());
+    else if constexpr (is_one_of(Shape, 'x', 'X') &&
+                       details::standard_unsigned_integer<T>)
+      action(details::parse_number<T, 16>());
+    else if constexpr (is_one_of(Shape, 'a', 'A') &&
+                       std::is_floating_point_v<T>)
+      action(details::parse_number<T, details::chars_format::hex>());
+    else if constexpr (is_one_of(Shape, 'e', 'E') &&
+                       std::is_floating_point_v<T>)
+      action(details::parse_number<T, details::chars_format::scientific>());
+    else if constexpr (is_one_of(Shape, 'f', 'F') &&
+                       std::is_floating_point_v<T>)
+      action(details::parse_number<T, details::chars_format::fixed>());
+    else if constexpr (is_one_of(Shape, 'g', 'G') &&
+                       std::is_floating_point_v<T>)
+      action(details::parse_number<T, details::chars_format::general>());
+    else
+      static_assert(alignof(T) == 0, "No scan specification for T");
+
     return *this;
   }
 
