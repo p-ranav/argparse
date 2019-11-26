@@ -30,6 +30,7 @@ SOFTWARE.
 #pragma once
 #include <algorithm>
 #include <any>
+#include <cerrno>
 #include <charconv>
 #include <cstdlib>
 #include <functional>
@@ -187,6 +188,76 @@ template <class T> struct parse_number<T> {
       return do_from_chars<T, 8>(rest);
     else
       return do_from_chars<T, 10>(rest);
+  }
+};
+
+template <class T> constexpr auto generic_strtod = nullptr;
+template <> constexpr auto generic_strtod<float> = strtof;
+template <> constexpr auto generic_strtod<double> = strtod;
+template <> constexpr auto generic_strtod<long double> = strtold;
+
+template <class T> inline auto do_strtod(std::string const &s) -> T {
+  if (isspace(static_cast<unsigned char>(s[0])) || s[0] == '+')
+    throw std::invalid_argument{"pattern not found"};
+
+  auto [first, last] = pointer_range(s);
+  char *ptr;
+
+  errno = 0;
+  if (auto x = generic_strtod<T>(first, &ptr); errno == 0) {
+    if (ptr == last)
+      return x;
+    else
+      throw std::invalid_argument{"pattern does not match to the end"};
+  } else if (errno == ERANGE) {
+    throw std::range_error{"not representable"};
+  } else {
+    return x; // unreachable
+  }
+}
+
+template <class T> struct parse_number<T, chars_format::general> {
+  auto operator()(std::string const &s) -> T {
+    if (auto r = consume_hex_prefix(s); r.is_hexadecimal)
+      throw std::invalid_argument{
+          "chars_format::general does not parse hexfloat"};
+
+    return do_strtod<T>(s);
+  }
+};
+
+template <class T> struct parse_number<T, chars_format::hex> {
+  auto operator()(std::string const &s) -> T {
+    if (auto r = consume_hex_prefix(s); !r.is_hexadecimal)
+      throw std::invalid_argument{"chars_format::hex parses hexfloat"};
+
+    return do_strtod<T>(s);
+  }
+};
+
+template <class T> struct parse_number<T, chars_format::scientific> {
+  auto operator()(std::string const &s) -> T {
+    if (auto r = consume_hex_prefix(s); r.is_hexadecimal)
+      throw std::invalid_argument{
+          "chars_format::scientific does not parse hexfloat"};
+    if (s.find_first_of("eE") == s.npos)
+      throw std::invalid_argument{
+          "chars_format::scientific requires exponent part"};
+
+    return do_strtod<T>(s);
+  }
+};
+
+template <class T> struct parse_number<T, chars_format::fixed> {
+  auto operator()(std::string const &s) -> T {
+    if (auto r = consume_hex_prefix(s); r.is_hexadecimal)
+      throw std::invalid_argument{
+          "chars_format::fixed does not parse hexfloat"};
+    if (s.find_first_of("eE") != s.npos)
+      throw std::invalid_argument{
+          "chars_format::fixed does not parse exponent part"};
+
+    return do_strtod<T>(s);
   }
 };
 
