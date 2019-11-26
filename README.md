@@ -587,10 +587,13 @@ $ ./main fex
 baz
 ```
 
-## Supported Compilers
-* GCC >= 7.0.0
-* Clang >= 4.0
-* MSVC >= 2017
+## Supported Toolchains
+
+| Compiler             | Standard Library | Test Environment   |
+| :------------------- | :--------------- | :----------------- |
+| GCC >= 8.3.0         | libstdc++        | Ubuntu 18.04       |
+| Clang >= 7.0.0       | libc++           | Xcode 10.2         |
+| MSVC >= 14.16        | Microsoft STL    | Visual Studio 2017 |
 
 ## Contributing
 Contributions are welcome, have a look at the [CONTRIBUTING.md](CONTRIBUTING.md) document for more information.

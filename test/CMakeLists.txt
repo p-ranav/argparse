@@ -37,6 +37,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_parse_args.cpp
     test_positional_arguments.cpp
     test_required_arguments.cpp
+    test_scan.cpp
     test_value_semantics.cpp
 )
 set_source_files_properties(main.cpp

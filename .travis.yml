@@ -4,6 +4,13 @@ matrix:
       dist: bionic
       language: cpp
       compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env: CXX=g++-8 CC=gcc-8
     - os: osx
       osx_image: xcode10.2
       language: cpp
