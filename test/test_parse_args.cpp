@@ -19,6 +19,32 @@ TEST_CASE("Parse a string argument with default value" *
   REQUIRE(program.get("--config") == "foo.yml");
 }
 
+TEST_CASE("Parse a string argument without default value" *
+          test_suite("parse_args")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--config");
+
+  WHEN("no value provided") {
+    program.parse_args({"test"});
+
+    THEN("the option is nullopt") {
+      auto opt = program.present("--config");
+      REQUIRE_FALSE(opt);
+      REQUIRE(opt == std::nullopt);
+    }
+  }
+
+  WHEN("a value is provided") {
+    program.parse_args({"test", "--config", ""});
+
+    THEN("the option has a value") {
+      auto opt = program.present("--config");
+      REQUIRE(opt);
+      REQUIRE(opt->empty());
+    }
+  }
+}
+
 TEST_CASE("Parse an int argument with value" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--count")
@@ -101,6 +127,37 @@ TEST_CASE("Parse a vector of float arguments" * test_suite("parse_args")) {
   REQUIRE(vector[2] == 3.3f);
   REQUIRE(vector[3] == 4.4f);
   REQUIRE(vector[4] == 5.5f);
+}
+
+TEST_CASE("Parse a vector of float without default value" *
+          test_suite("parse_args")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--vector").scan<'f', float>().nargs(3);
+
+  WHEN("no value is provided") {
+    program.parse_args({"test"});
+
+    THEN("the option is nullopt") {
+      auto opt = program.present<std::vector<float>>("--vector");
+      REQUIRE_FALSE(opt.has_value());
+      REQUIRE(opt == std::nullopt);
+    }
+  }
+
+  WHEN("a value is provided") {
+    program.parse_args({"test", "--vector", ".3", "1.3", "6"});
+
+    THEN("the option has a value") {
+      auto opt = program.present<std::vector<float>>("--vector");
+      REQUIRE(opt.has_value());
+
+      auto &&vec = opt.value();
+      REQUIRE(vec.size() == 3);
+      REQUIRE(vec[0] == .3f);
+      REQUIRE(vec[1] == 1.3f);
+      REQUIRE(vec[2] == 6.f);
+    }
+  }
 }
 
 TEST_CASE("Parse a vector of double arguments" * test_suite("parse_args")) {
