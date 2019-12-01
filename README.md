@@ -142,7 +142,7 @@ program.add_argument("-o", "--output")
 
 #### Accessing optional arguments without default values
 
-If you do not require an optional argument to present but has no good default value for it, you can combine testing and accessing the argument as following:
+If you require an optional argument to be present but have no good default value for it, you can combine testing and accessing the argument as following:
 
 ```cpp
 if (auto fn = program.present("-o")) {
