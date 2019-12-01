@@ -140,6 +140,18 @@ program.add_argument("-o", "--output")
   .help("specify the output file.");
 ```
 
+#### Accessing optional arguments without default values
+
+If you do not require an optional argument to present but has no good default value for it, you can combine testing and accessing the argument as following:
+
+```cpp
+if (auto fn = program.present("-o")) {
+    do_something_with(*fn);
+}
+```
+
+Similar to `get`, the `present` method also accepts a template argument.  But rather than returning `T`, `parser.present<T>(key)` returns `std::optional<T>`, so that when the user does not provide a value to this parameter, the return value compares equal to `std::nullopt`.
+
 ### Negative Numbers
 
 Optional arguments start with ```-```. Can ```argparse``` handle negative numbers? The answer is yes!

@@ -702,6 +702,23 @@ private:
     throw std::logic_error("No value provided");
   }
 
+  /*
+   * Get argument value given a type.
+   * @pre The object has no default value.
+   * @returns The stored value if any, std::nullopt otherwise.
+   */
+  template <typename T> auto present() const -> std::optional<T> {
+    if (mDefaultValue.has_value())
+      throw std::logic_error("Argument with default value always presents");
+
+    if (mValues.empty())
+      return std::nullopt;
+    else if constexpr (details::is_container_v<T>)
+      return any_cast_container<T>(mValues);
+    else
+      return std::any_cast<T>(mValues.front());
+  }
+
   template <typename T>
   static auto any_cast_container(const std::vector<std::any> &aOperand) -> T {
     using ValueType = typename T::value_type;
@@ -811,12 +828,23 @@ public:
     parse_args(arguments);
   }
 
-  /* Getter enabled for all template types other than std::vector and std::list
-   * @throws std::logic_error in case of an invalid argument name
-   * @throws std::logic_error in case of incompatible types
+  /* Getter for options with default values.
+   * @throws std::logic_error if there is no such option
+   * @throws std::logic_error if the option has no value
+   * @throws std::bad_any_cast if the option is not of type T
    */
   template <typename T = std::string> T get(std::string_view aArgumentName) {
     return (*this)[aArgumentName].get<T>();
+  }
+
+  /* Getter for options without default values.
+   * @pre The option has no default value.
+   * @throws std::logic_error if there is no such option
+   * @throws std::bad_any_cast if the option is not of type T
+   */
+  template <typename T = std::string>
+  auto present(std::string_view aArgumentName) -> std::optional<T> {
+    return (*this)[aArgumentName].present<T>();
   }
 
   /* Indexing operator. Return a reference to an Argument object
