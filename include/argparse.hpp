@@ -800,6 +800,14 @@ public:
     }
   }
 
+  void add_pre_text(std::string aPreText) {
+    mPreText = std::move(aPreText);
+  }
+
+  void add_post_text(std::string aPostText) {
+    mPostText = std::move(aPostText);
+  }
+
   /* Call parse_args_internal - which does all the work
    * Then, validate the parsed arguments
    * This variant is used mainly for testing
@@ -862,7 +870,12 @@ public:
       for (const auto &argument : parser.mPositionalArguments) {
         stream << argument.mNames.front() << " ";
       }
-      stream << "\n\n";
+      stream << "\n";
+
+      if(!parser.mPreText.empty())
+        stream << parser.mPreText << "\n";
+
+      stream << "\n";
 
       if (!parser.mPositionalArguments.empty())
         stream << "Positional arguments:\n";
@@ -880,6 +893,9 @@ public:
         stream.width(tLongestArgumentLength);
         stream << mOptionalArgument;
       }
+
+      if(!parser.mPostText.empty())
+        stream << parser.mPostText << "\n\n";
     }
 
     return stream;
@@ -988,6 +1004,8 @@ private:
   }
 
   std::string mProgramName;
+  std::string mPreText;
+  std::string mPostText;
   std::list<Argument> mPositionalArguments;
   std::list<Argument> mOptionalArguments;
   std::map<std::string_view, list_iterator, std::less<>> mArgumentMap;
