@@ -73,11 +73,6 @@ struct is_container<
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
 
-template <typename T>
-struct is_string_like
-    : std::conjunction<std::is_constructible<std::string, T>,
-                       std::is_convertible<T, std::string_view>> {};
-
 template <typename T> constexpr bool standard_signed_integer = false;
 template <> constexpr bool standard_signed_integer<signed char> = true;
 template <> constexpr bool standard_signed_integer<short int> = true;
@@ -271,10 +266,10 @@ class Argument {
       -> std::ostream &;
 
   template <size_t N, size_t... I>
-  explicit Argument(std::string(&&a)[N], std::index_sequence<I...>)
+  explicit Argument(std::string_view(&&a)[N], std::index_sequence<I...>)
       : mIsOptional((is_optional(a[I]) || ...)), mIsRequired(false),
         mIsUsed(false) {
-    ((void)mNames.push_back(std::move(a[I])), ...);
+    ((void)mNames.emplace_back(a[I]), ...);
     std::sort(
         mNames.begin(), mNames.end(), [](const auto &lhs, const auto &rhs) {
           return lhs.size() == rhs.size() ? lhs < rhs : lhs.size() < rhs.size();
@@ -282,14 +277,9 @@ class Argument {
   }
 
 public:
-  Argument() = default;
-
-  template <typename... Args,
-            std::enable_if_t<
-                std::conjunction_v<details::is_string_like<Args>...>, int> = 0>
-  explicit Argument(Args &&... args)
-      : Argument({std::string(std::forward<Args>(args))...},
-                 std::make_index_sequence<sizeof...(Args)>{}) {}
+  template <size_t N>
+  explicit Argument(std::string_view(&&a)[N])
+      : Argument(std::move(a), std::make_index_sequence<N>{}) {}
 
   Argument &help(std::string aHelp) {
     mHelp = std::move(aHelp);
@@ -780,8 +770,9 @@ public:
   // Parameter packing
   // Call add_argument with variadic number of string arguments
   template <typename... Targs> Argument &add_argument(Targs... Fargs) {
+    using array_of_sv = std::string_view[sizeof...(Targs)];
     auto tArgument = mOptionalArguments.emplace(cend(mOptionalArguments),
-                                                std::move(Fargs)...);
+                                                array_of_sv{Fargs...});
 
     if (!tArgument->mIsOptional)
       mPositionalArguments.splice(cend(mPositionalArguments),
