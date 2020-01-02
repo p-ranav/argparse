@@ -800,12 +800,12 @@ public:
     }
   }
 
-  void add_pre_text(std::string aPreText) {
-    mPreText = std::move(aPreText);
+  void add_description(std::string aDescription) {
+    mDescription = std::move(aDescription);
   }
 
-  void add_post_text(std::string aPostText) {
-    mPostText = std::move(aPostText);
+  void add_epilog(std::string aEpilog) {
+    mEpilog = std::move(aEpilog);
   }
 
   /* Call parse_args_internal - which does all the work
@@ -872,8 +872,8 @@ public:
       }
       stream << "\n";
 
-      if(!parser.mPreText.empty())
-        stream << parser.mPreText << "\n";
+      if(!parser.mDescription.empty())
+        stream << parser.mDescription << "\n";
 
       stream << "\n";
 
@@ -894,8 +894,8 @@ public:
         stream << mOptionalArgument;
       }
 
-      if(!parser.mPostText.empty())
-        stream << parser.mPostText << "\n\n";
+      if(!parser.mEpilog.empty())
+        stream << parser.mEpilog << "\n\n";
     }
 
     return stream;
@@ -1004,8 +1004,8 @@ private:
   }
 
   std::string mProgramName;
-  std::string mPreText;
-  std::string mPostText;
+  std::string mDescription;
+  std::string mEpilog;
   std::list<Argument> mPositionalArguments;
   std::list<Argument> mOptionalArguments;
   std::map<std::string_view, list_iterator, std::less<>> mArgumentMap;
