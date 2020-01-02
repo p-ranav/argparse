@@ -373,12 +373,13 @@ public:
   }
 
   template <typename Iterator>
-  Iterator consume(Iterator start, Iterator end, std::string usedName = {}) {
+  Iterator consume(Iterator start, Iterator end,
+                   std::string_view usedName = {}) {
     if (mIsUsed) {
       throw std::runtime_error("Duplicate argument");
     }
     mIsUsed = true;
-    mUsedName = std::move(usedName);
+    mUsedName = usedName;
     if (mNumArgs == 0) {
       mValues.emplace_back(mImplicitValue);
       return start;
@@ -721,7 +722,7 @@ private:
   }
 
   std::vector<std::string> mNames;
-  std::string mUsedName;
+  std::string_view mUsedName;
   std::string mHelp;
   std::any mDefaultValue;
   std::any mImplicitValue;
@@ -932,7 +933,7 @@ private:
           std::exit(0);
         }
 
-        it = tArgument->consume(std::next(it), end, tCurrentArgument);
+        it = tArgument->consume(std::next(it), end, tIterator->first);
       } else if (const auto &tCompoundArgument = tCurrentArgument;
                  tCompoundArgument.size() > 1 && tCompoundArgument[0] == '-' &&
                  tCompoundArgument[1] != '-') {
@@ -942,7 +943,7 @@ private:
           auto tIterator2 = mArgumentMap.find(tHypotheticalArgument);
           if (tIterator2 != mArgumentMap.end()) {
             auto tArgument = tIterator2->second;
-            it = tArgument->consume(it, end, tHypotheticalArgument);
+            it = tArgument->consume(it, end, tIterator2->first);
           } else {
             throw std::runtime_error("Unknown argument");
           }
