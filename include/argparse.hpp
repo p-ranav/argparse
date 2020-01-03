@@ -800,6 +800,14 @@ public:
     }
   }
 
+  void add_description(std::string aDescription) {
+    mDescription = std::move(aDescription);
+  }
+
+  void add_epilog(std::string aEpilog) {
+    mEpilog = std::move(aEpilog);
+  }
+
   /* Call parse_args_internal - which does all the work
    * Then, validate the parsed arguments
    * This variant is used mainly for testing
@@ -864,6 +872,9 @@ public:
       }
       stream << "\n\n";
 
+      if(!parser.mDescription.empty())
+        stream << parser.mDescription << "\n\n";
+
       if (!parser.mPositionalArguments.empty())
         stream << "Positional arguments:\n";
 
@@ -880,6 +891,9 @@ public:
         stream.width(tLongestArgumentLength);
         stream << mOptionalArgument;
       }
+
+      if(!parser.mEpilog.empty())
+        stream << parser.mEpilog << "\n\n";
     }
 
     return stream;
@@ -988,6 +1002,8 @@ private:
   }
 
   std::string mProgramName;
+  std::string mDescription;
+  std::string mEpilog;
   std::list<Argument> mPositionalArguments;
   std::list<Argument> mOptionalArguments;
   std::map<std::string_view, list_iterator, std::less<>> mArgumentMap;
