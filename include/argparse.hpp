@@ -870,12 +870,10 @@ public:
       for (const auto &argument : parser.mPositionalArguments) {
         stream << argument.mNames.front() << " ";
       }
-      stream << "\n";
+      stream << "\n\n";
 
       if(!parser.mDescription.empty())
-        stream << parser.mDescription << "\n";
-
-      stream << "\n";
+        stream << parser.mDescription << "\n\n";
 
       if (!parser.mPositionalArguments.empty())
         stream << "Positional arguments:\n";
