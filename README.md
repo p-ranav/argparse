@@ -627,6 +627,7 @@ Thanks goes to these wonderful people:
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars3.githubusercontent.com/u/21022101?s=400&v=4" width="100px;" alt="mupp"/><br /><sub><b>mupp</b></sub></a></td>
+    <td align="center"><a href="https://github.com/CrustyAuklet"><img src="https://avatars2.githubusercontent.com/u/9755578?s=400&v=4" width="100px;" alt="Ethan Slattery"/><br /><sub><b>Ethan Slattery</b></sub></a></td>
   </tr>
 </table>
 
