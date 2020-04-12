@@ -73,6 +73,8 @@ struct is_container<
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
 
+namespace {
+
 template <typename T> constexpr bool standard_signed_integer = false;
 template <> constexpr bool standard_signed_integer<signed char> = true;
 template <> constexpr bool standard_signed_integer<short int> = true;
@@ -87,6 +89,8 @@ template <> constexpr bool standard_unsigned_integer<unsigned int> = true;
 template <> constexpr bool standard_unsigned_integer<unsigned long int> = true;
 template <>
 constexpr bool standard_unsigned_integer<unsigned long long int> = true;
+
+}
 
 template <typename T>
 constexpr bool standard_integer =
@@ -186,10 +190,14 @@ template <class T> struct parse_number<T> {
   }
 };
 
+namespace {
+
 template <class T> constexpr auto generic_strtod = nullptr;
 template <> constexpr auto generic_strtod<float> = strtof;
 template <> constexpr auto generic_strtod<double> = strtod;
 template <> constexpr auto generic_strtod<long double> = strtold;
+
+}
 
 template <class T> inline auto do_strtod(std::string const &s) -> T {
   if (isspace(static_cast<unsigned char>(s[0])) || s[0] == '+')
