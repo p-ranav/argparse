@@ -841,7 +841,7 @@ public:
    * @throws std::logic_error if the option has no value
    * @throws std::bad_any_cast if the option is not of type T
    */
-  template <typename T = std::string> T get(std::string_view aArgumentName) {
+  template <typename T = std::string> T get(std::string_view aArgumentName) const {
     return (*this)[aArgumentName].get<T>();
   }
 
