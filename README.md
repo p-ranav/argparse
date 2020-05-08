@@ -21,7 +21,7 @@
 Simply include argparse.hpp and you're good to go.
 
 ```cpp
-#include <argparse.hpp>
+#include <argparse/argparse.hpp>
 ```
 
 To start parsing command-line arguments, create an ```ArgumentParser```. 
@@ -44,7 +44,7 @@ Argparse supports a variety of argument types including positional, optional, an
 Here's an example of a ***positional argument***:
 
 ```cpp
-#include <argparse.hpp>
+#include <argparse/argparse.hpp>
 
 int main(int argc, char *argv[]) {
   argparse::ArgumentParser program("program name");
