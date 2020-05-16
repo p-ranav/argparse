@@ -748,10 +748,13 @@ private:
 
 class ArgumentParser {
 public:
-  explicit ArgumentParser(std::string aProgramName = {})
-      : mProgramName(std::move(aProgramName)) {
+  explicit ArgumentParser(std::string aProgramName = {}, std::string aVersion = "1.0")
+      : mProgramName(std::move(aProgramName)), mVersion(std::move(aVersion)) {
     add_argument("-h", "--help")
-        .help("show this help message and exit")
+        .help("shows help message and exits")
+        .nargs(0);
+    add_argument("-v", "--version")
+        .help("prints version information and exits")
         .nargs(0);
   }
 
@@ -954,6 +957,11 @@ private:
           std::cout << *this;
           std::exit(0);
         }
+        // the second optional argument is --version 
+        else if (tArgument == std::next(mOptionalArguments.begin(), 1)) {
+          std::cout << mVersion << "\n";
+          std::exit(0);
+        }
 
         it = tArgument->consume(std::next(it), end, tIterator->first);
       } else if (const auto &tCompoundArgument = tCurrentArgument;
@@ -1010,6 +1018,7 @@ private:
   }
 
   std::string mProgramName;
+  std::string mVersion;
   std::string mDescription;
   std::string mEpilog;
   std::list<Argument> mPositionalArguments;
