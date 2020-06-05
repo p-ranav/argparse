@@ -452,8 +452,10 @@ public:
       } else {
         if (mValues.size() != expected && !mDefaultValue.has_value()) {
           std::stringstream stream;
-          stream << mUsedName << ": expected " << *expected << " argument(s). "
-                 << mValues.size() << " provided.";
+          if (!mUsedName.empty())
+            stream << mUsedName << ": ";
+          stream << *expected << " argument(s) expected. " << mValues.size()
+                 << " provided.";
           throw std::runtime_error(stream.str());
         }
       }
