@@ -798,7 +798,8 @@ public:
 
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
-  template <typename... Targs> void add_parents(const Targs &... Fargs) {
+  template <typename... Targs>
+  ArgumentParser &add_parents(const Targs &... Fargs) {
     for (const ArgumentParser &tParentParser : {std::ref(Fargs)...}) {
       for (auto &tArgument : tParentParser.mPositionalArguments) {
         auto it =
@@ -811,14 +812,17 @@ public:
         index_argument(it);
       }
     }
+    return *this;
   }
 
-  void add_description(std::string aDescription) {
+  ArgumentParser &add_description(std::string aDescription) {
     mDescription = std::move(aDescription);
+    return *this;
   }
 
-  void add_epilog(std::string aEpilog) {
+  ArgumentParser &add_epilog(std::string aEpilog) {
     mEpilog = std::move(aEpilog);
+    return *this;
   }
 
   /* Call parse_args_internal - which does all the work
