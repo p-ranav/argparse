@@ -22,3 +22,6 @@ install(EXPORT argparseConfig
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/argparse)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/include/argparse/argparse.hpp
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/argparse)
+
+export(EXPORT argparseConfig
+       NAMESPACE argparse::)
