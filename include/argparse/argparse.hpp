@@ -483,7 +483,7 @@ public:
     std::copy(std::begin(argument.mNames), std::end(argument.mNames),
               std::ostream_iterator<std::string>(nameStream, " "));
     stream << nameStream.str() << "\t" << argument.mHelp;
-    if (argument.mIsRequired)
+    if (argument.mIsRequired && !argument.mDefaultValue.has_value())
       stream << "[Required]";
     stream << "\n";
     return stream;
