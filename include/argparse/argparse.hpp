@@ -94,10 +94,6 @@ constexpr size_t repr_max_container_size = 5;
 template <typename T> std::string repr(T const &val) {
   if constexpr (std::is_convertible_v<T, std::string_view>) {
     return '"' + std::string{std::string_view{val}} + '"';
-  } else if constexpr (is_streamable_v<T>) {
-    std::stringstream out;
-    out << val;
-    return out.str();
   } else if constexpr (is_container_v<T>) {
     std::stringstream out;
     out << "{";
@@ -116,6 +112,10 @@ template <typename T> std::string repr(T const &val) {
     if (size > 0)
       out << repr(*std::prev(val.end()));
     out << "}";
+    return out.str();
+  } else if constexpr (is_streamable_v<T>) {
+    std::stringstream out;
+    out << val;
     return out.str();
   } else {
     return "<not representable>";
