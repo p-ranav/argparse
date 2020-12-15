@@ -537,8 +537,11 @@ public:
     stream << nameStream.str() << "\t" << argument.mHelp;
     if (argument.mIsRequired && !argument.mDefaultValue.has_value())
       stream << "[Required]";
-    if (argument.mDefaultValue.has_value())
-      stream << " [default: " << argument.mDefaultValueRepr << "]";
+    if (argument.mDefaultValue.has_value()) {
+      if (!argument.mHelp.empty())
+        stream << " ";
+      stream << "[default: " << argument.mDefaultValueRepr << "]";
+    }
     stream << "\n";
     return stream;
   }
