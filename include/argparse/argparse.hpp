@@ -92,7 +92,9 @@ static constexpr bool is_representable_v =
 constexpr size_t repr_max_container_size = 5;
 
 template <typename T> std::string repr(T const &val) {
-  if constexpr (std::is_convertible_v<T, std::string_view>) {
+  if constexpr (std::is_same_v<T, bool>) {
+    return val ? "true" : "false";
+  } else if constexpr (std::is_convertible_v<T, std::string_view>) {
     return '"' + std::string{std::string_view{val}} + '"';
   } else if constexpr (is_container_v<T>) {
     std::stringstream out;
