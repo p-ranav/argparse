@@ -78,10 +78,9 @@ struct is_streamable : std::false_type {};
 
 template <typename T>
 struct is_streamable<
-    T,
-    std::conditional_t<false,
-                       decltype(std::declval<std::ostream>() << std::declval<T>()),
-                       void>> : std::true_type {};
+    T, std::conditional_t<
+           false, decltype(std::declval<std::ostream>() << std::declval<T>()),
+           void>> : std::true_type {};
 
 template <typename T>
 static constexpr bool is_streamable_v = is_streamable<T>::value;
@@ -90,27 +89,25 @@ template <typename T>
 static constexpr bool is_representable_v =
     is_streamable_v<T> || is_container_v<T>;
 
-
 constexpr size_t repr_max_container_size = 5;
 
-template <typename T>
-std::string repr(T const &val) {
-  if constexpr(std::is_convertible_v<T, std::string_view>) {
+template <typename T> std::string repr(T const &val) {
+  if constexpr (std::is_convertible_v<T, std::string_view>) {
     return '"' + std::string{std::string_view{val}} + '"';
   } else if constexpr (is_streamable_v<T>) {
     std::stringstream out;
     out << val;
     return out.str();
-  } else if constexpr(is_container_v<T>) {
+  } else if constexpr (is_container_v<T>) {
     std::stringstream out;
     out << "{";
     const auto size = val.size();
     if (size > 1) {
       out << repr(*val.begin());
       std::for_each(
-        std::next(val.begin()),
-        std::next(val.begin(), std::min(size, repr_max_container_size)-1),
-        [&out](const auto &v) { out << " " << repr(v); });
+          std::next(val.begin()),
+          std::next(val.begin(), std::min(size, repr_max_container_size) - 1),
+          [&out](const auto &v) { out << " " << repr(v); });
       if (size <= repr_max_container_size)
         out << " ";
       else
@@ -142,7 +139,7 @@ template <> constexpr bool standard_unsigned_integer<unsigned long int> = true;
 template <>
 constexpr bool standard_unsigned_integer<unsigned long long int> = true;
 
-}
+} // namespace
 
 template <typename T>
 constexpr bool standard_integer =
@@ -249,7 +246,7 @@ template <> constexpr auto generic_strtod<float> = strtof;
 template <> constexpr auto generic_strtod<double> = strtod;
 template <> constexpr auto generic_strtod<long double> = strtold;
 
-}
+} // namespace
 
 template <class T> inline auto do_strtod(std::string const &s) -> T {
   if (isspace(static_cast<unsigned char>(s[0])) || s[0] == '+')
@@ -346,8 +343,7 @@ public:
     return *this;
   }
 
-  template <typename T>
-  Argument &default_value(T&& aDefaultValue) {
+  template <typename T> Argument &default_value(T &&aDefaultValue) {
     mDefaultValueRepr = details::repr(aDefaultValue);
     mDefaultValue = std::forward<T>(aDefaultValue);
     return *this;
@@ -807,11 +803,10 @@ private:
 
 class ArgumentParser {
 public:
-  explicit ArgumentParser(std::string aProgramName = {}, std::string aVersion = "1.0")
+  explicit ArgumentParser(std::string aProgramName = {},
+                          std::string aVersion = "1.0")
       : mProgramName(std::move(aProgramName)), mVersion(std::move(aVersion)) {
-    add_argument("-h", "--help")
-        .help("shows help message and exits")
-        .nargs(0);
+    add_argument("-h", "--help").help("shows help message and exits").nargs(0);
     add_argument("-v", "--version")
         .help("prints version information and exits")
         .nargs(0);
@@ -907,7 +902,8 @@ public:
    * @throws std::logic_error if the option has no value
    * @throws std::bad_any_cast if the option is not of type T
    */
-  template <typename T = std::string> T get(std::string_view aArgumentName) const {
+  template <typename T = std::string>
+  T get(std::string_view aArgumentName) const {
     return (*this)[aArgumentName].get<T>();
   }
 
@@ -946,7 +942,7 @@ public:
       }
       stream << "\n\n";
 
-      if(!parser.mDescription.empty())
+      if (!parser.mDescription.empty())
         stream << parser.mDescription << "\n\n";
 
       if (!parser.mPositionalArguments.empty())
@@ -966,7 +962,7 @@ public:
         stream << mOptionalArgument;
       }
 
-      if(!parser.mEpilog.empty())
+      if (!parser.mEpilog.empty())
         stream << parser.mEpilog << "\n\n";
     }
 
