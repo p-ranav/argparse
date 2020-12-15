@@ -53,34 +53,28 @@ namespace argparse {
 
 namespace details { // namespace for helper methods
 
-template <typename... Ts> struct is_container_helper {};
-
-template <typename T, typename _ = void>
+template <typename T, typename = void>
 struct is_container : std::false_type {};
 
 template <> struct is_container<std::string> : std::false_type {};
 
 template <typename T>
-struct is_container<
-    T,
-    std::conditional_t<false,
-                       is_container_helper<typename T::value_type,
-                                           decltype(std::declval<T>().begin()),
-                                           decltype(std::declval<T>().end()),
-                                           decltype(std::declval<T>().size())>,
-                       void>> : std::true_type {};
+struct is_container<T, std::void_t<typename T::value_type,
+                                   decltype(std::declval<T>().begin()),
+                                   decltype(std::declval<T>().end()),
+                                   decltype(std::declval<T>().size())>>
+  : std::true_type {};
 
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
 
-template <typename T, typename _ = void>
+template <typename T, typename = void>
 struct is_streamable : std::false_type {};
 
 template <typename T>
 struct is_streamable<
-    T, std::conditional_t<
-           false, decltype(std::declval<std::ostream>() << std::declval<T>()),
-           void>> : std::true_type {};
+    T, std::void_t<decltype(std::declval<std::ostream>() << std::declval<T>())>>
+  : std::true_type {};
 
 template <typename T>
 static constexpr bool is_streamable_v = is_streamable<T>::value;
