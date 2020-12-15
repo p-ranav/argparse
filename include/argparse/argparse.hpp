@@ -529,12 +529,14 @@ public:
     std::copy(std::begin(argument.mNames), std::end(argument.mNames),
               std::ostream_iterator<std::string>(nameStream, " "));
     stream << nameStream.str() << "\t" << argument.mHelp;
-    if (argument.mIsRequired && !argument.mDefaultValue.has_value())
-      stream << "[Required]";
     if (argument.mDefaultValue.has_value()) {
       if (!argument.mHelp.empty())
         stream << " ";
       stream << "[default: " << argument.mDefaultValueRepr << "]";
+    } else if (argument.mIsRequired) {
+      if (!argument.mHelp.empty())
+        stream << " ";
+      stream << "[required]";
     }
     stream << "\n";
     return stream;
