@@ -35,6 +35,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_parent_parsers.cpp
     test_parse_args.cpp
     test_positional_arguments.cpp
+    test_repr.cpp
     test_required_arguments.cpp
     test_scan.cpp
     test_value_semantics.cpp

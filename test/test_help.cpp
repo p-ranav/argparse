@@ -1,15 +1,25 @@
-#include <doctest.hpp>
 #include <argparse/argparse.hpp>
+#include <doctest.hpp>
 
 using doctest::test_suite;
 
 TEST_CASE("Users can format help message" * test_suite("help")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("input")
-    .help("positional input");
-  program.add_argument("-c")
-    .help("optional input");
 
+  SUBCASE("Simple arguments") {
+    program.add_argument("input").help("positional input");
+    program.add_argument("-c").help("optional input");
+  }
+  SUBCASE("Default values") {
+    program.add_argument("-a").default_value(42);
+    program.add_argument("-b").default_value(4.4e-7);
+    program.add_argument("-c")
+        .default_value(std::vector<int>{1, 2, 3, 4, 5})
+        .nargs(5);
+    program.add_argument("-d").default_value("I am a string");
+    program.add_argument("-e").default_value(std::optional<float>{});
+    program.add_argument("-f").default_value(false);
+  }
   std::ostringstream s;
   s << program;
   REQUIRE_FALSE(s.str().empty());
