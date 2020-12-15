@@ -73,6 +73,58 @@ struct is_container<
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
 
+template <typename T, typename _ = void>
+struct is_streamable : std::false_type {};
+
+template <typename T>
+struct is_streamable<
+    T,
+    std::conditional_t<false,
+                       decltype(std::declval<std::ostream>() << std::declval<T>()),
+                       void>> : std::true_type {};
+
+template <typename T>
+static constexpr bool is_streamable_v = is_streamable<T>::value;
+
+template <typename T>
+static constexpr bool is_representable_v =
+    is_streamable_v<T> || is_container_v<T>;
+
+
+constexpr size_t repr_max_container_size = 5;
+
+template <typename T>
+std::string repr(T const &val) {
+  if constexpr(std::is_convertible_v<T, std::string_view>) {
+    return '"' + std::string{std::string_view{val}} + '"';
+  } else if constexpr (is_streamable_v<T>) {
+    std::stringstream out;
+    out << val;
+    return out.str();
+  } else if constexpr(is_container_v<T>) {
+    std::stringstream out;
+    out << "{";
+    const auto size = val.size();
+    if (size > 1) {
+      out << repr(*val.begin());
+      std::for_each(
+        std::next(val.begin()),
+        std::next(val.begin(), std::min(size, repr_max_container_size)-1),
+        [&out](const auto &v) { out << " " << repr(v); });
+      if (size <= repr_max_container_size)
+        out << " ";
+      else
+        out << "...";
+    }
+    if (size > 0)
+      out << repr(*std::prev(val.end()));
+    out << "}";
+    return out.str();
+  } else {
+    return "<not representable>";
+  }
+}
+
 namespace {
 
 template <typename T> constexpr bool standard_signed_integer = false;
@@ -294,8 +346,10 @@ public:
     return *this;
   }
 
-  Argument &default_value(std::any aDefaultValue) {
-    mDefaultValue = std::move(aDefaultValue);
+  template <typename T>
+  Argument &default_value(T&& aDefaultValue) {
+    mDefaultValueRepr = details::repr(aDefaultValue);
+    mDefaultValue = std::forward<T>(aDefaultValue);
     return *this;
   }
 
@@ -485,6 +539,8 @@ public:
     stream << nameStream.str() << "\t" << argument.mHelp;
     if (argument.mIsRequired && !argument.mDefaultValue.has_value())
       stream << "[Required]";
+    if (argument.mDefaultValue.has_value())
+      stream << " [default: " << argument.mDefaultValueRepr << "]";
     stream << "\n";
     return stream;
   }
@@ -735,6 +791,7 @@ private:
   std::string_view mUsedName;
   std::string mHelp;
   std::any mDefaultValue;
+  std::string mDefaultValueRepr;
   std::any mImplicitValue;
   using valued_action = std::function<std::any(const std::string &)>;
   using void_action = std::function<void(const std::string &)>;
@@ -963,7 +1020,7 @@ private:
           std::cout << *this;
           std::exit(0);
         }
-        // the second optional argument is --version 
+        // the second optional argument is --version
         else if (tArgument == std::next(mOptionalArguments.begin(), 1)) {
           std::cout << mVersion << "\n";
           std::exit(0);
