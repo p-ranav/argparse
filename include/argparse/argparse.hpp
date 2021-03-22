@@ -798,9 +798,9 @@ private:
       [](const std::string &aValue) { return aValue; }};
   std::vector<std::any> mValues;
   int mNumArgs = 1;
-  bool mIsOptional : 1;
-  bool mIsRequired : 1;
-  bool mIsUsed : 1; // True if the optional argument is used by user
+  bool mIsOptional : true;
+  bool mIsRequired : true;
+  bool mIsUsed : true; // True if the optional argument is used by user
 };
 
 class ArgumentParser {
