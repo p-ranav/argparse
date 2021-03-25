@@ -622,8 +622,8 @@ private:
 
     // precondition: we have consumed or will consume at least one digit
     auto consume_digits = [=](std::string_view s) {
-      auto it = std::find_if_not(begin(s), end(s), is_digit);
-      return s.substr(it - begin(s));
+      auto it = std::find_if_not(std::begin(s), std::end(s), is_digit);
+      return s.substr(it - std::begin(s));
     };
 
     switch (lookahead(s)) {
@@ -779,7 +779,7 @@ private:
 
     T tResult;
     std::transform(
-        begin(aOperand), end(aOperand), std::back_inserter(tResult),
+        std::begin(aOperand), std::end(aOperand), std::back_inserter(tResult),
         [](const auto &value) { return std::any_cast<ValueType>(value); });
     return tResult;
   }
@@ -820,10 +820,10 @@ public:
       : mProgramName(other.mProgramName),
         mPositionalArguments(other.mPositionalArguments),
         mOptionalArguments(other.mOptionalArguments) {
-    for (auto it = begin(mPositionalArguments); it != end(mPositionalArguments);
+    for (auto it = std::begin(mPositionalArguments); it != std::end(mPositionalArguments);
          ++it)
       index_argument(it);
-    for (auto it = begin(mOptionalArguments); it != end(mOptionalArguments);
+    for (auto it = std::begin(mOptionalArguments); it != std::end(mOptionalArguments);
          ++it)
       index_argument(it);
   }
