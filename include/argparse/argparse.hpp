@@ -233,7 +233,7 @@ template <class T> struct parse_number<T> {
   }
 };
 
-namespace {
+namespace detail {
 // Clang/Windows does not accept strtof and friends as constexpr
 template <typename T> class GenericStrToD {
   static T convert(const char *str, char **endptr);
@@ -252,7 +252,7 @@ long double GenericStrToD<long double>::convert(const char *str,
                                                 char **endptr) {
   return strtold(str, endptr);
 }
-} // namespace
+} // namespace detail
 
 template <class T> inline auto do_strtod(std::string const &s) -> T {
   if (isspace(static_cast<unsigned char>(s[0])) || s[0] == '+')
@@ -262,7 +262,7 @@ template <class T> inline auto do_strtod(std::string const &s) -> T {
   char *ptr;
 
   errno = 0;
-  if (auto x = GenericStrToD<T>::convert(first, &ptr); errno == 0) {
+  if (auto x = detail::GenericStrToD<T>::convert(first, &ptr); errno == 0) {
     if (ptr == last)
       return x;
     else
