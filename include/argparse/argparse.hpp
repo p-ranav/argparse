@@ -53,17 +53,15 @@ namespace argparse {
 
 namespace details { // namespace for helper methods
 
-template <typename T, typename = void>
-struct is_container : std::false_type {};
+template <typename T, typename = void> struct is_container : std::false_type {};
 
 template <> struct is_container<std::string> : std::false_type {};
 
 template <typename T>
-struct is_container<T, std::void_t<typename T::value_type,
-                                   decltype(std::declval<T>().begin()),
-                                   decltype(std::declval<T>().end()),
-                                   decltype(std::declval<T>().size())>>
-  : std::true_type {};
+struct is_container<
+    T, std::void_t<typename T::value_type, decltype(std::declval<T>().begin()),
+                   decltype(std::declval<T>().end()),
+                   decltype(std::declval<T>().size())>> : std::true_type {};
 
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
@@ -72,9 +70,9 @@ template <typename T, typename = void>
 struct is_streamable : std::false_type {};
 
 template <typename T>
-struct is_streamable<
-    T, std::void_t<decltype(std::declval<std::ostream&>() << std::declval<T>())>>
-  : std::true_type {};
+struct is_streamable<T, std::void_t<decltype(std::declval<std::ostream &>()
+                                             << std::declval<T>())>>
+    : std::true_type {};
 
 template <typename T>
 static constexpr bool is_streamable_v = is_streamable<T>::value;
@@ -236,12 +234,24 @@ template <class T> struct parse_number<T> {
 };
 
 namespace {
-//Clang/Windows does not accept strtof and friends as constexpr
-template <class T> auto generic_strtod = nullptr;
-template <> auto generic_strtod<float> = strtof;
-template <> auto generic_strtod<double> = strtod;
-template <> auto generic_strtod<long double> = strtold;
+// Clang/Windows does not accept strtof and friends as constexpr
+template <typename T> class GenericStrToD {
+  static T convert(const char *str, char **endptr);
+};
 
+template <>
+float GenericStrToD<float>::convert(const char *str, char **endptr) {
+  return strtof(str, endptr);
+}
+template <>
+double GenericStrToD<double>::convert(const char *str, char **endptr) {
+  return strtod(str, endptr);
+}
+template <>
+long double GenericStrToD<long double>::convert(const char *str,
+                                                char **endptr) {
+  return strtold(str, endptr);
+}
 } // namespace
 
 template <class T> inline auto do_strtod(std::string const &s) -> T {
@@ -252,7 +262,7 @@ template <class T> inline auto do_strtod(std::string const &s) -> T {
   char *ptr;
 
   errno = 0;
-  if (auto x = generic_strtod<T>(first, &ptr); errno == 0) {
+  if (auto x = GenericStrToD<T>::convert(first, &ptr); errno == 0) {
     if (ptr == last)
       return x;
     else
