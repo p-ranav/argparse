@@ -925,6 +925,13 @@ public:
     return (*this)[aArgumentName].present<T>();
   }
 
+  /* Getter that returns true for user-supplied options. Returns false if not
+   * user-supplied, even with a default value.
+   */
+  auto is_used(std::string_view aArgumentName) const {
+    return (*this)[aArgumentName].mIsUsed;
+  }
+
   /* Indexing operator. Return a reference to an Argument object
    * Used in conjuction with Argument.operator== e.g., parser["foo"] == true
    * @throws std::logic_error in case of an invalid argument name

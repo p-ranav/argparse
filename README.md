@@ -154,6 +154,28 @@ if (auto fn = program.present("-o")) {
 
 Similar to `get`, the `present` method also accepts a template argument.  But rather than returning `T`, `parser.present<T>(key)` returns `std::optional<T>`, so that when the user does not provide a value to this parameter, the return value compares equal to `std::nullopt`.
 
+#### Deciding if the value was given by the user
+
+If you want to know whether the user supplied a value for an argument that has a ```.default_value```, check whether the argument ```.is_used()```.
+
+```cpp
+program.add_argument("--color")
+  .default_value("orange")
+  .help("specify the cat's fur color");
+
+try {
+  program.parse_args(argc, argv);    // Example: ./main --color orange
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  std::cout << program;
+  exit(0);
+}
+
+auto color = program.get<std::string>("--color");  // "orange"
+auto explicit_color = program.is_used("--color");  // true, user provided orange
+```
+
 #### Joining values of repeated optional arguments
 
 You may want to allow an optional argument to be repeated and gather all values in one place.
