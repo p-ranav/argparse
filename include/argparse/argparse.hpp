@@ -322,7 +322,7 @@ class Argument {
   template <size_t N, size_t... I>
   explicit Argument(std::string_view(&&a)[N], std::index_sequence<I...>)
       : mIsOptional((is_optional(a[I]) || ...)), mIsRequired(false),
-        mIsUsed(false) {
+        mIsRepeatable(false), mIsUsed(false) {
     ((void)mNames.emplace_back(a[I]), ...);
     std::sort(
         mNames.begin(), mNames.end(), [](const auto &lhs, const auto &rhs) {
@@ -373,6 +373,11 @@ public:
               std::string const &opt) mutable {
             return details::apply_plus_one(f, tup, opt);
           });
+    return *this;
+  }
+
+  auto &append() {
+    mIsRepeatable = true;
     return *this;
   }
 
@@ -430,7 +435,7 @@ public:
   template <typename Iterator>
   Iterator consume(Iterator start, Iterator end,
                    std::string_view usedName = {}) {
-    if (mIsUsed) {
+    if (!mIsRepeatable && mIsUsed) {
       throw std::runtime_error("Duplicate argument");
     }
     mIsUsed = true;
@@ -477,7 +482,7 @@ public:
   void validate() const {
     if (auto expected = maybe_nargs()) {
       if (mIsOptional) {
-        if (mIsUsed && mValues.size() != *expected &&
+        if (mIsUsed && mValues.size() != *expected && !mIsRepeatable &&
             !mDefaultValue.has_value()) {
           std::stringstream stream;
           stream << mUsedName << ": expected " << *expected << " argument(s). "
@@ -800,6 +805,7 @@ private:
   int mNumArgs = 1;
   bool mIsOptional : true;
   bool mIsRequired : true;
+  bool mIsRepeatable : true;
   bool mIsUsed : true; // True if the optional argument is used by user
 };
 

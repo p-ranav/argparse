@@ -154,6 +154,30 @@ if (auto fn = program.present("-o")) {
 
 Similar to `get`, the `present` method also accepts a template argument.  But rather than returning `T`, `parser.present<T>(key)` returns `std::optional<T>`, so that when the user does not provide a value to this parameter, the return value compares equal to `std::nullopt`.
 
+#### Joining values of repeated optional arguments
+
+You may want to allow an optional argument to be repeated and gather all values in one place.
+
+```cpp
+program.add_argument("--color")
+  .default_value<std::vector<std::string>>({ "orange" })
+  .append()
+  .help("specify the cat's fur color");
+
+try {
+  program.parse_args(argc, argv);    // Example: ./main --color red --color green --color blue
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  std::cout << program;
+  exit(0);
+}
+
+auto colors = program.get<std::vector<std::string>>("--color");  // {"red", "green", "blue"}
+```
+
+Notice that ```.default_value``` is given an explicit template parameter to match the type you want to ```.get```.
+
 ### Negative Numbers
 
 Optional arguments start with ```-```. Can ```argparse``` handle negative numbers? The answer is yes!
