@@ -24,7 +24,7 @@ Simply include argparse.hpp and you're good to go.
 #include <argparse/argparse.hpp>
 ```
 
-To start parsing command-line arguments, create an ```ArgumentParser```. 
+To start parsing command-line arguments, create an ```ArgumentParser```.
 
 ```cpp
 argparse::ArgumentParser program("program name");
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     std::cout << program;
     exit(0);
   }
-  
+
   auto input = program.get<int>("square");
   std::cout << (input * input) << std::endl;
 
@@ -82,11 +82,11 @@ Here's what's happening:
 
 * The ```add_argument()``` method is used to specify which command-line options the program is willing to accept. In this case, I’ve named it square so that it’s in line with its function.
 * Command-line arguments are strings. Inorder to square the argument and print the result, we need to convert this argument to a number. In order to do this, we use the ```.action``` method and provide a lambda function that tries to convert user input into an integer.
-* We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method. 
+* We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method.
 
 ### Optional Arguments
 
-Now, let's look at ***optional arguments***. Optional arguments start with ```-``` or ```--```, e.g., ```--verbose``` or ```-a```. Optional arguments can be placed anywhere in the input sequence. 
+Now, let's look at ***optional arguments***. Optional arguments start with ```-``` or ```--```, e.g., ```--verbose``` or ```-a```. Optional arguments can be placed anywhere in the input sequence.
 
 
 ```cpp
@@ -116,10 +116,10 @@ $ ./main --verbose
 Verbosity enabled
 ```
 
-Here's what's happening: 
+Here's what's happening:
 * The program is written so as to display something when --verbose is specified and display nothing when not.
-* Since the argument is actually optional, no error is thrown when running the program without ```--verbose```. Note that by using ```.default_value(false)```, if the optional argument isn’t used, it's value is automatically set to false. 
-* By using ```.implicit_value(true)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, it's value is set to true. 
+* Since the argument is actually optional, no error is thrown when running the program without ```--verbose```. Note that by using ```.default_value(false)```, if the optional argument isn’t used, it's value is automatically set to false.
+* By using ```.implicit_value(true)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, it's value is set to true.
 
 #### Requiring optional arguments
 
@@ -131,7 +131,7 @@ program.add_argument("-o", "--output")
   .help("specify the output file.");
 ```
 
-If the user does not provide a value for this parameter, an exception is thrown. 
+If the user does not provide a value for this parameter, an exception is thrown.
 
 Alternatively, you could provide a default value like so:
 
@@ -164,7 +164,7 @@ argparse::ArgumentParser program;
 program.add_argument("integer")
   .help("Input number")
   .action([](const std::string& value) { return std::stoi(value); });
-  
+
 program.add_argument("floats")
   .help("Vector of floats")
   .nargs(4)
@@ -188,7 +188,7 @@ integer : -5
 floats  : -1.1 -3.1415 -310 -4513.29
 ```
 
-As you can see here, ```argparse``` supports negative integers, negative floats and scientific notation. 
+As you can see here, ```argparse``` supports negative integers, negative floats and scientific notation.
 
 ### Combining Positional and Optional Arguments
 
@@ -274,7 +274,7 @@ catch (const std::runtime_error& err) {
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
 
-```ArgumentParser.get<T>()``` has specializations for ```std::vector``` and ```std::list```. So, the following variant, ```.get<std::list>```, will also work. 
+```ArgumentParser.get<T>()``` has specializations for ```std::vector``` and ```std::list```. So, the following variant, ```.get<std::list>```, will also work.
 
 ```cpp
 auto files = program.get<std::list<std::string>>("--input_files");  // {"config.yml", "System.xml"}
@@ -352,10 +352,10 @@ c = {0.0, 0.0}
 ```
 
 Here's what's happening:
-* We have three optional arguments ```-a```, ```-b``` and ```-c```. 
+* We have three optional arguments ```-a```, ```-b``` and ```-c```.
 * ```-a``` and ```-b``` are toggle arguments.
 * ```-c``` requires 2 floating point numbers from the command-line.
-* argparse can handle compound arguments, e.g., ```-abc``` or ```-bac``` or ```-cab```. This only works with short single-character argument names. 
+* argparse can handle compound arguments, e.g., ```-abc``` or ```-bac``` or ```-cab```. This only works with short single-character argument names.
   - ```-a``` and ```-b``` become true.
   - argv is further parsed to identify the inputs mapped to ```-c```.
   - If argparse cannot find any arguments to map to c, then c defaults to {0.0, 0.0} as defined by ```.default_value```
@@ -371,28 +371,28 @@ $ compiler file1 file2 file3
 To enable this, simply create an argument and mark it as `remaining`. All remaining arguments passed to argparse are gathered here.
 
 ```cpp
-argparse::ArgumentParser program("compiler");                                                             
-                                                                                                          
-program.add_argument("files")                                                                             
-  .remaining();                                                                                           
-                                                                                                          
-try {                                                                                                     
-  program.parse_args(argc, argv);                                                                         
-}                                                                                                         
-catch (const std::runtime_error& err) {                                                                   
-  std::cout << err.what() << std::endl;                                                                   
-  std::cout << program;                                                                                   
-  exit(0);                                                                                                
-}                                                                                                         
+argparse::ArgumentParser program("compiler");
+
+program.add_argument("files")
+  .remaining();
+
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  std::cout << program;
+  exit(0);
+}
 
 try {
   auto files = program.get<std::vector<std::string>>("files");
-  std::cout << files.size() << " files provided" << std::endl;                                           
-  for (auto& file : files)                                                             
+  std::cout << files.size() << " files provided" << std::endl;
+  for (auto& file : files)
     std::cout << file << std::endl;
 } catch (std::logic_error& e) {
   std::cout << "No files provided" << std::endl;
-}                                                                                                  
+}
 ```
 
 When no arguments are provided:
@@ -415,21 +415,21 @@ baz.txt
 The process of gathering remaining arguments plays nicely with optional arguments too:
 
 ```cpp
-argparse::ArgumentParser program("compiler");                                                             
+argparse::ArgumentParser program("compiler");
 
 program.add_arguments("-o")
   .default_value(std::string("a.out"));
 
-program.add_argument("files")                                                                             
-  .remaining();                                                                                           
-                                                                                                          
-try {                                                                                                     
-  program.parse_args(argc, argv);                                                                         
-}                                                                                                         
-catch (const std::runtime_error& err) {                                                                   
-  std::cout << err.what() << std::endl;                                                                   
-  std::cout << program;                                                                                   
-  exit(0);                                                                                                
+program.add_argument("files")
+  .remaining();
+
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::runtime_error& err) {
+  std::cout << err.what() << std::endl;
+  std::cout << program;
+  exit(0);
 }
 
 auto output_filename = program.get<std::string>("-o");
@@ -437,8 +437,8 @@ std::cout << "Output filename: " << output_filename << std::endl;
 
 try {
   auto files = program.get<std::vector<std::string>>("files");
-  std::cout << files.size() << " files provided" << std::endl;                                           
-  for (auto& file : files)                                                             
+  std::cout << files.size() << " files provided" << std::endl;
+  for (auto& file : files)
     std::cout << file << std::endl;
 } catch (std::logic_error& e) {
   std::cout << "No files provided" << std::endl;

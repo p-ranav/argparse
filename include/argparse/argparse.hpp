@@ -7,7 +7,8 @@
 
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 SPDX-License-Identifier: MIT
-Copyright (c) 2019 Pranav Srinivas Kumar <pranav.srinivas.kumar@gmail.com>.
+Copyright (c) 2019-2021 Pranav Srinivas Kumar <pranav.srinivas.kumar@gmail.com>
+and other contributors.
 
 Permission is hereby  granted, free of charge, to any  person obtaining a copy
 of this software and associated  documentation files (the "Software"), to deal
@@ -797,9 +798,9 @@ private:
       [](const std::string &aValue) { return aValue; }};
   std::vector<std::any> mValues;
   int mNumArgs = 1;
-  bool mIsOptional : 1;
-  bool mIsRequired : 1;
-  bool mIsUsed : 1; // True if the optional argument is used by user
+  bool mIsOptional : true;
+  bool mIsRequired : true;
+  bool mIsUsed : true; // True if the optional argument is used by user
 };
 
 class ArgumentParser {
