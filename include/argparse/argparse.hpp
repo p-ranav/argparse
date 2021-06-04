@@ -815,7 +815,11 @@ public:
                           std::string aVersion = "1.0")
       : mProgramName(std::move(aProgramName)), mVersion(std::move(aVersion)) {
     add_argument("-h", "--help").help("shows help message and exits").nargs(0);
+#ifndef ARGPARSE_LONG_VERSION_ARG_ONLY
     add_argument("-v", "--version")
+#else
+	add_argument("--version")
+#endif
         .help("prints version information and exits")
         .nargs(0);
   }
