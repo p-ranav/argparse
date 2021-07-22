@@ -7,7 +7,7 @@ TEST_CASE("Missing argument" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--config").nargs(1);
   REQUIRE_THROWS_WITH_AS(program.parse_args({ "test", "--config" }),
-                         "Too few arguments",
+                         "Too few arguments for '--config'.",
                          std::runtime_error);
 }
 

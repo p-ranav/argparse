@@ -472,7 +472,8 @@ public:
     } else if (mDefaultValue.has_value()) {
       return start;
     } else {
-      throw std::runtime_error("Too few arguments");
+      throw std::runtime_error("Too few arguments for '" +
+                               std::string(mUsedName) + "'.");
     }
   }
 
