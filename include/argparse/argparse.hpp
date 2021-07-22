@@ -759,7 +759,7 @@ private:
     if (mDefaultValue.has_value()) {
       return std::any_cast<T>(mDefaultValue);
     }
-    throw std::logic_error("No value provided");
+    throw std::logic_error("No value provided for '" + mNames.back() + "'.");
   }
 
   /*

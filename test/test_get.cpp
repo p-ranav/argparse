@@ -15,7 +15,7 @@ TEST_CASE("Missing argument" * test_suite("ArgumentParser::get")) {
   program.add_argument("-s", "--stuff");
   REQUIRE_NOTHROW(program.parse_args({ "test" }));
   REQUIRE_THROWS_WITH_AS(program.get("--stuff"),
-                         "No value provided",
+                         "No value provided for '--stuff'.",
                          std::logic_error);
 }
 
@@ -24,6 +24,6 @@ TEST_CASE("Implicit argument" * test_suite("ArgumentParser::get")) {
   program.add_argument("-s", "--stuff").nargs(1);
   REQUIRE_NOTHROW(program.parse_args({ "test" }));
   REQUIRE_THROWS_WITH_AS(program.get("--stuff"),
-                         "No value provided",
+                         "No value provided for '--stuff'.",
                          std::logic_error);
 }
