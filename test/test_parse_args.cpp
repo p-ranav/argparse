@@ -3,6 +3,14 @@
 
 using doctest::test_suite;
 
+TEST_CASE("Missing argument" * test_suite("parse_args")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--config").nargs(1);
+  REQUIRE_THROWS_WITH_AS(program.parse_args({ "test", "--config" }),
+                         "Too few arguments",
+                         std::runtime_error);
+}
+
 TEST_CASE("Parse a string argument with value" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--config");
