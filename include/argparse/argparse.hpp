@@ -925,7 +925,7 @@ public:
    * @throws std::bad_any_cast if the option is not of type T
    */
   template <typename T = std::string>
-  auto present(std::string_view aArgumentName) -> std::optional<T> {
+  auto present(std::string_view aArgumentName) const -> std::optional<T> {
     return (*this)[aArgumentName].present<T>();
   }
 
