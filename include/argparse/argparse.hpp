@@ -99,7 +99,7 @@ template <typename T> std::string repr(T const &val) {
       out << repr(*val.begin());
       std::for_each(
           std::next(val.begin()),
-          std::next(val.begin(), (std::min)(size, repr_max_container_size) - 1),
+          std::next(val.begin(), std::min<size_t>(size, repr_max_container_size) - 1),
           [&out](const auto &v) { out << " " << repr(v); });
       if (size <= repr_max_container_size)
         out << " ";
