@@ -84,7 +84,7 @@ template <typename T>
 static constexpr bool is_representable_v =
     is_streamable_v<T> || is_container_v<T>;
 
-constexpr size_t repr_max_container_size = 5;
+constexpr std::size_t repr_max_container_size = 5;
 
 template <typename T> std::string repr(T const &val) {
   if constexpr (std::is_same_v<T, bool>) {
@@ -99,7 +99,7 @@ template <typename T> std::string repr(T const &val) {
       out << repr(*val.begin());
       std::for_each(
           std::next(val.begin()),
-          std::next(val.begin(), std::min<size_t>(size, repr_max_container_size) - 1),
+          std::next(val.begin(), std::min<std::size_t>(size, repr_max_container_size) - 1),
           [&out](const auto &v) { out << " " << repr(v); });
       if (size <= repr_max_container_size)
         out << " ";
@@ -142,7 +142,7 @@ template <typename T>
 constexpr bool standard_integer =
     standard_signed_integer<T> || standard_unsigned_integer<T>;
 
-template <class F, class Tuple, class Extra, size_t... I>
+template <class F, class Tuple, class Extra, std::size_t... I>
 constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
                                              std::index_sequence<I...>) {
   return std::invoke(std::forward<F>(f), std::get<I>(std::forward<Tuple>(t))...,
@@ -319,7 +319,7 @@ class Argument {
   friend auto operator<<(std::ostream &, ArgumentParser const &)
       -> std::ostream &;
 
-  template <size_t N, size_t... I>
+  template <std::size_t N, std::size_t... I>
   explicit Argument(std::string_view(&&a)[N], std::index_sequence<I...>)
       : mIsOptional((is_optional(a[I]) || ...)), mIsRequired(false),
         mIsRepeatable(false), mIsUsed(false) {
@@ -331,7 +331,7 @@ class Argument {
   }
 
 public:
-  template <size_t N>
+  template <std::size_t N>
   explicit Argument(std::string_view(&&a)[N])
       : Argument(std::move(a), std::make_index_sequence<N>{}) {}
 
@@ -514,15 +514,15 @@ public:
     }
   }
 
-  auto maybe_nargs() const -> std::optional<size_t> {
+  auto maybe_nargs() const -> std::optional<std::size_t> {
     if (mNumArgs < 0)
       return std::nullopt;
     else
-      return static_cast<size_t>(mNumArgs);
+      return static_cast<std::size_t>(mNumArgs);
   }
 
-  size_t get_arguments_length() const {
-    return std::accumulate(std::begin(mNames), std::end(mNames), size_t(0),
+  std::size_t get_arguments_length() const {
+    return std::accumulate(std::begin(mNames), std::end(mNames), std::size_t(0),
                            [](const auto &sum, const auto &s) {
                              return sum + s.size() +
                                     1; // +1 for space between names
@@ -954,7 +954,7 @@ public:
     if (auto sen = std::ostream::sentry(stream)) {
       stream.setf(std::ios_base::left);
       stream << "Usage: " << parser.mProgramName << " [options] ";
-      size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
+      std::size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
 
       for (const auto &argument : parser.mPositionalArguments) {
         stream << argument.mNames.front() << " ";
@@ -1046,7 +1046,7 @@ private:
                  tCompoundArgument.size() > 1 && tCompoundArgument[0] == '-' &&
                  tCompoundArgument[1] != '-') {
         ++it;
-        for (size_t j = 1; j < tCompoundArgument.size(); j++) {
+        for (std::size_t j = 1; j < tCompoundArgument.size(); j++) {
           auto tHypotheticalArgument = std::string{'-', tCompoundArgument[j]};
           auto tIterator2 = mArgumentMap.find(tHypotheticalArgument);
           if (tIterator2 != mArgumentMap.end()) {
@@ -1075,10 +1075,10 @@ private:
   }
 
   // Used by print_help.
-  size_t get_length_of_longest_argument() const {
+  std::size_t get_length_of_longest_argument() const {
     if (mArgumentMap.empty())
       return 0;
-    std::vector<size_t> argumentLengths(mArgumentMap.size());
+    std::vector<std::size_t> argumentLengths(mArgumentMap.size());
     std::transform(std::begin(mArgumentMap), std::end(mArgumentMap),
                    std::begin(argumentLengths), [](const auto &argPair) {
                      const auto &tArgument = argPair.second;
