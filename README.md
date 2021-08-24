@@ -406,6 +406,37 @@ Here's what's happening:
   - argv is further parsed to identify the inputs mapped to ```-c```.
   - If argparse cannot find any arguments to map to c, then c defaults to {0.0, 0.0} as defined by ```.default_value```
 
+### Converting to Numeric Types
+
+For inputs, users can express a primitive type for the value.
+
+The ```.scan<Shape, T>``` method attempts to convert the incoming `std::string` to `T` following the `Shape` conversion specifier. An `std::invalid_argument` or `std::range_error` exception is thrown for errors.
+
+```cpp
+program.add_argument("-x")
+       .scan<'d', int>();
+
+program.add_argument("scale")
+       .scan<'g', double>();
+```
+
+`Shape` specifies what the input "looks like", and the type template argument specifies the return value of the predefined action. Acceptable types are floating point (i.e float, double, long double) and integral (i.e. signed char, short, int, long, long long).
+
+The grammar follows `std::from_chars`, but does not exactly duplicate it. For example, hexadecimal numbers may begin with `0x` or `0X` and numbers with a leading zero may be handled as octal values.
+
+| Shape      | interpretation                            |
+| :--------: | ----------------------------------------- |
+| 'a' or 'A' | hexadecimal floating point                |
+| 'e' or 'E' | scientific notation (floating point)      |
+| 'f' or 'F' | fixed notation (floating point)           |
+| 'g' or 'G' | general form (either fixed or scientific) |
+|            |                                           |
+| 'd'        | decimal                                   |
+| 'i'        | `std::from_chars` grammar with base == 0  |
+| 'o'        | octal (unsigned)                          |
+| 'u'        | decimal (unsigned)                        |
+| 'x' or 'X' | hexadecimal (unsigned)                    |
+
 ### Gathering Remaining Arguments
 
 `argparse` supports gathering "remaining" arguments at the end of the command, e.g., for use in a compiler:
