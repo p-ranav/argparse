@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
   program.add_argument("square")
     .help("display the square of a given integer")
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
 
   try {
     program.parse_args(argc, argv);
@@ -81,7 +81,7 @@ $ ./main 15
 Here's what's happening:
 
 * The ```add_argument()``` method is used to specify which command-line options the program is willing to accept. In this case, I’ve named it square so that it’s in line with its function.
-* Command-line arguments are strings. Inorder to square the argument and print the result, we need to convert this argument to a number. In order to do this, we use the ```.action``` method and provide a lambda function that tries to convert user input into an integer.
+* Command-line arguments are strings. To square the argument and print the result, we need to convert this argument to a number. In order to do this, we use the ```.scan``` method to convert user input into an integer.
 * We can get the value stored by the parser for a given argument using ```parser.get<T>(key)``` method.
 
 ### Optional Arguments
@@ -209,12 +209,12 @@ argparse::ArgumentParser program;
 
 program.add_argument("integer")
   .help("Input number")
-  .action([](const std::string& value) { return std::stoi(value); });
+  .scan<'i', int>();
 
 program.add_argument("floats")
   .help("Vector of floats")
   .nargs(4)
-  .action([](const std::string& value) { return std::stof(value); });
+  .scan<'g', float>();
 
 try {
   program.parse_args(argc, argv);
@@ -243,7 +243,7 @@ argparse::ArgumentParser program("test");
 
 program.add_argument("square")
   .help("display the square of a given number")
-  .action([](const std::string& value) { return std::stoi(value); });
+  .scan<'i', int>();
 
 program.add_argument("--verbose")
   .default_value(false)
@@ -326,7 +326,7 @@ auto files = program.get<std::vector<std::string>>("--input_files");  // {"confi
 auto files = program.get<std::list<std::string>>("--input_files");  // {"config.yml", "System.xml"}
 ```
 
-Using ```.action```, one can quickly build a list of desired value types from command line arguments. Here's an example:
+Using ```.scan```, one can quickly build a list of desired value types from command line arguments. Here's an example:
 
 ```cpp
 argparse::ArgumentParser program("main");
@@ -335,7 +335,7 @@ program.add_argument("--query_point")
   .help("3D query point")
   .nargs(3)
   .default_value(std::vector<double>{0.0, 0.0, 0.0})
-  .action([](const std::string& value) { return std::stod(value); });
+  .scan<'g', double>();
 
 try {
   program.parse_args(argc, argv); // Example: ./main --query_point 3.5 4.7 9.2
@@ -367,7 +367,7 @@ program.add_argument("-b")
 program.add_argument("-c")
   .nargs(2)
   .default_value(std::vector<float>{0.0f, 0.0f})
-  .action([](const std::string& value) { return std::stof(value); });
+  .scan<'g', float>();
 
 try {
   program.parse_args(argc, argv);                  // Example: ./main -abc 1.95 2.47
@@ -552,7 +552,7 @@ Sometimes, several parsers share a common set of arguments. Rather than repeatin
 argparse::ArgumentParser parent_parser("main");
 parent_parser.add_argument("--parent")
   .default_value(0)
-  .action([](const std::string& value) { return std::stoi(value); });
+  .scan<'i', int>();
 
 argparse::ArgumentParser foo_parser("foo");
 foo_parser.add_argument("foo");
@@ -601,7 +601,7 @@ argparse::ArgumentParser program("test");
 
 program.add_argument("numbers")
   .nargs(3)
-  .action([](const std::string& value) { return std::stoi(value); });
+  .scan<'i', int>();
 
 program.add_argument("-a")
   .default_value(false)
@@ -613,7 +613,7 @@ program.add_argument("-b")
 
 program.add_argument("-c")
   .nargs(2)
-  .action([](const std::string& value) { return std::stof(value); });
+  .scan<'g', float>();
 
 program.add_argument("--files")
   .nargs(3);
