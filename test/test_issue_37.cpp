@@ -31,7 +31,7 @@ TEST_CASE("Issues with implicit values #37" * test_suite("implicit_values")) {
   m_bfm.add_argument("-m", "--mem")
     .default_value(100)
     .required()
-    .action([](const std::string &val) { return std::stoull(val); })
+    .scan<'u', unsigned long long>()
     .help("memory in MB to give the VMM when loading");
   m_bfm.parse_args({ "test", "-l", "blah", "-d", "-u" });
 

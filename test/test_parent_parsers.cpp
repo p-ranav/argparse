@@ -21,7 +21,7 @@ TEST_CASE("Add parent to multiple parent parsers" *
   argparse::ArgumentParser parent_parser("main");
   parent_parser.add_argument("--parent")
     .default_value(0)
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
 
   argparse::ArgumentParser foo_parser("foo");
   foo_parser.add_argument("foo");

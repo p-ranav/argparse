@@ -26,7 +26,7 @@ TEST_CASE("Two int .append" * test_suite("append")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--factor")
     .append()
-    .action([](auto s) { return stoi(s); });
+    .scan<'i', int>();
   program.parse_args({ "test", "--factor", "2", "--factor", "5" });
   auto result { program.get<std::vector<int>>("--factor") };
   REQUIRE(result.at(0) == 2);

@@ -85,8 +85,7 @@ TEST_CASE("Parse optional arguments of many values" *
           test_suite("optional_arguments")) {
   GIVEN("a program that accepts an optional argument of many values") {
     argparse::ArgumentParser program("test");
-    program.add_argument("-i").remaining().action(
-        [](const std::string &value) { return std::stoi(value); });
+    program.add_argument("-i").remaining().scan<'i', int>();
 
     WHEN("provided no argument") {
       THEN("the program accepts it but gets nothing") {
