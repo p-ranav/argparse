@@ -167,13 +167,6 @@ constexpr bool starts_with(std::basic_string_view<CharT, Traits> prefix,
   return s.substr(0, prefix.size()) == prefix;
 }
 
-enum class chars_format {
-  scientific = 0x1,
-  fixed = 0x2,
-  hex = 0x4,
-  general = fixed | scientific
-};
-
 struct consume_hex_prefix_result {
   bool is_hexadecimal;
   std::string_view rest;
@@ -265,46 +258,46 @@ template <class T> inline auto do_strtod(std::string const &s) -> T {
   }
 }
 
-template <class T> struct parse_number<T, chars_format::general> {
+template <class T> struct parse_number<T, std::chars_format::general> {
   auto operator()(std::string const &s) -> T {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal)
       throw std::invalid_argument{
-          "chars_format::general does not parse hexfloat"};
+          "std::chars_format::general does not parse hexfloat"};
 
     return do_strtod<T>(s);
   }
 };
 
-template <class T> struct parse_number<T, chars_format::hex> {
+template <class T> struct parse_number<T, std::chars_format::hex> {
   auto operator()(std::string const &s) -> T {
     if (auto r = consume_hex_prefix(s); !r.is_hexadecimal)
-      throw std::invalid_argument{"chars_format::hex parses hexfloat"};
+      throw std::invalid_argument{"std::chars_format::hex parses hexfloat"};
 
     return do_strtod<T>(s);
   }
 };
 
-template <class T> struct parse_number<T, chars_format::scientific> {
+template <class T> struct parse_number<T, std::chars_format::scientific> {
   auto operator()(std::string const &s) -> T {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal)
       throw std::invalid_argument{
-          "chars_format::scientific does not parse hexfloat"};
+          "std::chars_format::scientific does not parse hexfloat"};
     if (s.find_first_of("eE") == s.npos)
       throw std::invalid_argument{
-          "chars_format::scientific requires exponent part"};
+          "std::chars_format::scientific requires exponent part"};
 
     return do_strtod<T>(s);
   }
 };
 
-template <class T> struct parse_number<T, chars_format::fixed> {
+template <class T> struct parse_number<T, std::chars_format::fixed> {
   auto operator()(std::string const &s) -> T {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal)
       throw std::invalid_argument{
-          "chars_format::fixed does not parse hexfloat"};
+          "std::chars_format::fixed does not parse hexfloat"};
     if (s.find_first_of("eE") != s.npos)
       throw std::invalid_argument{
-          "chars_format::fixed does not parse exponent part"};
+          "std::chars_format::fixed does not parse exponent part"};
 
     return do_strtod<T>(s);
   }
@@ -404,16 +397,16 @@ public:
       action(details::parse_number<T, 16>());
     else if constexpr (is_one_of(Shape, 'a', 'A') &&
                        std::is_floating_point_v<T>)
-      action(details::parse_number<T, details::chars_format::hex>());
+      action(details::parse_number<T, std::chars_format::hex>());
     else if constexpr (is_one_of(Shape, 'e', 'E') &&
                        std::is_floating_point_v<T>)
-      action(details::parse_number<T, details::chars_format::scientific>());
+      action(details::parse_number<T, std::chars_format::scientific>());
     else if constexpr (is_one_of(Shape, 'f', 'F') &&
                        std::is_floating_point_v<T>)
-      action(details::parse_number<T, details::chars_format::fixed>());
+      action(details::parse_number<T, std::chars_format::fixed>());
     else if constexpr (is_one_of(Shape, 'g', 'G') &&
                        std::is_floating_point_v<T>)
-      action(details::parse_number<T, details::chars_format::general>());
+      action(details::parse_number<T, std::chars_format::general>());
     else
       static_assert(alignof(T) == 0, "No scan specification for T");
 
