@@ -38,7 +38,7 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs" *
 
   program.add_argument("-c")
     .nargs(2)
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
 
   program.add_argument("--input_files")
     .nargs(3);
@@ -65,7 +65,7 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and "
 
   program.add_argument("numbers")
     .nargs(3)
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
 
   program.add_argument("-a")
     .default_value(false)
@@ -77,7 +77,7 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and "
 
   program.add_argument("-c")
     .nargs(2)
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
 
   program.add_argument("--input_files")
     .nargs(3);
@@ -99,7 +99,7 @@ TEST_CASE("Parse out-of-order compound arguments" *
 
   program.add_argument("-c")
     .nargs(2)
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
 
   program.parse_args({ "./main", "-cab", "3.14", "2.718" });
 
@@ -126,7 +126,7 @@ TEST_CASE("Parse out-of-order compound arguments. Second variation" *
   program.add_argument("-c")
     .nargs(2)
     .default_value(std::vector<float>{0.0f, 0.0f})
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
 
   program.parse_args({"./main", "-cb"}); 
 

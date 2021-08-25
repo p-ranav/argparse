@@ -12,7 +12,7 @@ TEST_CASE("Parse negative integer" * test_suite("positional_arguments")) {
 
   program.add_argument("number")
     .help("Input number")
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
 
   program.parse_args({"./main", "-1"});
   REQUIRE(program.get<int>("number") == -1);
@@ -29,7 +29,7 @@ TEST_CASE("Parse negative integers into a vector" *
   program.add_argument("number")
     .help("Input number")
     .nargs(3)
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
 
   program.parse_args({"./main", "-1", "-2", "3"});
   REQUIRE(program["number"] == std::vector<int>{-1, -2, 3});
@@ -44,7 +44,7 @@ TEST_CASE("Parse negative float" * test_suite("positional_arguments")) {
 
   program.add_argument("number")
     .help("Input number")
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
 
   program.parse_args({"./main", "-1.0"});
   REQUIRE(program.get<float>("number") == -1.0);
@@ -61,7 +61,7 @@ TEST_CASE("Parse negative floats into a vector" *
   program.add_argument("number")
     .help("Input number")
     .nargs(3)
-    .action([](const std::string& value) { return std::stod(value); });
+    .scan<'g', double>();
 
   program.parse_args({"./main", "-1.001", "-2.002", "3.003"});
   REQUIRE(program["number"] == std::vector<double>{-1.001, -2.002, 3.003});
@@ -76,7 +76,7 @@ TEST_CASE("Parse numbers in E notation" * test_suite("positional_arguments")) {
 
   program.add_argument("number")
     .help("Input number")
-    .action([](const std::string& value) { return std::stod(value); });
+    .scan<'g', double>();
 
   program.parse_args({"./main", "-1.2e3"});
   REQUIRE(program.get<double>("number") == -1200.0);
@@ -92,7 +92,7 @@ TEST_CASE("Parse numbers in E notation (capital E)" *
 
   program.add_argument("number")
     .help("Input number")
-    .action([](const std::string& value) { return std::stod(value); });
+    .scan<'g', double>();
 
   program.parse_args({"./main", "-1.32E4"});
   REQUIRE(program.get<double>("number") == -13200.0);

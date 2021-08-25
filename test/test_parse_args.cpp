@@ -48,7 +48,7 @@ TEST_CASE("Parse a string argument without default value" *
 TEST_CASE("Parse an int argument with value" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--count")
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
   program.parse_args({ "test", "--count", "5" });
   REQUIRE(program.get<int>("--count") == 5);
 }
@@ -58,7 +58,7 @@ TEST_CASE("Parse an int argument with default value" *
   argparse::ArgumentParser program("test");
   program.add_argument("--count")
     .default_value(2)
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
   program.parse_args({ "test", "--count" });
   REQUIRE(program.get<int>("--count") == 2);
 }
@@ -66,7 +66,7 @@ TEST_CASE("Parse an int argument with default value" *
 TEST_CASE("Parse a float argument with value" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
   program.parse_args({ "test", "--ratio", "5.6645" });
   REQUIRE(program.get<float>("--ratio") == 5.6645f);
 }
@@ -76,7 +76,7 @@ TEST_CASE("Parse a float argument with default value" *
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
     .default_value(3.14f)
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
   program.parse_args({ "test", "--ratio" });
   REQUIRE(program.get<float>("--ratio") == 3.14f);
 }
@@ -84,7 +84,7 @@ TEST_CASE("Parse a float argument with default value" *
 TEST_CASE("Parse a double argument with value" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
-    .action([](const std::string& value) { return std::stod(value); });
+    .scan<'g', double>();
   program.parse_args({ "test", "--ratio", "5.6645" });
   REQUIRE(program.get<double>("--ratio") == 5.6645);
 }
@@ -94,7 +94,7 @@ TEST_CASE("Parse a double argument with default value" *
   argparse::ArgumentParser program("test");
   program.add_argument("--ratio")
     .default_value(3.14)
-    .action([](const std::string& value) { return std::stod(value); });
+    .scan<'g', double>();
   program.parse_args({ "test", "--ratio" });
   REQUIRE(program.get<double>("--ratio") == 3.14);
 }
@@ -103,7 +103,7 @@ TEST_CASE("Parse a vector of integer arguments" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
-    .action([](const std::string& value) { return std::stoi(value); });
+    .scan<'i', int>();
   program.parse_args({ "test", "--vector", "1", "2", "3", "4", "5" });
   auto vector = program.get<std::vector<int>>("--vector");
   REQUIRE(vector.size() == 5);
@@ -118,7 +118,7 @@ TEST_CASE("Parse a vector of float arguments" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
-    .action([](const std::string& value) { return std::stof(value); });
+    .scan<'g', float>();
   program.parse_args({ "test", "--vector", "1.1", "2.2", "3.3", "4.4", "5.5" });
   auto vector = program.get<std::vector<float>>("--vector");
   REQUIRE(vector.size() == 5);
@@ -132,7 +132,7 @@ TEST_CASE("Parse a vector of float arguments" * test_suite("parse_args")) {
 TEST_CASE("Parse a vector of float without default value" *
           test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("--vector").scan<'f', float>().nargs(3);
+  program.add_argument("--vector").scan<'g', float>().nargs(3);
 
   WHEN("no value is provided") {
     program.parse_args({"test"});
@@ -164,7 +164,7 @@ TEST_CASE("Parse a vector of double arguments" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
-    .action([](const std::string& value) { return std::stod(value); });
+    .scan<'g', double>();
   program.parse_args({ "test", "--vector", "1.1", "2.2", "3.3", "4.4", "5.5" });
   auto vector = program.get<std::vector<double>>("--vector");
   REQUIRE(vector.size() == 5);
@@ -178,8 +178,7 @@ TEST_CASE("Parse a vector of double arguments" * test_suite("parse_args")) {
 TEST_CASE("Parse a vector of string arguments" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
-    .nargs(5)
-    .action([](const std::string& value) { return value; });
+    .nargs(5);
   program.parse_args({ "test", "--vector", "abc", "def", "ghi", "jkl", "mno" });
   auto vector = program.get<std::vector<std::string>>("--vector");
   REQUIRE(vector.size() == 5);
