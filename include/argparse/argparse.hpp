@@ -954,7 +954,7 @@ public:
     if (auto sen = std::ostream::sentry(stream)) {
       stream.setf(std::ios_base::left);
       stream << "Usage: " << parser.mProgramName << " [options] ";
-      std::size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
+      std::size_t tLongestArgumentLength = parser.get_length_of_longest_argument() + sizeof('\t');
 
       for (const auto &argument : parser.mPositionalArguments) {
         stream << argument.mNames.front() << " ";
@@ -976,9 +976,18 @@ public:
         stream << (parser.mPositionalArguments.empty() ? "" : "\n")
                << "Optional arguments:\n";
 
-      for (const auto &mOptionalArgument : parser.mOptionalArguments) {
-        stream.width(tLongestArgumentLength);
-        stream << mOptionalArgument;
+      std::unordered_map<std::string_view, std::string> argTable;
+      for (auto& [cmd, argIt]: parser.mArgumentMap) {
+          if (argTable[argIt->mHelp].size() != 0)   //if the description is already loaded
+              argTable[argIt->mHelp] += " " + std::string(cmd.data());
+          else
+              argTable[argIt->mHelp] = cmd;
+      }
+
+      for (const auto& [desc, cmd] : argTable) {
+          stream.width(tLongestArgumentLength);
+          stream << cmd << '\t';
+          stream << desc << '\n';
       }
 
       if (!parser.mEpilog.empty())
@@ -1067,9 +1076,10 @@ private:
    */
   void parse_args_validate() {
     // Check if all arguments are parsed
-    for (const auto& [k, tArg] : mArgumentMap)
+
+    for (const auto& [k, tArgument] : mArgumentMap)
     {
-        tArg->validate();
+        tArgument->validate();
     }
   }
 
@@ -1078,13 +1088,10 @@ private:
     if (mArgumentMap.empty())
       return 0;
     
-    std::size_t max_size = std::numeric_limits<std::size_t>::min();
+    std::size_t max_size = 0;
 
-    for (auto it = mArgumentMap.begin(); it != mArgumentMap.end(); it++)
-    {
-        const auto& val = *it;
-
-        max_size = std::max(max_size, val.second->get_arguments_length());
+    for (const auto& [key, val] : mArgumentMap) {
+        max_size = std::max(max_size, val->get_arguments_length());
     }
 
     return max_size;
