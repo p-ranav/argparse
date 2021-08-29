@@ -569,6 +569,12 @@ public:
     }
   }
 
+public:
+    const std::string& getHelp() const 
+    {
+        return mHelp;
+    }
+
 private:
   static constexpr int eof = std::char_traits<char>::eof();
 
@@ -976,9 +982,11 @@ public:
         stream << (parser.mPositionalArguments.empty() ? "" : "\n")
                << "Optional arguments:\n";
 
-      for (const auto &mOptionalArgument : parser.mOptionalArguments) {
-        stream.width(tLongestArgumentLength);
-        stream << mOptionalArgument;
+      for (const auto& [cmd, arg]: parser.mArgumentMap)
+      {
+          stream.width(tLongestArgumentLength);
+          stream << cmd;
+          stream << arg->getHelp() << '\n';
       }
 
       if (!parser.mEpilog.empty())
