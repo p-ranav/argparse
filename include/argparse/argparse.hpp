@@ -1077,14 +1077,17 @@ private:
   std::size_t get_length_of_longest_argument() const {
     if (mArgumentMap.empty())
       return 0;
-    std::vector<std::size_t> argumentLengths(mArgumentMap.size());
-    std::transform(std::begin(mArgumentMap), std::end(mArgumentMap),
-                   std::begin(argumentLengths), [](const auto &argPair) {
-                     const auto &tArgument = argPair.second;
-                     return tArgument->get_arguments_length();
-                   });
-    return *std::max_element(std::begin(argumentLengths),
-                             std::end(argumentLengths));
+    
+    std::size_t max_size = std::numeric_limits<std::size_t>::min();
+
+    for (auto it = mArgumentMap.begin(); it != mArgumentMap.end(); it++)
+    {
+        const auto& val = *it;
+
+        max_size = std::max(max_size, val.second->get_arguments_length());
+    }
+
+    return max_size;
   }
 
   using list_iterator = std::list<Argument>::iterator;
