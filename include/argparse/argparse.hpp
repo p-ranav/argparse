@@ -569,6 +569,12 @@ public:
     }
   }
 
+public:
+    const std::string& getHelp() const 
+    {
+        return mHelp;
+    }
+
 private:
   static constexpr int eof = std::char_traits<char>::eof();
 
@@ -976,6 +982,7 @@ public:
         stream << (parser.mPositionalArguments.empty() ? "" : "\n")
                << "Optional arguments:\n";
 
+<<<<<<< HEAD
       std::unordered_map<std::string_view, std::string> argTable;
       for (auto& [cmd, argIt]: parser.mArgumentMap) {
           if (argTable[argIt->mHelp].size() != 0)   //if the description is already loaded
@@ -988,6 +995,13 @@ public:
           stream.width(tLongestArgumentLength);
           stream << cmd << '\t';
           stream << desc << '\n';
+=======
+      for (const auto& [cmd, arg]: parser.mArgumentMap)
+      {
+          stream.width(tLongestArgumentLength);
+          stream << cmd;
+          stream << arg->getHelp() << '\n';
+>>>>>>> 43073083bf039bc89b5b64b51c4596013c999a40
       }
 
       if (!parser.mEpilog.empty())
