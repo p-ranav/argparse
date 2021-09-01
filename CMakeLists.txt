@@ -30,10 +30,6 @@ if(ARGPARSE_BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
-if(${CMAKE_VERSION} VERSION_GREATER "3.14")
-    set(OPTIONAL_ARCH_INDEPENDENT "ARCH_INDEPENDENT")
-endif()
-
 install(TARGETS argparse EXPORT argparseConfig)
 install(EXPORT argparseConfig
         NAMESPACE argparse::
