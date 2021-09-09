@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
+project(argparse)
 
 if(MSVC)
   # Force to always compile with W4
