@@ -1,0 +1,74 @@
+
+name: CI
+
+on: pull_request
+
+jobs:
+
+  test:
+
+    name: ${{ matrix.toolchain }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+
+      matrix:
+
+        toolchain:
+          - macos-latest-clang
+          - ubuntu-latest-clang
+          - ubuntu-latest-gcc
+          - windows-2016-msvc
+          - windows-latest-msvc
+
+        include:
+          - toolchain: macos-latest-clang
+            os: macos-latest
+            c_compiler: clang
+            cxx_compiler: clang++
+
+          - toolchain: ubuntu-latest-clang
+            os: ubuntu-latest
+            c_compiler: clang
+            cxx_compiler: clang++
+
+          - toolchain: ubuntu-latest-gcc
+            os: ubuntu-latest
+            c_compiler: cc
+            cxx_compiler: g++
+
+          - toolchain: windows-latest-msvc
+            os: windows-latest
+            c_compiler: msvc
+            cxx_compiler: msvc
+
+          - toolchain: windows-2016-msvc
+            os: windows-2016
+            c_compiler: msvc
+            cxx_compiler: msvc
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Configure
+      working-directory: test
+      run: cmake -S . -B build
+      env:
+        CC: ${{ matrix.c_compiler }}
+        CXX: ${{ matrix.cxx_compiler }}
+
+    - name: Build for ${{ matrix.os }} with ${{ matrix.compiler }}
+      working-directory: test
+      run: cmake --build build
+
+    - name: Test
+      if: ${{ ! startsWith(matrix.os, 'windows') }}
+      working-directory: test/build
+      run: ./tests
+
+    - name: Test (Windows)
+      if: ${{ startsWith(matrix.os, 'windows') }}
+      working-directory: test/build
+      run: ./Debug/tests.exe
