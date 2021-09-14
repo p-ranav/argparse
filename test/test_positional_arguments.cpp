@@ -13,6 +13,15 @@ TEST_CASE("Parse positional arguments" * test_suite("positional_arguments")) {
   REQUIRE(program.get("output") == "thrust_profile.csv");
 }
 
+TEST_CASE("Missing expected positional argument" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("input");
+  REQUIRE_THROWS_WITH_AS(program.parse_args({ "test" }),
+                         "1 argument(s) expected. 0 provided.",
+                         std::runtime_error);
+}
+
 TEST_CASE("Parse positional arguments with fixed nargs" *
           test_suite("positional_arguments")) {
   argparse::ArgumentParser program("test");

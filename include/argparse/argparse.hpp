@@ -472,7 +472,8 @@ public:
     } else if (mDefaultValue.has_value()) {
       return start;
     } else {
-      throw std::runtime_error("Too few arguments");
+      throw std::runtime_error("Too few arguments for '" +
+                               std::string(mUsedName) + "'.");
     }
   }
 
@@ -759,7 +760,7 @@ private:
     if (mDefaultValue.has_value()) {
       return std::any_cast<T>(mDefaultValue);
     }
-    throw std::logic_error("No value provided");
+    throw std::logic_error("No value provided for '" + mNames.back() + "'.");
   }
 
   /*
@@ -910,12 +911,16 @@ public:
   }
 
   /* Getter for options with default values.
+   * @throws std::logic_error if parse_args() has not been previously called
    * @throws std::logic_error if there is no such option
    * @throws std::logic_error if the option has no value
    * @throws std::bad_any_cast if the option is not of type T
    */
   template <typename T = std::string>
   T get(std::string_view aArgumentName) const {
+    if (!mIsParsed) {
+      throw std::logic_error("Nothing parsed, no arguments are available.");
+    }
     return (*this)[aArgumentName].get<T>();
   }
 
@@ -1075,6 +1080,7 @@ private:
         throw std::runtime_error("Unknown argument");
       }
     }
+    mIsParsed = true;
   }
 
   /*
@@ -1114,6 +1120,7 @@ private:
   std::string mVersion;
   std::string mDescription;
   std::string mEpilog;
+  bool mIsParsed = false;
   std::list<Argument> mPositionalArguments;
   std::list<Argument> mOptionalArguments;
   std::map<std::string_view, list_iterator, std::less<>> mArgumentMap;
