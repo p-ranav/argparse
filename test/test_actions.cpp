@@ -133,3 +133,16 @@ TEST_CASE("Users can use actions on nargs=ANY arguments" *
   program.parse_args({"sum", "42", "100", "-3", "-20"});
   REQUIRE(result == 119);
 }
+
+TEST_CASE("Users can use actions on remaining arguments" *
+          test_suite("actions")) {
+  argparse::ArgumentParser program("concat");
+
+  std::string result = "";
+  program.add_argument("all").remaining().action(
+      [](std::string &sum, std::string const &value) { sum += value; },
+      std::ref(result));
+
+  program.parse_args({"concat", "a", "-b", "-c", "--d"});
+  REQUIRE(result == "a-b-c--d");
+}
