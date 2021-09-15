@@ -318,11 +318,9 @@ class SizeRange {
   std::size_t mMax;
 
 public:
-  SizeRange(std::size_t aMin, std::size_t aMax) {
+  SizeRange(std::size_t aMin, std::size_t aMax) : mMin(aMin), mMax(aMax) {
     if (aMin > aMax)
       throw std::logic_error("Range of number of arguments is invalid");
-    mMin = aMin;
-    mMax = aMax;
   }
 
   bool contains(std::size_t value) const {
