@@ -234,6 +234,12 @@ TEST_CASE("Parse remaining arguments deemed positional" *
   }
 }
 
+TEST_CASE("Reversed order nargs is not allowed" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  REQUIRE_THROWS_AS(program.add_argument("output").nargs(2, 1), std::logic_error);
+}
+
 TEST_CASE("Square a number" * test_suite("positional_arguments")) {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
