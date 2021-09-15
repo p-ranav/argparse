@@ -142,7 +142,7 @@ TEST_CASE("Parse positional nargs=ANY arguments" *
   GIVEN("a program that accepts an optional argument and nargs=ANY positional arguments") {
     argparse::ArgumentParser program("test");
     program.add_argument("-o");
-    program.add_argument("input").nargs(argparse::NArgsPattern::ANY);
+    program.add_argument("input").nargs(argparse::NArgsPattern::Any);
 
     WHEN("provided no argument") {
       THEN("the program accepts it and gets empty container") {

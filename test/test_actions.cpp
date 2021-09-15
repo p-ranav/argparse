@@ -126,7 +126,7 @@ TEST_CASE("Users can use actions on nargs=ANY arguments" *
   argparse::ArgumentParser program("sum");
 
   int result = 0;
-  program.add_argument("all").nargs(argparse::NArgsPattern::ANY).action(
+  program.add_argument("all").nargs(argparse::NArgsPattern::Any).action(
       [](int &sum, std::string const &value) { sum += std::stoi(value); },
       std::ref(result));
 

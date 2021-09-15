@@ -347,9 +347,9 @@ public:
 };
 
 enum class NArgsPattern {
-  ZERO_OR_ONE,
-  ANY,
-  AT_LEAST_ONE
+  ZeroOrOne,
+  Any,
+  AtLeastOne
 };
 
 class ArgumentParser;
@@ -477,13 +477,13 @@ public:
 
   Argument &nargs(NArgsPattern aNargs) {
     switch (aNargs) {
-    case NArgsPattern::ZERO_OR_ONE:
+    case NArgsPattern::ZeroOrOne:
       mNumArgsRange = SizeRange{0, 1};
       break;
-    case NArgsPattern::ANY:
+    case NArgsPattern::Any:
       mNumArgsRange = SizeRange{0, std::numeric_limits<std::size_t>::max()};
       break;
-    case NArgsPattern::AT_LEAST_ONE:
+    case NArgsPattern::AtLeastOne:
       mNumArgsRange = SizeRange{1, std::numeric_limits<std::size_t>::max()};
       break;
     }
@@ -492,7 +492,7 @@ public:
 
   Argument &remaining() {
     mAcceptsOptionalLikeValue = true;
-    return nargs(NArgsPattern::ANY);
+    return nargs(NArgsPattern::Any);
   }
 
   template <typename Iterator>

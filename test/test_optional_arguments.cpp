@@ -114,8 +114,8 @@ TEST_CASE("Parse 2 optional arguments of many values" *
           test_suite("optional_arguments")) {
   GIVEN("a program that accepts 2 optional arguments of many values") {
     argparse::ArgumentParser program("test");
-    program.add_argument("-i").nargs(argparse::NArgsPattern::ANY).scan<'i', int>();
-    program.add_argument("-s").nargs(argparse::NArgsPattern::ANY);
+    program.add_argument("-i").nargs(argparse::NArgsPattern::Any).scan<'i', int>();
+    program.add_argument("-s").nargs(argparse::NArgsPattern::Any);
 
     WHEN("provided no argument") {
       THEN("the program accepts it and gets empty container") {
@@ -156,8 +156,8 @@ TEST_CASE("Parse an optional argument of many values"
   GIVEN("a program that accepts an optional argument of many values"
         " and a positional argument of many values") {
     argparse::ArgumentParser program("test");
-    program.add_argument("-s").nargs(argparse::NArgsPattern::ANY);
-    program.add_argument("input").nargs(argparse::NArgsPattern::ANY);
+    program.add_argument("-s").nargs(argparse::NArgsPattern::Any);
+    program.add_argument("input").nargs(argparse::NArgsPattern::Any);
 
     WHEN("provided no argument") {
       program.parse_args({"test"});
