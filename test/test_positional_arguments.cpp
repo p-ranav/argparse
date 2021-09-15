@@ -69,10 +69,11 @@ TEST_CASE("Parse remaining arguments deemed positional" *
     program.add_argument("input").remaining();
 
     WHEN("provided no argument") {
-      THEN("the program accepts it but gets nothing") {
+      THEN("the program accepts it and gets empty container") {
         REQUIRE_NOTHROW(program.parse_args({"test"}));
-        REQUIRE_THROWS_AS(program.get<std::vector<std::string>>("input"),
-                          std::logic_error);
+
+        auto inputs = program.get<std::vector<std::string>>("input");
+        REQUIRE(inputs.size() == 0);
       }
     }
 
