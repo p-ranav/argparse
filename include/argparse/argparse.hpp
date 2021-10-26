@@ -453,18 +453,18 @@ public:
 
       struct action_apply {
         void operator()(valued_action &f) {
-          std::transform(start, end, std::back_inserter(self.mValues), f);
+          std::transform(first, last, std::back_inserter(self.mValues), f);
         }
 
         void operator()(void_action &f) {
-          std::for_each(start, end, f);
+          std::for_each(first, last, f);
           if (!self.mDefaultValue.has_value()) {
             if (auto expected = self.maybe_nargs())
               self.mValues.resize(*expected);
           }
         }
 
-        Iterator start, end;
+        Iterator first, last;
         Argument &self;
       };
       std::visit(action_apply{start, end, *this}, mAction);
