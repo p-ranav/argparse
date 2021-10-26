@@ -442,6 +442,7 @@ public:
     mUsedName = usedName;
     if (mNumArgs == 0) {
       mValues.emplace_back(mImplicitValue);
+      std::visit([](auto &aAction) { aAction({}); }, mAction);
       return start;
     } else if (mNumArgs <= std::distance(start, end)) {
       if (auto expected = maybe_nargs()) {

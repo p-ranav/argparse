@@ -200,6 +200,24 @@ auto colors = program.get<std::vector<std::string>>("--color");  // {"red", "gre
 
 Notice that ```.default_value``` is given an explicit template parameter to match the type you want to ```.get```.
 
+#### Repeating an argument to increase a value
+
+A common pattern is to repeat an argument to indicate a greater value.
+
+```cpp
+int verbosity = 0;
+program.add_argument("-V", "--verbose")
+  .action([&](const auto &) { ++verbosity; })
+  .append()
+  .default_value(false)
+  .implicit_value(true)
+  .nargs(0);
+
+program.parse_args(argc, argv);    // Example: ./main -VVVV
+
+std::cout << "verbose level: " << verbosity << std::endl;    // verbose level: 4
+```
+
 ### Negative Numbers
 
 Optional arguments start with ```-```. Can ```argparse``` handle negative numbers? The answer is yes!
