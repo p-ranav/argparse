@@ -257,7 +257,7 @@ As you can see here, ```argparse``` supports negative integers, negative floats 
 ### Combining Positional and Optional Arguments
 
 ```cpp
-argparse::ArgumentParser program("test");
+argparse::ArgumentParser program("main");
 
 program.add_argument("square")
   .help("display the square of a given number")
@@ -303,14 +303,15 @@ The square of 4 is 16
 
 ```
 $ ./main --help
-Usage: ./main [options] square
+Usage: main [options] square
 
 Positional arguments:
-square         display a square of a given number
+square          display the square of a given number
 
 Optional arguments:
--h, --help     show this help message and exit
--v, --verbose  enable verbose logging
+-h --help       shows help message and exits [default: false]
+-v --version    prints version information and exits [default: false]
+--verbose       [default: false]
 ```
 
 You may also get the help message in string via `program.help().str()`.
