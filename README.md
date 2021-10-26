@@ -27,7 +27,7 @@ Simply include argparse.hpp and you're good to go.
 To start parsing command-line arguments, create an ```ArgumentParser```.
 
 ```cpp
-argparse::ArgumentParser program("program name");
+argparse::ArgumentParser program("program_name");
 ```
 
 **NOTE:** There is an optional second argument to the `ArgumentParser` which is the program version. Example: `argparse::ArgumentParser program("libfoo", "1.9.0");`
@@ -49,7 +49,7 @@ Here's an example of a ***positional argument***:
 #include <argparse/argparse.hpp>
 
 int main(int argc, char *argv[]) {
-  argparse::ArgumentParser program("program name");
+  argparse::ArgumentParser program("program_name");
 
   program.add_argument("square")
     .help("display the square of a given integer")
