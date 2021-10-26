@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cout << err.what() << std::endl;
     std::cout << program;
-    exit(0);
+    std::exit(0);
   }
 
   auto input = program.get<int>("square");
@@ -103,7 +103,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 if (program["--verbose"] == true) {
@@ -169,7 +169,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto color = program.get<std::string>("--color");  // "orange"
@@ -192,7 +192,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto colors = program.get<std::vector<std::string>>("--color");  // {"red", "green", "blue"}
@@ -222,7 +222,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 // Some code to print arguments
@@ -255,7 +255,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 int input = program.get<int>("square");
@@ -314,7 +314,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
@@ -343,7 +343,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto query_point = program.get<std::vector<double>>("--query_point");  // {3.5, 4.7, 9.2}
@@ -375,7 +375,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto a = program.get<bool>("-a");                  // true
@@ -459,7 +459,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 try {
@@ -506,7 +506,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto output_filename = program.get<std::string>("-o");
@@ -588,7 +588,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 nlohmann::json config = program.get<nlohmann::json>("config");
@@ -624,7 +624,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto numbers = program.get<std::vector<int>>("numbers");        // {1, 2, 3}
@@ -666,7 +666,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto input = program.get("input");
