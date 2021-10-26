@@ -455,6 +455,27 @@ The grammar follows `std::from_chars`, but does not exactly duplicate it. For ex
 | 'u'        | decimal (unsigned)                        |
 | 'x' or 'X' | hexadecimal (unsigned)                    |
 
+### Default Arguments
+
+`argparse` provides predefined arguments and actions for `-h`/`--help` and `-v`/`--version`. These default actions exit the program after displaying a help or version message, respectively. These defaults arguments can be disabled during `ArgumentParser` creation so that you can handle these arguments in your own way. (Note that a program name and version must be included when choosing default arguments.)
+
+```cpp
+argparse::ArgumentParser program("test", "1.0", default_arguments::none);
+
+program.add_argument("-h", "--help")
+  .action([=](const std::string& s) {
+    std::cout << help().str();
+  })
+  .default_value(false)
+  .help("shows help message")
+  .implicit_value(true)
+  .nargs(0);
+```
+
+The above code snippet outputs a help message and continues to run. It does not support a `--version` argument.
+
+The default is `default_arguments::all` for included arguments. No default arguments will be added with `default_arguments::none`. `default_arguments::help` and `default_arguments::version` will individually add `--help` and `--version`.
+
 ### Gathering Remaining Arguments
 
 `argparse` supports gathering "remaining" arguments at the end of the command, e.g., for use in a compiler:
