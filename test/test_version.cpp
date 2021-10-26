@@ -3,7 +3,8 @@
 
 using doctest::test_suite;
 
-TEST_CASE("Users can print version  and exit" * test_suite("version")) {
+TEST_CASE("Users can print version and exit" * test_suite("version")
+          * doctest::skip()) {
   argparse::ArgumentParser program("cli-test", "1.9.0");
   program.add_argument("-d", "--dir")
     .required();
