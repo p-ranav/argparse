@@ -133,3 +133,27 @@ TEST_CASE("Users can use actions on remaining arguments" *
   program.parse_args({"sum", "42", "100", "-3", "-20"});
   REQUIRE(result == 119);
 }
+
+TEST_CASE("Users can run actions on parameterless optional arguments" *
+          test_suite("actions")) {
+  argparse::ArgumentParser program("test");
+
+  GIVEN("a flag argument with a counting action") {
+    int count = 0;
+    program.add_argument("-V", "--verbose")
+      .action([&](const auto &) { ++count; })
+      .append()
+      .default_value(false)
+      .implicit_value(true)
+      .nargs(0);
+
+    WHEN("the flag is repeated") {
+      program.parse_args({"test", "-VVVV"});
+
+      THEN("the count increments once per use") {
+        REQUIRE(program.get<bool>("-V"));
+        REQUIRE(count == 4);
+      }
+    }
+  }
+}

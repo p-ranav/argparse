@@ -1,5 +1,6 @@
 #include <argparse/argparse.hpp>
 #include <doctest.hpp>
+#include <sstream>
 
 using doctest::test_suite;
 
@@ -50,4 +51,27 @@ TEST_CASE("Users can override the help options" * test_suite("help")) {
       }
     }
   }
+}
+
+TEST_CASE("Users can disable default -h/--help" * test_suite("help")) {
+  argparse::ArgumentParser program("test", "1.0",
+                                   argparse::default_arguments::version);
+  REQUIRE_THROWS_AS(program.parse_args({"test", "-h"}), std::runtime_error);
+}
+
+TEST_CASE("Users can replace default -h/--help" * test_suite("help")) {
+  argparse::ArgumentParser program("test", "1.0",
+                                   argparse::default_arguments::version);
+  std::stringstream buffer;
+  program.add_argument("-h", "--help")
+    .action([&](const auto &) {
+      buffer << program;
+    })
+    .default_value(false)
+    .implicit_value(true)
+    .nargs(0);
+
+  REQUIRE(buffer.str().empty());
+  program.parse_args({"test", "--help"});
+  REQUIRE_FALSE(buffer.str().empty());
 }

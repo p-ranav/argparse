@@ -27,7 +27,7 @@ Simply include argparse.hpp and you're good to go.
 To start parsing command-line arguments, create an ```ArgumentParser```.
 
 ```cpp
-argparse::ArgumentParser program("program name");
+argparse::ArgumentParser program("program_name");
 ```
 
 **NOTE:** There is an optional second argument to the `ArgumentParser` which is the program version. Example: `argparse::ArgumentParser program("libfoo", "1.9.0");`
@@ -49,7 +49,7 @@ Here's an example of a ***positional argument***:
 #include <argparse/argparse.hpp>
 
 int main(int argc, char *argv[]) {
-  argparse::ArgumentParser program("program name");
+  argparse::ArgumentParser program("program_name");
 
   program.add_argument("square")
     .help("display the square of a given integer")
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cout << err.what() << std::endl;
     std::cout << program;
-    exit(0);
+    std::exit(0);
   }
 
   auto input = program.get<int>("square");
@@ -103,7 +103,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 if (program["--verbose"] == true) {
@@ -169,7 +169,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto color = program.get<std::string>("--color");  // "orange"
@@ -192,13 +192,31 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto colors = program.get<std::vector<std::string>>("--color");  // {"red", "green", "blue"}
 ```
 
 Notice that ```.default_value``` is given an explicit template parameter to match the type you want to ```.get```.
+
+#### Repeating an argument to increase a value
+
+A common pattern is to repeat an argument to indicate a greater value.
+
+```cpp
+int verbosity = 0;
+program.add_argument("-V", "--verbose")
+  .action([&](const auto &) { ++verbosity; })
+  .append()
+  .default_value(false)
+  .implicit_value(true)
+  .nargs(0);
+
+program.parse_args(argc, argv);    // Example: ./main -VVVV
+
+std::cout << "verbose level: " << verbosity << std::endl;    // verbose level: 4
+```
 
 ### Negative Numbers
 
@@ -222,7 +240,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 // Some code to print arguments
@@ -239,7 +257,7 @@ As you can see here, ```argparse``` supports negative integers, negative floats 
 ### Combining Positional and Optional Arguments
 
 ```cpp
-argparse::ArgumentParser program("test");
+argparse::ArgumentParser program("main");
 
 program.add_argument("square")
   .help("display the square of a given number")
@@ -255,7 +273,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 int input = program.get<int>("square");
@@ -285,14 +303,15 @@ The square of 4 is 16
 
 ```
 $ ./main --help
-Usage: ./main [options] square
+Usage: main [options] square
 
 Positional arguments:
-square         display a square of a given number
+square          display the square of a given number
 
 Optional arguments:
--h, --help     show this help message and exit
--v, --verbose  enable verbose logging
+-h --help       shows help message and exits [default: false]
+-v --version    prints version information and exits [default: false]
+--verbose       [default: false]
 ```
 
 You may also get the help message in string via `program.help().str()`.
@@ -314,7 +333,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
@@ -343,7 +362,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto query_point = program.get<std::vector<double>>("--query_point");  // {3.5, 4.7, 9.2}
@@ -375,7 +394,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto a = program.get<bool>("-a");                  // true
@@ -437,6 +456,27 @@ The grammar follows `std::from_chars`, but does not exactly duplicate it. For ex
 | 'u'        | decimal (unsigned)                        |
 | 'x' or 'X' | hexadecimal (unsigned)                    |
 
+### Default Arguments
+
+`argparse` provides predefined arguments and actions for `-h`/`--help` and `-v`/`--version`. These default actions exit the program after displaying a help or version message, respectively. These defaults arguments can be disabled during `ArgumentParser` creation so that you can handle these arguments in your own way. (Note that a program name and version must be included when choosing default arguments.)
+
+```cpp
+argparse::ArgumentParser program("test", "1.0", default_arguments::none);
+
+program.add_argument("-h", "--help")
+  .action([=](const std::string& s) {
+    std::cout << help().str();
+  })
+  .default_value(false)
+  .help("shows help message")
+  .implicit_value(true)
+  .nargs(0);
+```
+
+The above code snippet outputs a help message and continues to run. It does not support a `--version` argument.
+
+The default is `default_arguments::all` for included arguments. No default arguments will be added with `default_arguments::none`. `default_arguments::help` and `default_arguments::version` will individually add `--help` and `--version`.
+
 ### Gathering Remaining Arguments
 
 `argparse` supports gathering "remaining" arguments at the end of the command, e.g., for use in a compiler:
@@ -459,7 +499,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 try {
@@ -506,7 +546,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto output_filename = program.get<std::string>("-o");
@@ -588,7 +628,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 nlohmann::json config = program.get<nlohmann::json>("config");
@@ -624,7 +664,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto numbers = program.get<std::vector<int>>("numbers");        // {1, 2, 3}
@@ -666,7 +706,7 @@ try {
 catch (const std::runtime_error& err) {
   std::cout << err.what() << std::endl;
   std::cout << program;
-  exit(0);
+  std::exit(0);
 }
 
 auto input = program.get("input");
