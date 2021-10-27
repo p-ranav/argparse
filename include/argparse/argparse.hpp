@@ -830,6 +830,7 @@ public:
 
   ArgumentParser(const ArgumentParser &other)
       : mProgramName(other.mProgramName),
+        mIsParsed(other.mIsParsed),
         mPositionalArguments(other.mPositionalArguments),
         mOptionalArguments(other.mOptionalArguments) {
     for (auto it = std::begin(mPositionalArguments); it != std::end(mPositionalArguments);
