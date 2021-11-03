@@ -757,11 +757,10 @@ Thanks goes to these wonderful people:
     <td align="center"><a href="https://github.com/hokacci"><img src="https://avatars.githubusercontent.com/u/47231909?v=4" width="100px;" alt="Yoshihiro Hokazono"/><br /><sub><b>Yoshihiro Hokazono</b></sub></a></td>
     <td align="center"><a href="https://github.com/qoelet"><img src="https://avatars.githubusercontent.com/u/115877?v=4" width="100px;" alt="Kenny Shen"/><br /><sub><b>Kenny Shen</b></sub></a></td>
     <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars.githubusercontent.com/u/21022101?v=4" width="100px;" alt="The 42nd Mu00"/><br /><sub><b>The 42nd Mu00</b></sub></a></td>
-    <td align="center"><a href="https://github.com/SuperWig"><img src="https://avatars.githubusercontent.com/u/2692096?v=4" width="100px;" alt="Daniel Marshall"/><br /><sub><b>Daniel Marshall</b></sub></a></td>
     <td align="center"><a href="https://github.com/Ubpa"><img src="https://avatars.githubusercontent.com/u/15104079?v=4" width="100px;" alt="Ubpa"/><br /><sub><b>Ubpa</b></sub></a></td>
+    <td align="center"><a href="https://github.com/kfsone"><img src="https://avatars.githubusercontent.com/u/323009?v=4" width="100px;" alt="Oliver Smith"/><br /><sub><b>Oliver Smith</b></sub></a></td>    
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/kfsone"><img src="https://avatars.githubusercontent.com/u/323009?v=4" width="100px;" alt="Oliver Smith"/><br /><sub><b>Oliver Smith</b></sub></a></td>
     <td align="center"><a href="https://github.com/JadeMatrix"><img src="https://avatars.githubusercontent.com/u/1753533?v=4" width="100px;" alt="Joseph Durel"/><br /><sub><b>Joseph Durel</b></sub></a></td>
     <td align="center"><a href="https://github.com/rysson"><img src="https://avatars.githubusercontent.com/u/5898312?v=4" width="100px;" alt="rysson"/><br /><sub><b>rysson</b></sub></a></td>
     <td align="center"><a href="https://github.com/aashwinr"><img src="https://avatars.githubusercontent.com/u/78666414?v=4" width="100px;" alt="aashwinr"/><br /><sub><b>aashwinr</b></sub></a></td>
