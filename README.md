@@ -59,9 +59,9 @@ int main(int argc, char *argv[]) {
     program.parse_args(argc, argv);
   }
   catch (const std::runtime_error& err) {
-    std::cout << err.what() << std::endl;
-    std::cout << program;
-    std::exit(0);
+    std::cerr << err.what() << std::endl;
+    std::cerr << program;
+    std::exit(1);
   }
 
   auto input = program.get<int>("square");
@@ -101,9 +101,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 if (program["--verbose"] == true) {
@@ -167,9 +167,9 @@ try {
   program.parse_args(argc, argv);    // Example: ./main --color orange
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto color = program.get<std::string>("--color");  // "orange"
@@ -190,9 +190,9 @@ try {
   program.parse_args(argc, argv);    // Example: ./main --color red --color green --color blue
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto colors = program.get<std::vector<std::string>>("--color");  // {"red", "green", "blue"}
@@ -238,9 +238,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 // Some code to print arguments
@@ -271,9 +271,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 int input = program.get<int>("square");
@@ -331,9 +331,9 @@ try {
   program.parse_args(argc, argv);   // Example: ./main --input_files config.yml System.xml
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
@@ -360,9 +360,9 @@ try {
   program.parse_args(argc, argv); // Example: ./main --query_point 3.5 4.7 9.2
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto query_point = program.get<std::vector<double>>("--query_point");  // {3.5, 4.7, 9.2}
@@ -392,9 +392,9 @@ try {
   program.parse_args(argc, argv);                  // Example: ./main -abc 1.95 2.47
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto a = program.get<bool>("-a");                  // true
@@ -497,9 +497,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 try {
@@ -544,9 +544,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto output_filename = program.get<std::string>("-o");
@@ -626,9 +626,9 @@ try {
   program.parse_args({"./test", "config.json"});
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 nlohmann::json config = program.get<nlohmann::json>("config");
@@ -662,9 +662,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto numbers = program.get<std::vector<int>>("numbers");        // {1, 2, 3}
@@ -704,9 +704,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  std::exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto input = program.get("input");
@@ -757,11 +757,10 @@ Thanks goes to these wonderful people:
     <td align="center"><a href="https://github.com/hokacci"><img src="https://avatars.githubusercontent.com/u/47231909?v=4" width="100px;" alt="Yoshihiro Hokazono"/><br /><sub><b>Yoshihiro Hokazono</b></sub></a></td>
     <td align="center"><a href="https://github.com/qoelet"><img src="https://avatars.githubusercontent.com/u/115877?v=4" width="100px;" alt="Kenny Shen"/><br /><sub><b>Kenny Shen</b></sub></a></td>
     <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars.githubusercontent.com/u/21022101?v=4" width="100px;" alt="The 42nd Mu00"/><br /><sub><b>The 42nd Mu00</b></sub></a></td>
-    <td align="center"><a href="https://github.com/SuperWig"><img src="https://avatars.githubusercontent.com/u/2692096?v=4" width="100px;" alt="Daniel Marshall"/><br /><sub><b>Daniel Marshall</b></sub></a></td>
     <td align="center"><a href="https://github.com/Ubpa"><img src="https://avatars.githubusercontent.com/u/15104079?v=4" width="100px;" alt="Ubpa"/><br /><sub><b>Ubpa</b></sub></a></td>
+    <td align="center"><a href="https://github.com/kfsone"><img src="https://avatars.githubusercontent.com/u/323009?v=4" width="100px;" alt="Oliver Smith"/><br /><sub><b>Oliver Smith</b></sub></a></td>    
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/kfsone"><img src="https://avatars.githubusercontent.com/u/323009?v=4" width="100px;" alt="Oliver Smith"/><br /><sub><b>Oliver Smith</b></sub></a></td>
     <td align="center"><a href="https://github.com/JadeMatrix"><img src="https://avatars.githubusercontent.com/u/1753533?v=4" width="100px;" alt="Joseph Durel"/><br /><sub><b>Joseph Durel</b></sub></a></td>
     <td align="center"><a href="https://github.com/rysson"><img src="https://avatars.githubusercontent.com/u/5898312?v=4" width="100px;" alt="rysson"/><br /><sub><b>rysson</b></sub></a></td>
     <td align="center"><a href="https://github.com/aashwinr"><img src="https://avatars.githubusercontent.com/u/78666414?v=4" width="100px;" alt="aashwinr"/><br /><sub><b>aashwinr</b></sub></a></td>
