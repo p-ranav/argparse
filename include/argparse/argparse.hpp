@@ -1089,11 +1089,11 @@ private:
             auto tArgument = tIterator2->second;
             it = tArgument->consume(it, end, tIterator2->first);
           } else {
-            throw std::runtime_error("Unknown argument");
+            throw std::runtime_error("Unknown argument: " + tCurrentArgument);
           }
         }
       } else {
-        throw std::runtime_error("Unknown argument");
+        throw std::runtime_error("Unknown argument: " + tCurrentArgument);
       }
     }
     mIsParsed = true;

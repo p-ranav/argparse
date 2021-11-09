@@ -16,8 +16,8 @@ TEST_CASE("Users can print version and exit" * test_suite("version")
 TEST_CASE("Users can disable default -v/--version" * test_suite("version")) {
   argparse::ArgumentParser program("test", "1.0",
                                    argparse::default_arguments::help);
-  REQUIRE_THROWS_AS(program.parse_args({"test", "--version"}),
-                    std::runtime_error);
+  REQUIRE_THROWS_WITH_AS(program.parse_args({"test", "--version"}),
+                         "Unknown argument: --version", std::runtime_error);
 }
 
 TEST_CASE("Users can replace default -v/--version" * test_suite("version")) {
