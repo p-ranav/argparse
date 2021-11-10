@@ -453,7 +453,7 @@ public:
     mUsedName = usedName;
     if (mNumArgs == 0) {
       mValues.emplace_back(mImplicitValue);
-      std::visit([](auto &aAction) { aAction({}); }, mAction);
+      std::visit([](const auto &aAction) { aAction({}); }, mAction);
       return start;
     } else if (mNumArgs <= std::distance(start, end)) {
       if (auto expected = maybe_nargs()) {
@@ -1049,7 +1049,7 @@ public:
   // Printing the one and only help message
   // I've stuck with a simple message format, nothing fancy.
   [[deprecated("Use cout << program; instead.  See also help().")]] std::string
-  print_help() {
+  print_help() const {
     auto out = help();
     std::cout << out.rdbuf();
     return out.str();
