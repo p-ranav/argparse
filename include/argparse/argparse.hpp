@@ -1002,39 +1002,37 @@ public:
   // Print help message
   friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream & {
-    if (auto sen = std::ostream::sentry(stream)) {
-      stream.setf(std::ios_base::left);
-      stream << "Usage: " << parser.mProgramName << " [options] ";
-      std::size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
+    stream.setf(std::ios_base::left);
+    stream << "Usage: " << parser.mProgramName << " [options] ";
+    std::size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
 
-      for (const auto &argument : parser.mPositionalArguments) {
-        stream << argument.mNames.front() << " ";
-      }
-      stream << "\n\n";
-
-      if (!parser.mDescription.empty())
-        stream << parser.mDescription << "\n\n";
-
-      if (!parser.mPositionalArguments.empty())
-        stream << "Positional arguments:\n";
-
-      for (const auto &mPositionalArgument : parser.mPositionalArguments) {
-        stream.width(tLongestArgumentLength);
-        stream << mPositionalArgument;
-      }
-
-      if (!parser.mOptionalArguments.empty())
-        stream << (parser.mPositionalArguments.empty() ? "" : "\n")
-               << "Optional arguments:\n";
-
-      for (const auto &mOptionalArgument : parser.mOptionalArguments) {
-        stream.width(tLongestArgumentLength);
-        stream << mOptionalArgument;
-      }
-
-      if (!parser.mEpilog.empty())
-        stream << parser.mEpilog << "\n\n";
+    for (const auto &argument : parser.mPositionalArguments) {
+      stream << argument.mNames.front() << " ";
     }
+    stream << "\n\n";
+
+    if (!parser.mDescription.empty())
+      stream << parser.mDescription << "\n\n";
+
+    if (!parser.mPositionalArguments.empty())
+      stream << "Positional arguments:\n";
+
+    for (const auto &mPositionalArgument : parser.mPositionalArguments) {
+      stream.width(tLongestArgumentLength);
+      stream << mPositionalArgument;
+    }
+
+    if (!parser.mOptionalArguments.empty())
+      stream << (parser.mPositionalArguments.empty() ? "" : "\n")
+             << "Optional arguments:\n";
+
+    for (const auto &mOptionalArgument : parser.mOptionalArguments) {
+      stream.width(tLongestArgumentLength);
+      stream << mOptionalArgument;
+    }
+
+    if (!parser.mEpilog.empty())
+      stream << parser.mEpilog << "\n\n";
 
     return stream;
   }
