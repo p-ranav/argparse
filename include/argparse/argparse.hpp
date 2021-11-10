@@ -857,6 +857,9 @@ public:
 
   ArgumentParser(const ArgumentParser &other)
       : mProgramName(other.mProgramName),
+        mVersion(other.mVersion),
+        mDescription(other.mDescription),
+        mEpilog(other.mEpilog),
         mIsParsed(other.mIsParsed),
         mPositionalArguments(other.mPositionalArguments),
         mOptionalArguments(other.mOptionalArguments) {
