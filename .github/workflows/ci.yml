@@ -18,7 +18,6 @@ jobs:
           - macos-latest-clang
           - ubuntu-latest-clang
           - ubuntu-latest-gcc
-          - windows-2016-msvc
           - windows-latest-msvc
 
         include:
@@ -39,11 +38,6 @@ jobs:
 
           - toolchain: windows-latest-msvc
             os: windows-latest
-            c_compiler: msvc
-            cxx_compiler: msvc
-
-          - toolchain: windows-2016-msvc
-            os: windows-2016
             c_compiler: msvc
             cxx_compiler: msvc
 
