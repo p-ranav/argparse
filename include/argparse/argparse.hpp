@@ -453,7 +453,7 @@ public:
     mUsedName = usedName;
     if (mNumArgs == 0) {
       mValues.emplace_back(mImplicitValue);
-      std::visit([](auto &aAction) { aAction({}); }, mAction);
+      std::visit([](const auto &aAction) { aAction({}); }, mAction);
       return start;
     } else if (mNumArgs <= std::distance(start, end)) {
       if (auto expected = maybe_nargs()) {
@@ -857,6 +857,9 @@ public:
 
   ArgumentParser(const ArgumentParser &other)
       : mProgramName(other.mProgramName),
+        mVersion(other.mVersion),
+        mDescription(other.mDescription),
+        mEpilog(other.mEpilog),
         mIsParsed(other.mIsParsed),
         mPositionalArguments(other.mPositionalArguments),
         mOptionalArguments(other.mOptionalArguments) {
@@ -999,39 +1002,37 @@ public:
   // Print help message
   friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream & {
-    if (auto sen = std::ostream::sentry(stream)) {
-      stream.setf(std::ios_base::left);
-      stream << "Usage: " << parser.mProgramName << " [options] ";
-      std::size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
+    stream.setf(std::ios_base::left);
+    stream << "Usage: " << parser.mProgramName << " [options] ";
+    std::size_t tLongestArgumentLength = parser.get_length_of_longest_argument();
 
-      for (const auto &argument : parser.mPositionalArguments) {
-        stream << argument.mNames.front() << " ";
-      }
-      stream << "\n\n";
-
-      if (!parser.mDescription.empty())
-        stream << parser.mDescription << "\n\n";
-
-      if (!parser.mPositionalArguments.empty())
-        stream << "Positional arguments:\n";
-
-      for (const auto &mPositionalArgument : parser.mPositionalArguments) {
-        stream.width(tLongestArgumentLength);
-        stream << mPositionalArgument;
-      }
-
-      if (!parser.mOptionalArguments.empty())
-        stream << (parser.mPositionalArguments.empty() ? "" : "\n")
-               << "Optional arguments:\n";
-
-      for (const auto &mOptionalArgument : parser.mOptionalArguments) {
-        stream.width(tLongestArgumentLength);
-        stream << mOptionalArgument;
-      }
-
-      if (!parser.mEpilog.empty())
-        stream << parser.mEpilog << "\n\n";
+    for (const auto &argument : parser.mPositionalArguments) {
+      stream << argument.mNames.front() << " ";
     }
+    stream << "\n\n";
+
+    if (!parser.mDescription.empty())
+      stream << parser.mDescription << "\n\n";
+
+    if (!parser.mPositionalArguments.empty())
+      stream << "Positional arguments:\n";
+
+    for (const auto &mPositionalArgument : parser.mPositionalArguments) {
+      stream.width(tLongestArgumentLength);
+      stream << mPositionalArgument;
+    }
+
+    if (!parser.mOptionalArguments.empty())
+      stream << (parser.mPositionalArguments.empty() ? "" : "\n")
+             << "Optional arguments:\n";
+
+    for (const auto &mOptionalArgument : parser.mOptionalArguments) {
+      stream.width(tLongestArgumentLength);
+      stream << mOptionalArgument;
+    }
+
+    if (!parser.mEpilog.empty())
+      stream << parser.mEpilog << "\n\n";
 
     return stream;
   }
@@ -1046,7 +1047,7 @@ public:
   // Printing the one and only help message
   // I've stuck with a simple message format, nothing fancy.
   [[deprecated("Use cout << program; instead.  See also help().")]] std::string
-  print_help() {
+  print_help() const {
     auto out = help();
     std::cout << out.rdbuf();
     return out.str();
