@@ -238,10 +238,20 @@ template <class T> struct parse_number<T> {
 
 namespace {
 
-template <class T> constexpr auto generic_strtod = nullptr;
-template <> constexpr auto generic_strtod<float> = strtof;
-template <> constexpr auto generic_strtod<double> = strtod;
-template <> constexpr auto generic_strtod<long double> = strtold;
+template <typename T> T generic_strtod(const char *str, char **endptr);
+
+template <> float generic_strtod<float>(const char *str, char **endptr) {
+  return strtof(str, endptr);
+}
+
+template <> double generic_strtod<double>(const char *str, char **endptr) {
+  return strtod(str, endptr);
+}
+
+template <> 
+long double generic_strtod<long double>(const char *str, char **endptr) {
+  return strtold(str, endptr);
+}
 
 } // namespace
 
