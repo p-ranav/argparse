@@ -642,7 +642,7 @@ private:
     // precondition: we have consumed or will consume at least one digit
     auto consume_digits = [=](std::string_view needle) {
       auto it = std::find_if_not(std::begin(needle), std::end(needle), is_digit);
-      return needle.substr(it - std::begin(needle));
+      return needle.substr(static_cast<std::size_t>(it - std::begin(needle)));
     };
 
     switch (lookahead(str)) {
