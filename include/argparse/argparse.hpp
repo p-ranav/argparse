@@ -457,7 +457,7 @@ public:
       return start;
     } else if (mNumArgs <= std::distance(start, end)) {
       if (auto expected = maybe_nargs()) {
-        end = std::next(start, *expected);
+        end = std::next(start, static_cast<long>(*expected));
         if (std::any_of(start, end, Argument::is_optional)) {
           throw std::runtime_error("optional argument in parameter sequence");
         }
@@ -620,7 +620,7 @@ private:
    * sign: one of
    *    '+' '-'
    */
-  static bool is_decimal_literal(std::string_view s) {
+  static bool is_decimal_literal(std::string_view str) {
     auto is_digit = [](auto c) constexpr {
       switch (c) {
       case '0':
@@ -640,15 +640,15 @@ private:
     };
 
     // precondition: we have consumed or will consume at least one digit
-    auto consume_digits = [=](std::string_view s) {
-      auto it = std::find_if_not(std::begin(s), std::end(s), is_digit);
-      return s.substr(it - std::begin(s));
+    auto consume_digits = [=](std::string_view needle) {
+      auto it = std::find_if_not(std::begin(needle), std::end(needle), is_digit);
+      return needle.substr(it - std::begin(needle));
     };
 
-    switch (lookahead(s)) {
+    switch (lookahead(str)) {
     case '0': {
-      s.remove_prefix(1);
-      if (s.empty())
+      str.remove_prefix(1);
+      if (str.empty())
         return true;
       else
         goto integer_part;
@@ -662,14 +662,14 @@ private:
     case '7':
     case '8':
     case '9': {
-      s = consume_digits(s);
-      if (s.empty())
+      str = consume_digits(str);
+      if (str.empty())
         return true;
       else
         goto integer_part_consumed;
     }
     case '.': {
-      s.remove_prefix(1);
+      str.remove_prefix(1);
       goto post_decimal_point;
     }
     default:
@@ -677,19 +677,19 @@ private:
     }
 
   integer_part:
-    s = consume_digits(s);
+    str = consume_digits(str);
   integer_part_consumed:
-    switch (lookahead(s)) {
+    switch (lookahead(str)) {
     case '.': {
-      s.remove_prefix(1);
-      if (is_digit(lookahead(s)))
+      str.remove_prefix(1);
+      if (is_digit(lookahead(str)))
         goto post_decimal_point;
       else
         goto exponent_part_opt;
     }
     case 'e':
     case 'E': {
-      s.remove_prefix(1);
+      str.remove_prefix(1);
       goto post_e;
     }
     default:
@@ -697,20 +697,20 @@ private:
     }
 
   post_decimal_point:
-    if (is_digit(lookahead(s))) {
-      s = consume_digits(s);
+    if (is_digit(lookahead(str))) {
+      str = consume_digits(str);
       goto exponent_part_opt;
     } else {
       return false;
     }
 
   exponent_part_opt:
-    switch (lookahead(s)) {
+    switch (lookahead(str)) {
     case eof:
       return true;
     case 'e':
     case 'E': {
-      s.remove_prefix(1);
+      str.remove_prefix(1);
       goto post_e;
     }
     default:
@@ -718,14 +718,14 @@ private:
     }
 
   post_e:
-    switch (lookahead(s)) {
+    switch (lookahead(str)) {
     case '-':
     case '+':
-      s.remove_prefix(1);
+      str.remove_prefix(1);
     }
-    if (is_digit(lookahead(s))) {
-      s = consume_digits(s);
-      return s.empty();
+    if (is_digit(lookahead(str))) {
+      str = consume_digits(str);
+      return str.empty();
     } else {
       return false;
     }
@@ -1018,7 +1018,7 @@ public:
       stream << "Positional arguments:\n";
 
     for (const auto &mPositionalArgument : parser.mPositionalArguments) {
-      stream.width(tLongestArgumentLength);
+      stream.width(static_cast<std::streamsize>(tLongestArgumentLength));
       stream << mPositionalArgument;
     }
 
@@ -1027,7 +1027,7 @@ public:
              << "Optional arguments:\n";
 
     for (const auto &mOptionalArgument : parser.mOptionalArguments) {
-      stream.width(tLongestArgumentLength);
+      stream.width(static_cast<std::streamsize>(tLongestArgumentLength));
       stream << mOptionalArgument;
     }
 
