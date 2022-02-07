@@ -525,7 +525,7 @@ public:
             stream << mNames[0] << ": required.";
             throw std::runtime_error(stream.str());
           }
-          if (mIsUsed && mIsRequired && mValues.size() == 0) {
+          if (mIsUsed && mIsRequired && mValues.empty()) {
             std::stringstream stream;
             stream << mUsedName << ": no value provided.";
             throw std::runtime_error(stream.str());

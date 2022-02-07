@@ -1,7 +1,6 @@
 Checks:
   -*,
   readability-*,
-  -readability-container-size-empty,
   -readability-else-after-return,
   -readability-implicit-bool-conversion,
   -readability-function-cognitive-complexity,
