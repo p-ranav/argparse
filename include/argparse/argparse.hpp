@@ -192,9 +192,8 @@ constexpr auto consume_hex_prefix(std::string_view s)
   if (starts_with("0x"sv, s) || starts_with("0X"sv, s)) {
     s.remove_prefix(2);
     return {true, s};
-  } else {
-    return {false, s};
   }
+  return {false, s};
 }
 
 template <class T, auto Param>
@@ -205,16 +204,16 @@ inline auto do_from_chars(std::string_view s) -> T {
   if (ec == std::errc()) {
     if (ptr == last) {
       return x;
-    } else {
-      throw std::invalid_argument{"pattern does not match to the end"};
     }
-  } else if (ec == std::errc::invalid_argument) {
-    throw std::invalid_argument{"pattern not found"};
-  } else if (ec == std::errc::result_out_of_range) {
-    throw std::range_error{"not representable"};
-  } else {
-    return x; // unreachable
+    throw std::invalid_argument{"pattern does not match to the end"};
   }
+  if (ec == std::errc::invalid_argument) {
+    throw std::invalid_argument{"pattern not found"};
+  }
+  if (ec == std::errc::result_out_of_range) {
+    throw std::range_error{"not representable"};
+  }
+  return x; // unreachable
 }
 
 template <class T, auto Param = 0> struct parse_number {
@@ -227,21 +226,21 @@ template <class T> struct parse_number<T, radix_16> {
   auto operator()(std::string_view s) -> T {
     if (auto [ok, rest] = consume_hex_prefix(s); ok) {
       return do_from_chars<T, radix_16>(rest);
-    } else {
-      throw std::invalid_argument{"pattern not found"};
     }
+    throw std::invalid_argument{"pattern not found"};
   }
 };
 
 template <class T> struct parse_number<T> {
   auto operator()(std::string_view s) -> T {
-    if (auto [ok, rest] = consume_hex_prefix(s); ok) {
+    auto [ok, rest] = consume_hex_prefix(s);
+    if (ok) {
       return do_from_chars<T, radix_16>(rest);
-    } else if (starts_with("0"sv, s)) {
-      return do_from_chars<T, radix_8>(rest);
-    } else {
-      return do_from_chars<T, radix_10>(rest);
     }
+    if (starts_with("0"sv, s)) {
+      return do_from_chars<T, radix_8>(rest);
+    }
+    return do_from_chars<T, radix_10>(rest);
   }
 };
 
@@ -263,17 +262,17 @@ template <class T> inline auto do_strtod(std::string const &s) -> T {
   char *ptr;
 
   errno = 0;
-  if (auto x = generic_strtod<T>(first, &ptr); errno == 0) {
+  auto x = generic_strtod<T>(first, &ptr);
+  if (errno == 0) {
     if (ptr == last) {
       return x;
-    } else {
-      throw std::invalid_argument{"pattern does not match to the end"};
     }
-  } else if (errno == ERANGE) {
-    throw std::range_error{"not representable"};
-  } else {
-    return x; // unreachable
+    throw std::invalid_argument{"pattern does not match to the end"};
   }
+  if (errno == ERANGE) {
+    throw std::range_error{"not representable"};
+  }
+  return x; // unreachable
 }
 
 template <class T> struct parse_number<T, chars_format::general> {
@@ -478,7 +477,8 @@ public:
       mValues.emplace_back(mImplicitValue);
       std::visit([](const auto &aAction) { aAction({}); }, mAction);
       return start;
-    } else if (mNumArgs <= std::distance(start, end)) {
+    }
+    if (mNumArgs <= std::distance(start, end)) {
       if (auto expected = maybe_nargs()) {
         end = std::next(start, *expected);
         if (std::any_of(start, end, Argument::is_optional)) {
@@ -505,12 +505,12 @@ public:
       };
       std::visit(action_apply{start, end, *this}, mAction);
       return end;
-    } else if (mDefaultValue.has_value()) {
-      return start;
-    } else {
-      throw std::runtime_error("Too few arguments for '" +
-                               std::string(mUsedName) + "'.");
     }
+    if (mDefaultValue.has_value()) {
+      return start;
+    }
+    throw std::runtime_error("Too few arguments for '" +
+                             std::string(mUsedName) + "'.");
   }
 
   /*
@@ -525,29 +525,26 @@ public:
           stream << mUsedName << ": expected " << *expected << " argument(s). "
                  << mValues.size() << " provided.";
           throw std::runtime_error(stream.str());
-        } else {
-          // TODO: check if an implicit value was programmed for this argument
-          if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
-            std::stringstream stream;
-            stream << mNames[0] << ": required.";
-            throw std::runtime_error(stream.str());
-          }
-          if (mIsUsed && mIsRequired && mValues.empty()) {
-            std::stringstream stream;
-            stream << mUsedName << ": no value provided.";
-            throw std::runtime_error(stream.str());
-          }
         }
-      } else {
-        if (mValues.size() != expected && !mDefaultValue.has_value()) {
+        // TODO: check if an implicit value was programmed for this argument
+        if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
           std::stringstream stream;
-          if (!mUsedName.empty()) {
-            stream << mUsedName << ": ";
-          }
-          stream << *expected << " argument(s) expected. " << mValues.size()
-                 << " provided.";
+          stream << mNames[0] << ": required.";
           throw std::runtime_error(stream.str());
         }
+        if (mIsUsed && mIsRequired && mValues.empty()) {
+          std::stringstream stream;
+          stream << mUsedName << ": no value provided.";
+          throw std::runtime_error(stream.str());
+        }
+      } else if (mValues.size() != expected && !mDefaultValue.has_value()) {
+        std::stringstream stream;
+        if (!mUsedName.empty()) {
+          stream << mUsedName << ": ";
+        }
+        stream << *expected << " argument(s) expected. " << mValues.size()
+               << " provided.";
+        throw std::runtime_error(stream.str());
       }
     }
   }
@@ -555,9 +552,8 @@ public:
   auto maybe_nargs() const -> std::optional<std::size_t> {
     if (mNumArgs < 0) {
       return std::nullopt;
-    } else {
-      return static_cast<std::size_t>(mNumArgs);
     }
+    return static_cast<std::size_t>(mNumArgs);
   }
 
   std::size_t get_arguments_length() const {
@@ -616,9 +612,8 @@ private:
   static auto lookahead(std::string_view s) -> int {
     if (s.empty()) {
       return eof;
-    } else {
-      return static_cast<int>(static_cast<unsigned char>(s[0]));
     }
+    return static_cast<int>(static_cast<unsigned char>(s[0]));
   }
 
   /*
@@ -680,9 +675,8 @@ private:
       s.remove_prefix(1);
       if (s.empty()) {
         return true;
-      } else {
-        goto integer_part;
       }
+      goto integer_part;
     }
     case '1':
     case '2':
@@ -696,9 +690,8 @@ private:
       s = consume_digits(s);
       if (s.empty()) {
         return true;
-      } else {
-        goto integer_part_consumed;
       }
+      goto integer_part_consumed;
     }
     case '.': {
       s.remove_prefix(1);
@@ -733,9 +726,8 @@ private:
     if (is_digit(lookahead(s))) {
       s = consume_digits(s);
       goto exponent_part_opt;
-    } else {
-      return false;
     }
+    return false;
 
   exponent_part_opt:
     switch (lookahead(s)) {
@@ -759,9 +751,8 @@ private:
     if (is_digit(lookahead(s))) {
       s = consume_digits(s);
       return s.empty();
-    } else {
-      return false;
     }
+    return false;
   }
 
   static bool is_optional(std::string_view aName) {
@@ -783,9 +774,8 @@ private:
       aName.remove_prefix(1);
       if (aName.empty()) {
         return true;
-      } else {
-        return is_decimal_literal(aName);
       }
+      return is_decimal_literal(aName);
     }
     default:
       return true;
@@ -819,14 +809,13 @@ private:
     if (mDefaultValue.has_value()) {
       throw std::logic_error("Argument with default value always presents");
     }
-
     if (mValues.empty()) {
       return std::nullopt;
-    } else if constexpr (details::is_container_v<T>) {
-      return any_cast_container<T>(mValues);
-    } else {
-      return std::any_cast<T>(mValues.front());
     }
+    if constexpr (details::is_container_v<T>) {
+      return any_cast_container<T>(mValues);
+    }
+    return std::any_cast<T>(mValues.front());
   }
 
   template <typename T>

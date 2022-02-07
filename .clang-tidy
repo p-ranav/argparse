@@ -3,7 +3,6 @@ Checks:
   clang-analyzer-*,
   cppcoreguidelines-special-member-functions,
   readability-*,
-  -readability-else-after-return,
   -readability-function-cognitive-complexity,
 
 CheckOptions:
