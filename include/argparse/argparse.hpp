@@ -910,6 +910,8 @@ public:
     }
   }
 
+  ~ArgumentParser() = default;
+
   ArgumentParser &operator=(const ArgumentParser &other) {
     auto tmp = other;
     std::swap(*this, tmp);
