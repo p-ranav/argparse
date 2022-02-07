@@ -140,6 +140,10 @@ constexpr bool standard_unsigned_integer<unsigned long long int> = true;
 
 } // namespace
 
+constexpr int radix_8 = 8;
+constexpr int radix_10 = 10;
+constexpr int radix_16 = 16;
+
 template <typename T>
 constexpr bool standard_integer =
     standard_signed_integer<T> || standard_unsigned_integer<T>;
@@ -219,10 +223,10 @@ template <class T, auto Param = 0> struct parse_number {
   }
 };
 
-template <class T> struct parse_number<T, 16> {
+template <class T> struct parse_number<T, radix_16> {
   auto operator()(std::string_view s) -> T {
     if (auto [ok, rest] = consume_hex_prefix(s); ok) {
-      return do_from_chars<T, 16>(rest);
+      return do_from_chars<T, radix_16>(rest);
     } else {
       throw std::invalid_argument{"pattern not found"};
     }
@@ -232,11 +236,11 @@ template <class T> struct parse_number<T, 16> {
 template <class T> struct parse_number<T> {
   auto operator()(std::string_view s) -> T {
     if (auto [ok, rest] = consume_hex_prefix(s); ok) {
-      return do_from_chars<T, 16>(rest);
+      return do_from_chars<T, radix_16>(rest);
     } else if (starts_with("0"sv, s)) {
-      return do_from_chars<T, 8>(rest);
+      return do_from_chars<T, radix_8>(rest);
     } else {
-      return do_from_chars<T, 10>(rest);
+      return do_from_chars<T, radix_10>(rest);
     }
   }
 };
@@ -418,18 +422,18 @@ public:
     };
 
     if constexpr (is_one_of(Shape, 'd') && details::standard_integer<T>) {
-      action(details::parse_number<T, 10>());
+      action(details::parse_number<T, details::radix_10>());
     } else if constexpr (is_one_of(Shape, 'i') && details::standard_integer<T>) {
       action(details::parse_number<T>());
     } else if constexpr (is_one_of(Shape, 'u') &&
                          details::standard_unsigned_integer<T>) {
-      action(details::parse_number<T, 10>());
+      action(details::parse_number<T, details::radix_10>());
     } else if constexpr (is_one_of(Shape, 'o') &&
                          details::standard_unsigned_integer<T>) {
-      action(details::parse_number<T, 8>());
+      action(details::parse_number<T, details::radix_8>());
     } else if constexpr (is_one_of(Shape, 'x', 'X') &&
                          details::standard_unsigned_integer<T>) {
-      action(details::parse_number<T, 16>());
+      action(details::parse_number<T, details::radix_16>());
     } else if constexpr (is_one_of(Shape, 'a', 'A') &&
                          std::is_floating_point_v<T>) {
       action(details::parse_number<T, details::chars_format::hex>());
