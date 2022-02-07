@@ -79,10 +79,6 @@ struct is_streamable<T, std::void_t<decltype(std::declval<std::ostream &>()
 template <typename T>
 static constexpr bool is_streamable_v = is_streamable<T>::value;
 
-template <typename T>
-static constexpr bool is_representable_v =
-    is_streamable_v<T> || is_container_v<T>;
-
 constexpr std::size_t repr_max_container_size = 5;
 
 template <typename T> std::string repr(T const &val) {
