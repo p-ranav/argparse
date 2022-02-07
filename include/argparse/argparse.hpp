@@ -31,6 +31,7 @@ SOFTWARE.
 #pragma once
 #include <algorithm>
 #include <any>
+#include <array>
 #include <cerrno>
 #include <charconv>
 #include <cstdlib>
@@ -350,7 +351,8 @@ class Argument {
       -> std::ostream &;
 
   template <std::size_t N, std::size_t... I>
-  explicit Argument(std::string_view(&&a)[N], std::index_sequence<I...> unused)
+  explicit Argument(std::array<std::string_view, N> &&a,
+                    std::index_sequence<I...> unused)
       : mIsOptional((is_optional(a[I]) || ...)), mIsRequired(false),
         mIsRepeatable(false), mIsUsed(false) {
     ((void)mNames.emplace_back(a[I]), ...);
@@ -362,7 +364,7 @@ class Argument {
 
 public:
   template <std::size_t N>
-  explicit Argument(std::string_view(&&a)[N])
+  explicit Argument(std::array<std::string_view, N> &&a)
       : Argument(std::move(a), std::make_index_sequence<N>{}) {}
 
   Argument &help(std::string aHelp) {
@@ -910,7 +912,7 @@ public:
   // Parameter packing
   // Call add_argument with variadic number of string arguments
   template <typename... Targs> Argument &add_argument(Targs... Fargs) {
-    using array_of_sv = std::string_view[sizeof...(Targs)];
+    using array_of_sv = std::array<std::string_view, sizeof...(Targs)>;
     auto tArgument = mOptionalArguments.emplace(cend(mOptionalArguments),
                                                 array_of_sv{Fargs...});
 
@@ -966,6 +968,7 @@ public:
    * ArgumentParser
    * @throws std::runtime_error in case of any invalid argument
    */
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   void parse_args(int argc, const char *const argv[]) {
     std::vector<std::string> arguments;
     std::copy(argv, argv + argc, std::back_inserter(arguments));

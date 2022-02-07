@@ -1,6 +1,7 @@
 Checks:
   -*,
   clang-analyzer-*,
+  cppcoreguidelines-avoid-c-arrays,
   cppcoreguidelines-special-member-functions,
   readability-*,
 
