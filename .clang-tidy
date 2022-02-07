@@ -1,7 +1,6 @@
 Checks:
   -*,
   readability-*,
-  -readability-braces-around-statements,
   -readability-container-size-empty,
   -readability-else-after-return,
   -readability-implicit-bool-conversion,
