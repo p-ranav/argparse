@@ -55,17 +55,15 @@ namespace argparse {
 
 namespace details { // namespace for helper methods
 
-template <typename T, typename = void>
-struct is_container : std::false_type {};
+template <typename T, typename = void> struct is_container : std::false_type {};
 
 template <> struct is_container<std::string> : std::false_type {};
 
 template <typename T>
-struct is_container<T, std::void_t<typename T::value_type,
-                                   decltype(std::declval<T>().begin()),
-                                   decltype(std::declval<T>().end()),
-                                   decltype(std::declval<T>().size())>>
-  : std::true_type {};
+struct is_container<
+    T, std::void_t<typename T::value_type, decltype(std::declval<T>().begin()),
+                   decltype(std::declval<T>().end()),
+                   decltype(std::declval<T>().size())>> : std::true_type {};
 
 template <typename T>
 static constexpr bool is_container_v = is_container<T>::value;
@@ -74,9 +72,9 @@ template <typename T, typename = void>
 struct is_streamable : std::false_type {};
 
 template <typename T>
-struct is_streamable<
-    T, std::void_t<decltype(std::declval<std::ostream&>() << std::declval<T>())>>
-  : std::true_type {};
+struct is_streamable<T, std::void_t<decltype(std::declval<std::ostream &>()
+                                             << std::declval<T>())>>
+    : std::true_type {};
 
 template <typename T>
 static constexpr bool is_streamable_v = is_streamable<T>::value;
@@ -100,7 +98,8 @@ template <typename T> std::string repr(T const &val) {
       out << repr(*val.begin());
       std::for_each(
           std::next(val.begin()),
-          std::next(val.begin(), std::min<std::size_t>(size, repr_max_container_size) - 1),
+          std::next(val.begin(),
+                    std::min<std::size_t>(size, repr_max_container_size) - 1),
           [&out](const auto &v) { out << " " << repr(v); });
       if (size <= repr_max_container_size) {
         out << " ";
@@ -336,8 +335,8 @@ enum class default_arguments : unsigned int {
   all = help | version,
 };
 
-inline default_arguments operator& (const default_arguments &a,
-                                    const default_arguments &b) {
+inline default_arguments operator&(const default_arguments &a,
+                                   const default_arguments &b) {
   return static_cast<default_arguments>(
       static_cast<std::underlying_type<default_arguments>::type>(a) &
       static_cast<std::underlying_type<default_arguments>::type>(b));
@@ -390,7 +389,7 @@ public:
   }
 
   template <class F, class... Args>
-  auto action(F &&aAction, Args &&... aBound)
+  auto action(F &&aAction, Args &&...aBound)
       -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string const>,
                           Argument &> {
     using action_type = std::conditional_t<
@@ -858,25 +857,25 @@ public:
       : mProgramName(std::move(aProgramName)), mVersion(std::move(aVersion)) {
     if ((aArgs & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
-        .action([&](const auto &unused) {
-          std::cout << help().str();
-          std::exit(0);
-        })
-        .default_value(false)
-        .help("shows help message and exits")
-        .implicit_value(true)
-        .nargs(0);
+          .action([&](const auto &unused) {
+            std::cout << help().str();
+            std::exit(0);
+          })
+          .default_value(false)
+          .help("shows help message and exits")
+          .implicit_value(true)
+          .nargs(0);
     }
     if ((aArgs & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
-        .action([&](const auto &unused) {
-          std::cout << mVersion;
-          std::exit(0);
-        })
-        .default_value(false)
-        .help("prints version information and exits")
-        .implicit_value(true)
-        .nargs(0);
+          .action([&](const auto &unused) {
+            std::cout << mVersion;
+            std::exit(0);
+          })
+          .default_value(false)
+          .help("prints version information and exits")
+          .implicit_value(true)
+          .nargs(0);
     }
   }
 
@@ -891,12 +890,12 @@ public:
         mIsParsed(other.mIsParsed),
         mPositionalArguments(other.mPositionalArguments),
         mOptionalArguments(other.mOptionalArguments) {
-    for (auto it = std::begin(mPositionalArguments); it != std::end(mPositionalArguments);
-         ++it) {
+    for (auto it = std::begin(mPositionalArguments);
+         it != std::end(mPositionalArguments); ++it) {
       index_argument(it);
     }
-    for (auto it = std::begin(mOptionalArguments); it != std::end(mOptionalArguments);
-         ++it) {
+    for (auto it = std::begin(mOptionalArguments);
+         it != std::end(mOptionalArguments); ++it) {
       index_argument(it);
     }
   }
@@ -928,7 +927,7 @@ public:
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
   template <typename... Targs>
-  ArgumentParser &add_parents(const Targs &... Fargs) {
+  ArgumentParser &add_parents(const Targs &...Fargs) {
     for (const ArgumentParser &tParentParser : {std::ref(Fargs)...}) {
       for (const auto &tArgument : tParentParser.mPositionalArguments) {
         auto it =
