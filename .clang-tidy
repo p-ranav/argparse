@@ -3,7 +3,6 @@ Checks:
   readability-*,
   -readability-else-after-return,
   -readability-function-cognitive-complexity,
-  -readability-named-parameter,
   -readability-qualified-auto,
   -readability-static-accessed-through-instance,
 

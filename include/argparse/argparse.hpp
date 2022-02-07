@@ -150,7 +150,7 @@ constexpr bool standard_integer =
 
 template <class F, class Tuple, class Extra, std::size_t... I>
 constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
-                                             std::index_sequence<I...>) {
+                                             std::index_sequence<I...> unused) {
   return std::invoke(std::forward<F>(f), std::get<I>(std::forward<Tuple>(t))...,
                      std::forward<Extra>(x));
 }
@@ -347,11 +347,11 @@ class ArgumentParser;
 
 class Argument {
   friend class ArgumentParser;
-  friend auto operator<<(std::ostream &, ArgumentParser const &)
+  friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream &;
 
   template <std::size_t N, std::size_t... I>
-  explicit Argument(std::string_view(&&a)[N], std::index_sequence<I...>)
+  explicit Argument(std::string_view(&&a)[N], std::index_sequence<I...> unused)
       : mIsOptional((is_optional(a[I]) || ...)), mIsRequired(false),
         mIsRepeatable(false), mIsUsed(false) {
     ((void)mNames.emplace_back(a[I]), ...);
@@ -866,7 +866,7 @@ public:
       : mProgramName(std::move(aProgramName)), mVersion(std::move(aVersion)) {
     if ((aArgs & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
-        .action([&](const auto &) {
+        .action([&](const auto &unused) {
           std::cout << help().str();
           std::exit(0);
         })
@@ -877,7 +877,7 @@ public:
     }
     if ((aArgs & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
-        .action([&](const auto &) {
+        .action([&](const auto &unused) {
           std::cout << mVersion;
           std::exit(0);
         })
