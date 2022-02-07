@@ -332,8 +332,11 @@ enum class default_arguments : unsigned int {
   all = help | version,
 };
 
-inline bool operator& (const default_arguments &a, const default_arguments &b) {
-  return static_cast<unsigned int>(a) & static_cast<unsigned int>(b);
+inline default_arguments operator& (const default_arguments &a,
+                                    const default_arguments &b) {
+  return static_cast<default_arguments>(
+      static_cast<std::underlying_type<default_arguments>::type>(a) &
+      static_cast<std::underlying_type<default_arguments>::type>(b));
 }
 
 class ArgumentParser;
@@ -857,7 +860,7 @@ public:
                           std::string aVersion = "1.0",
                           default_arguments aArgs = default_arguments::all)
       : mProgramName(std::move(aProgramName)), mVersion(std::move(aVersion)) {
-    if (aArgs & default_arguments::help) {
+    if ((aArgs & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
         .action([&](const auto &) {
           std::cout << help().str();
@@ -868,7 +871,7 @@ public:
         .implicit_value(true)
         .nargs(0);
     }
-    if (aArgs & default_arguments::version) {
+    if ((aArgs & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
         .action([&](const auto &) {
           std::cout << mVersion;
