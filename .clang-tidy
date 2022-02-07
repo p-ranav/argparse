@@ -3,7 +3,6 @@ Checks:
   readability-*,
   -readability-else-after-return,
   -readability-function-cognitive-complexity,
-  -readability-static-accessed-through-instance,
 
 CheckOptions:
   - { key: readability-identifier-naming.ClassCase, value: CamelCase }

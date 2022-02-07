@@ -303,7 +303,7 @@ template <class T> struct parse_number<T, chars_format::scientific> {
       throw std::invalid_argument{
           "chars_format::scientific does not parse hexfloat"};
     }
-    if (s.find_first_of("eE") == s.npos) {
+    if (s.find_first_of("eE") == std::string::npos) {
       throw std::invalid_argument{
           "chars_format::scientific requires exponent part"};
     }
@@ -318,7 +318,7 @@ template <class T> struct parse_number<T, chars_format::fixed> {
       throw std::invalid_argument{
           "chars_format::fixed does not parse hexfloat"};
     }
-    if (s.find_first_of("eE") != s.npos) {
+    if (s.find_first_of("eE") != std::string::npos) {
       throw std::invalid_argument{
           "chars_format::fixed does not parse exponent part"};
     }
