@@ -55,29 +55,31 @@ namespace argparse {
 
 namespace details { // namespace for helper methods
 
-template <typename T, typename = void> struct is_container : std::false_type {};
+template <typename T, typename = void>
+struct HasContainerTraits : std::false_type {};
 
-template <> struct is_container<std::string> : std::false_type {};
+template <> struct HasContainerTraits<std::string> : std::false_type {};
 
 template <typename T>
-struct is_container<
+struct HasContainerTraits<
     T, std::void_t<typename T::value_type, decltype(std::declval<T>().begin()),
                    decltype(std::declval<T>().end()),
                    decltype(std::declval<T>().size())>> : std::true_type {};
 
 template <typename T>
-static constexpr bool is_container_v = is_container<T>::value;
+static constexpr bool IsContainer = HasContainerTraits<T>::value;
 
 template <typename T, typename = void>
-struct is_streamable : std::false_type {};
+struct HasStreamableTraits : std::false_type {};
 
 template <typename T>
-struct is_streamable<T, std::void_t<decltype(std::declval<std::ostream &>()
-                                             << std::declval<T>())>>
+struct HasStreamableTraits<
+    T,
+    std::void_t<decltype(std::declval<std::ostream &>() << std::declval<T>())>>
     : std::true_type {};
 
 template <typename T>
-static constexpr bool is_streamable_v = is_streamable<T>::value;
+static constexpr bool IsStreamable = HasStreamableTraits<T>::value;
 
 constexpr std::size_t repr_max_container_size = 5;
 
@@ -86,7 +88,7 @@ template <typename T> std::string repr(T const &val) {
     return val ? "true" : "false";
   } else if constexpr (std::is_convertible_v<T, std::string_view>) {
     return '"' + std::string{std::string_view{val}} + '"';
-  } else if constexpr (is_container_v<T>) {
+  } else if constexpr (IsContainer<T>) {
     std::stringstream out;
     out << "{";
     const auto size = val.size();
@@ -108,7 +110,7 @@ template <typename T> std::string repr(T const &val) {
     }
     out << "}";
     return out.str();
-  } else if constexpr (is_streamable_v<T>) {
+  } else if constexpr (IsStreamable<T>) {
     std::stringstream out;
     out << val;
     return out.str();
@@ -176,7 +178,7 @@ enum class chars_format {
   general = fixed | scientific
 };
 
-struct consume_hex_prefix_result {
+struct ConsumeHexPrefixResult {
   bool is_hexadecimal;
   std::string_view rest;
 };
@@ -184,7 +186,7 @@ struct consume_hex_prefix_result {
 using namespace std::literals;
 
 constexpr auto consume_hex_prefix(std::string_view s)
-    -> consume_hex_prefix_result {
+    -> ConsumeHexPrefixResult {
   if (starts_with("0x"sv, s) || starts_with("0X"sv, s)) {
     s.remove_prefix(2);
     return {true, s};
@@ -483,7 +485,7 @@ public:
         }
       }
 
-      struct action_apply {
+      struct ActionApply {
         void operator()(valued_action &f) {
           std::transform(first, last, std::back_inserter(self.mValues), f);
         }
@@ -500,7 +502,7 @@ public:
         Iterator first, last;
         Argument &self;
       };
-      std::visit(action_apply{start, end, *this}, mAction);
+      std::visit(ActionApply{start, end, *this}, mAction);
       return end;
     }
     if (mDefaultValue.has_value()) {
@@ -591,7 +593,7 @@ public:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T> bool operator==(const T &aRhs) const {
-    if constexpr (!details::is_container_v<T>) {
+    if constexpr (!details::IsContainer<T>) {
       return get<T>() == aRhs;
     } else {
       using ValueType = typename T::value_type;
@@ -785,7 +787,7 @@ private:
    */
   template <typename T> T get() const {
     if (!mValues.empty()) {
-      if constexpr (details::is_container_v<T>) {
+      if constexpr (details::IsContainer<T>) {
         return any_cast_container<T>(mValues);
       } else {
         return std::any_cast<T>(mValues.front());
@@ -809,7 +811,7 @@ private:
     if (mValues.empty()) {
       return std::nullopt;
     }
-    if constexpr (details::is_container_v<T>) {
+    if constexpr (details::IsContainer<T>) {
       return any_cast_container<T>(mValues);
     }
     return std::any_cast<T>(mValues.front());
