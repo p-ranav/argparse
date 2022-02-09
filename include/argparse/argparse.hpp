@@ -670,6 +670,7 @@ private:
 
     // precondition: we have consumed or will consume at least one digit
     auto consume_digits = [=](std::string_view s) {
+      // NOLINTNEXTLINE(readability-qualified-auto)
       auto it = std::find_if_not(std::begin(s), std::end(s), is_digit);
       return s.substr(it - std::begin(s));
     };
@@ -936,12 +937,12 @@ public:
   template <typename... Targs>
   ArgumentParser &add_parents(const Targs &... Fargs) {
     for (const ArgumentParser &tParentParser : {std::ref(Fargs)...}) {
-      for (auto &tArgument : tParentParser.mPositionalArguments) {
+      for (const auto &tArgument : tParentParser.mPositionalArguments) {
         auto it =
             mPositionalArguments.insert(cend(mPositionalArguments), tArgument);
         index_argument(it);
       }
-      for (auto &tArgument : tParentParser.mOptionalArguments) {
+      for (const auto &tArgument : tParentParser.mOptionalArguments) {
         auto it =
             mOptionalArguments.insert(cend(mOptionalArguments), tArgument);
         index_argument(it);
@@ -1173,7 +1174,7 @@ private:
   using list_iterator = std::list<Argument>::iterator;
 
   void index_argument(list_iterator argIt) {
-    for (auto &mName : std::as_const(argIt->mNames)) {
+    for (const auto &mName : std::as_const(argIt->mNames)) {
       mArgumentMap.insert_or_assign(mName, argIt);
     }
   }
