@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.12.4)
 
-project(argparse VERSION 1.0.0 LANGUAGES CXX)
-set("PROJECT_DESCRIPTION" "A single header argument parser for C++17")
-set("PROJECT_HOMEPAGE_URL" "https://github.com/p-ranav/argparse")
+project(argparse
+        VERSION 1.0.0 
+        DESCRIPTION "A single header argument parser for C++17"
+        HOMEPAGE_URL "https://github.com/p-ranav/argparse"
+        LANGUAGES CXX
+)
 
 option(ARGPARSE_BUILD_TESTS OFF)
 option(ARGPARSE_LONG_VERSION_ARG_ONLY OFF)
