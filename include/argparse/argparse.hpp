@@ -1139,11 +1139,9 @@ private:
    */
   void parse_args_validate() {
     // Check if all arguments are parsed
-    std::for_each(std::begin(m_argument_map), std::end(m_argument_map),
-                  [](const auto &pair) {
-                    const auto &argument = pair.second;
-                    argument->validate();
-                  });
+    for (const auto& [unused, argument] : m_argument_map) {
+      argument->validate();
+    }
   }
 
   // Used by print_help.
