@@ -1149,14 +1149,11 @@ private:
     if (m_argument_map.empty()) {
       return 0;
     }
-    std::vector<std::size_t> argument_lengths(m_argument_map.size());
-    std::transform(std::begin(m_argument_map), std::end(m_argument_map),
-                   std::begin(argument_lengths), [](const auto &pair) {
-                     const auto &argument = pair.second;
-                     return argument->get_arguments_length();
-                   });
-    return *std::max_element(std::begin(argument_lengths),
-                             std::end(argument_lengths));
+    std::size_t max_size = 0;
+    for (const auto& [unused, argument] : m_argument_map) {
+      max_size = std::max(max_size, argument->get_arguments_length());
+    }
+    return max_size;
   }
 
   using list_iterator = std::list<Argument>::iterator;
