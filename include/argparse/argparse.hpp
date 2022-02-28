@@ -958,7 +958,10 @@ public:
    */
   void parse_args(const std::vector<std::string> &arguments) {
     parse_args_internal(arguments);
-    parse_args_validate();
+    // Check if all arguments are parsed
+    for (const auto& [unused, argument] : m_argument_map) {
+      argument->validate();
+    }
   }
 
   /* Main entry point for parsing command-line arguments using this
@@ -1132,16 +1135,6 @@ private:
       }
     }
     m_is_parsed = true;
-  }
-
-  /*
-   * @throws std::runtime_error in case of any invalid argument
-   */
-  void parse_args_validate() {
-    // Check if all arguments are parsed
-    for (const auto& [unused, argument] : m_argument_map) {
-      argument->validate();
-    }
   }
 
   // Used by print_help.
