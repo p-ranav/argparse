@@ -867,7 +867,7 @@ public:
     if ((add_args & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
           .action([&](const auto &unused) {
-            std::cout << m_version;
+            std::cout << m_version << std::endl;
             std::exit(0);
           })
           .default_value(false)
