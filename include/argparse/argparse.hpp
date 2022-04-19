@@ -148,7 +148,7 @@ constexpr bool standard_integer =
 
 template <class F, class Tuple, class Extra, std::size_t... I>
 constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
-                                             std::index_sequence<I...> unused) {
+                                             std::index_sequence<I...> /*unused*/) {
   return std::invoke(std::forward<F>(f), std::get<I>(std::forward<Tuple>(t))...,
                      std::forward<Extra>(x));
 }
@@ -855,7 +855,7 @@ public:
       : m_program_name(std::move(program_name)), m_version(std::move(version)) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
-          .action([&](const auto &unused) {
+          .action([&](const auto &/*unused*/) {
             std::cout << help().str();
             std::exit(0);
           })
@@ -866,7 +866,7 @@ public:
     }
     if ((add_args & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
-          .action([&](const auto &unused) {
+          .action([&](const auto &/*unused*/) {
             std::cout << m_version << std::endl;
             std::exit(0);
           })
