@@ -160,7 +160,7 @@ If you want to know whether the user supplied a value for an argument that has a
 
 ```cpp
 program.add_argument("--color")
-  .default_value("orange")
+  .default_value(std::string{"orange"})   // might otherwise be type const char* leading to an error when trying program.get<std::string>
   .help("specify the cat's fur color");
 
 try {
