@@ -958,7 +958,10 @@ public:
    */
   void parse_args(const std::vector<std::string> &arguments) {
     parse_args_internal(arguments);
-    parse_args_validate();
+    // Check if all arguments are parsed
+    for ([[maybe_unused]] const auto& [unused, argument] : m_argument_map) {
+      argument->validate();
+    }
   }
 
   /* Main entry point for parsing command-line arguments using this
@@ -1134,31 +1137,16 @@ private:
     m_is_parsed = true;
   }
 
-  /*
-   * @throws std::runtime_error in case of any invalid argument
-   */
-  void parse_args_validate() {
-    // Check if all arguments are parsed
-    std::for_each(std::begin(m_argument_map), std::end(m_argument_map),
-                  [](const auto &pair) {
-                    const auto &argument = pair.second;
-                    argument->validate();
-                  });
-  }
-
   // Used by print_help.
   std::size_t get_length_of_longest_argument() const {
     if (m_argument_map.empty()) {
       return 0;
     }
-    std::vector<std::size_t> argument_lengths(m_argument_map.size());
-    std::transform(std::begin(m_argument_map), std::end(m_argument_map),
-                   std::begin(argument_lengths), [](const auto &pair) {
-                     const auto &argument = pair.second;
-                     return argument->get_arguments_length();
-                   });
-    return *std::max_element(std::begin(argument_lengths),
-                             std::end(argument_lengths));
+    std::size_t max_size = 0;
+    for ([[maybe_unused]] const auto& [unused, argument] : m_argument_map) {
+      max_size = std::max(max_size, argument->get_arguments_length());
+    }
+    return max_size;
   }
 
   using list_iterator = std::list<Argument>::iterator;
