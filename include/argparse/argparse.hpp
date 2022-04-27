@@ -518,13 +518,6 @@ public:
   void validate() const {
     if (auto expected = maybe_nargs()) {
       if (m_is_optional) {
-        if (m_is_used && m_values.size() != *expected && !m_is_repeatable &&
-            !m_default_value.has_value()) {
-          std::stringstream stream;
-          stream << m_used_name << ": expected " << *expected
-                 << " argument(s). " << m_values.size() << " provided.";
-          throw std::runtime_error(stream.str());
-        }
         // TODO: check if an implicit value was programmed for this argument
         if (!m_is_used && !m_default_value.has_value() && m_is_required) {
           std::stringstream stream;
