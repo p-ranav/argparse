@@ -518,13 +518,6 @@ public:
   void validate() const {
     if (auto expected = maybe_nargs()) {
       if (m_is_optional) {
-        if (m_is_used && m_values.size() != *expected && !m_is_repeatable &&
-            !m_default_value.has_value()) {
-          std::stringstream stream;
-          stream << m_used_name << ": expected " << *expected
-                 << " argument(s). " << m_values.size() << " provided.";
-          throw std::runtime_error(stream.str());
-        }
         // TODO: check if an implicit value was programmed for this argument
         if (!m_is_used && !m_default_value.has_value() && m_is_required) {
           std::stringstream stream;
@@ -910,11 +903,11 @@ public:
   // Call add_argument with variadic number of string arguments
   template <typename... Targs> Argument &add_argument(Targs... f_args) {
     using array_of_sv = std::array<std::string_view, sizeof...(Targs)>;
-    auto argument = m_optional_arguments.emplace(cend(m_optional_arguments),
-                                                 array_of_sv{f_args...});
+    auto argument = m_optional_arguments.emplace(
+        std::cend(m_optional_arguments), array_of_sv{f_args...});
 
     if (!argument->m_is_optional) {
-      m_positional_arguments.splice(cend(m_positional_arguments),
+      m_positional_arguments.splice(std::cend(m_positional_arguments),
                                     m_optional_arguments, argument);
     }
 
@@ -928,13 +921,13 @@ public:
   ArgumentParser &add_parents(const Targs &...f_args) {
     for (const ArgumentParser &parent_parser : {std::ref(f_args)...}) {
       for (const auto &argument : parent_parser.m_positional_arguments) {
-        auto it = m_positional_arguments.insert(cend(m_positional_arguments),
-                                                argument);
+        auto it = m_positional_arguments.insert(
+            std::cend(m_positional_arguments), argument);
         index_argument(it);
       }
       for (const auto &argument : parent_parser.m_optional_arguments) {
-        auto it =
-            m_optional_arguments.insert(cend(m_optional_arguments), argument);
+        auto it = m_optional_arguments.insert(std::cend(m_optional_arguments),
+                                              argument);
         index_argument(it);
       }
     }

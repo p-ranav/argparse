@@ -316,6 +316,40 @@ Optional arguments:
 
 You may also get the help message in string via `program.help().str()`.
 
+#### Adding a description and an epilog to help
+
+`ArgumentParser::add_description` will add text before the detailed argument
+information. `ArgumentParser::add_epilog` will add text after all other help output.
+
+```cpp
+argparse::ArgumentParser program("main");
+
+program.add_argument("thing")
+  .help("Thing to use.");
+program.add_description("Forward a thing to the next member.");
+program.add_epilog("Possible things include betingalw, chiz, and res.");
+
+program.parse_args(argc, argv);
+
+std::cout << program << std::endl;
+```
+
+```bash
+$ ./main --help
+Usage: main thing
+
+Forward a thing to the next member.
+
+Positional arguments:
+thing           Thing to use.
+
+Optional arguments:
+-h --help       shows help message and exits [default: false]
+-v --version    prints version information and exits [default: false]
+
+Possible things include betingalw, chiz, and res.
+```
+
 ### List of Arguments
 
 ArgumentParser objects usually associate a single command-line argument with a single action to be taken. The ```.nargs``` associates a different number of command-line arguments with a single action. When using ```nargs(N)```, N arguments from the command line will be gathered together into a list.
