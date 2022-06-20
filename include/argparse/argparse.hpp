@@ -553,46 +553,19 @@ public:
     if (mIsOptional) {
       if (mIsUsed && !mNumArgsRange.contains(mValues.size()) && !mIsRepeatable &&
           !mDefaultValue.has_value()) {
-        std::stringstream stream;
-        stream << mUsedName << ": expected ";
-        if (mNumArgsRange.is_exact()) {
-          stream << mNumArgsRange.get_min();
-        } else if (mNumArgsRange.is_right_bounded()) {
-          stream << mNumArgsRange.get_min() << " to " << mNumArgsRange.get_max();
-        } else {
-          stream << mNumArgsRange.get_min() << " or more";
-        }
-        stream << " argument(s). "
-          << mValues.size() << " provided.";
-        throw std::runtime_error(stream.str());
+        throw_nargs_range_validation_error();
       } else {
         // TODO: check if an implicit value was programmed for this argument
         if (!mIsUsed && !mDefaultValue.has_value() && mIsRequired) {
-          std::stringstream stream;
-          stream << mNames[0] << ": required.";
-          throw std::runtime_error(stream.str());
+          throw_required_arg_not_used_error();
         }
         if (mIsUsed && mIsRequired && mValues.size() == 0) {
-          std::stringstream stream;
-          stream << mUsedName << ": no value provided.";
-          throw std::runtime_error(stream.str());
+          throw_required_arg_no_value_provided_error();
         }
       }
     } else {
       if (!mNumArgsRange.contains(mValues.size()) && !mDefaultValue.has_value()) {
-        std::stringstream stream;
-        if (!mUsedName.empty())
-          stream << mUsedName << ": ";
-        if (mNumArgsRange.is_exact()) {
-          stream << mNumArgsRange.get_min();
-        } else if (mNumArgsRange.is_right_bounded()) {
-          stream << mNumArgsRange.get_min() << " to " << mNumArgsRange.get_max();
-        } else {
-          stream << mNumArgsRange.get_min() << " or more";
-        }
-        stream << " argument(s) expected. " << mValues.size()
-                << " provided.";
-        throw std::runtime_error(stream.str());
+        throw_nargs_range_validation_error();
       }
     }
   }
@@ -646,6 +619,35 @@ public:
   }
 
 private:
+
+  void throw_nargs_range_validation_error() const {
+    std::stringstream stream;
+    if (!mUsedName.empty())
+      stream << mUsedName << ": ";
+    if (mNumArgsRange.is_exact()) {
+      stream << mNumArgsRange.get_min();
+    } else if (mNumArgsRange.is_right_bounded()) {
+      stream << mNumArgsRange.get_min() << " to " << mNumArgsRange.get_max();
+    } else {
+      stream << mNumArgsRange.get_min() << " or more";
+    }
+    stream << " argument(s) expected. "
+      << mValues.size() << " provided.";
+    throw std::runtime_error(stream.str());
+  }
+
+  void throw_required_arg_not_used_error() const {
+    std::stringstream stream;
+    stream << mNames[0] << ": required.";
+    throw std::runtime_error(stream.str());
+  }
+
+  void throw_required_arg_no_value_provided_error() const {
+    std::stringstream stream;
+    stream << mUsedName << ": no value provided.";
+    throw std::runtime_error(stream.str());
+  }
+
   static constexpr int eof = std::char_traits<char>::eof();
 
   static auto lookahead(std::string_view s) -> int {
