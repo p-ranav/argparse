@@ -836,7 +836,8 @@ private:
       return std::any_cast<T>(mDefaultValue);
     } else {
       if constexpr (details::is_container_v<T>)
-        return any_cast_container<T>(mValues);
+        if (!mAcceptsOptionalLikeValue)
+          return any_cast_container<T>(mValues);
     }
     throw std::logic_error("No value provided for '" + mNames.back() + "'.");
   }
