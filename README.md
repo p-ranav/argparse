@@ -7,7 +7,7 @@
   <a href="https://github.com/p-ranav/argparse/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/>
   </a>
-  <img src="https://img.shields.io/badge/version-2.2-blue.svg?cacheSeconds=2592000" alt="version"/>
+  <img src="https://img.shields.io/badge/version-2.5-blue.svg?cacheSeconds=2592000" alt="version"/>
 </p>
 
 ## Highlights
@@ -27,7 +27,7 @@ Simply include argparse.hpp and you're good to go.
 To start parsing command-line arguments, create an ```ArgumentParser```.
 
 ```cpp
-argparse::ArgumentParser program("program name");
+argparse::ArgumentParser program("program_name");
 ```
 
 **NOTE:** There is an optional second argument to the `ArgumentParser` which is the program version. Example: `argparse::ArgumentParser program("libfoo", "1.9.0");`
@@ -49,7 +49,7 @@ Here's an example of a ***positional argument***:
 #include <argparse/argparse.hpp>
 
 int main(int argc, char *argv[]) {
-  argparse::ArgumentParser program("program name");
+  argparse::ArgumentParser program("program_name");
 
   program.add_argument("square")
     .help("display the square of a given integer")
@@ -59,9 +59,9 @@ int main(int argc, char *argv[]) {
     program.parse_args(argc, argv);
   }
   catch (const std::runtime_error& err) {
-    std::cout << err.what() << std::endl;
-    std::cout << program;
-    exit(0);
+    std::cerr << err.what() << std::endl;
+    std::cerr << program;
+    std::exit(1);
   }
 
   auto input = program.get<int>("square");
@@ -101,9 +101,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 if (program["--verbose"] == true) {
@@ -160,16 +160,16 @@ If you want to know whether the user supplied a value for an argument that has a
 
 ```cpp
 program.add_argument("--color")
-  .default_value("orange")
+  .default_value(std::string{"orange"})   // might otherwise be type const char* leading to an error when trying program.get<std::string>
   .help("specify the cat's fur color");
 
 try {
   program.parse_args(argc, argv);    // Example: ./main --color orange
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto color = program.get<std::string>("--color");  // "orange"
@@ -190,15 +190,33 @@ try {
   program.parse_args(argc, argv);    // Example: ./main --color red --color green --color blue
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto colors = program.get<std::vector<std::string>>("--color");  // {"red", "green", "blue"}
 ```
 
 Notice that ```.default_value``` is given an explicit template parameter to match the type you want to ```.get```.
+
+#### Repeating an argument to increase a value
+
+A common pattern is to repeat an argument to indicate a greater value.
+
+```cpp
+int verbosity = 0;
+program.add_argument("-V", "--verbose")
+  .action([&](const auto &) { ++verbosity; })
+  .append()
+  .default_value(false)
+  .implicit_value(true)
+  .nargs(0);
+
+program.parse_args(argc, argv);    // Example: ./main -VVVV
+
+std::cout << "verbose level: " << verbosity << std::endl;    // verbose level: 4
+```
 
 ### Negative Numbers
 
@@ -220,9 +238,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 // Some code to print arguments
@@ -239,7 +257,7 @@ As you can see here, ```argparse``` supports negative integers, negative floats 
 ### Combining Positional and Optional Arguments
 
 ```cpp
-argparse::ArgumentParser program("test");
+argparse::ArgumentParser program("main");
 
 program.add_argument("square")
   .help("display the square of a given number")
@@ -253,9 +271,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 int input = program.get<int>("square");
@@ -285,17 +303,52 @@ The square of 4 is 16
 
 ```
 $ ./main --help
-Usage: ./main [options] square
+Usage: main [options] square
 
 Positional arguments:
-square         display a square of a given number
+square          display the square of a given number
 
 Optional arguments:
--h, --help     show this help message and exit
--v, --verbose  enable verbose logging
+-h --help       shows help message and exits [default: false]
+-v --version    prints version information and exits [default: false]
+--verbose       [default: false]
 ```
 
 You may also get the help message in string via `program.help().str()`.
+
+#### Adding a description and an epilog to help
+
+`ArgumentParser::add_description` will add text before the detailed argument
+information. `ArgumentParser::add_epilog` will add text after all other help output.
+
+```cpp
+argparse::ArgumentParser program("main");
+
+program.add_argument("thing")
+  .help("Thing to use.");
+program.add_description("Forward a thing to the next member.");
+program.add_epilog("Possible things include betingalw, chiz, and res.");
+
+program.parse_args(argc, argv);
+
+std::cout << program << std::endl;
+```
+
+```bash
+$ ./main --help
+Usage: main thing
+
+Forward a thing to the next member.
+
+Positional arguments:
+thing           Thing to use.
+
+Optional arguments:
+-h --help       shows help message and exits [default: false]
+-v --version    prints version information and exits [default: false]
+
+Possible things include betingalw, chiz, and res.
+```
 
 ### List of Arguments
 
@@ -312,9 +365,9 @@ try {
   program.parse_args(argc, argv);   // Example: ./main --input_files config.yml System.xml
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto files = program.get<std::vector<std::string>>("--input_files");  // {"config.yml", "System.xml"}
@@ -341,9 +394,9 @@ try {
   program.parse_args(argc, argv); // Example: ./main --query_point 3.5 4.7 9.2
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto query_point = program.get<std::vector<double>>("--query_point");  // {3.5, 4.7, 9.2}
@@ -373,9 +426,9 @@ try {
   program.parse_args(argc, argv);                  // Example: ./main -abc 1.95 2.47
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto a = program.get<bool>("-a");                  // true
@@ -437,6 +490,27 @@ The grammar follows `std::from_chars`, but does not exactly duplicate it. For ex
 | 'u'        | decimal (unsigned)                        |
 | 'x' or 'X' | hexadecimal (unsigned)                    |
 
+### Default Arguments
+
+`argparse` provides predefined arguments and actions for `-h`/`--help` and `-v`/`--version`. These default actions exit the program after displaying a help or version message, respectively. These defaults arguments can be disabled during `ArgumentParser` creation so that you can handle these arguments in your own way. (Note that a program name and version must be included when choosing default arguments.)
+
+```cpp
+argparse::ArgumentParser program("test", "1.0", default_arguments::none);
+
+program.add_argument("-h", "--help")
+  .action([=](const std::string& s) {
+    std::cout << help().str();
+  })
+  .default_value(false)
+  .help("shows help message")
+  .implicit_value(true)
+  .nargs(0);
+```
+
+The above code snippet outputs a help message and continues to run. It does not support a `--version` argument.
+
+The default is `default_arguments::all` for included arguments. No default arguments will be added with `default_arguments::none`. `default_arguments::help` and `default_arguments::version` will individually add `--help` and `--version`.
+
 ### Gathering Remaining Arguments
 
 `argparse` supports gathering "remaining" arguments at the end of the command, e.g., for use in a compiler:
@@ -457,9 +531,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 try {
@@ -504,9 +578,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto output_filename = program.get<std::string>("-o");
@@ -586,9 +660,9 @@ try {
   program.parse_args({"./test", "config.json"});
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 nlohmann::json config = program.get<nlohmann::json>("config");
@@ -622,9 +696,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto numbers = program.get<std::vector<int>>("numbers");        // {1, 2, 3}
@@ -664,9 +738,9 @@ try {
   program.parse_args(argc, argv);
 }
 catch (const std::runtime_error& err) {
-  std::cout << err.what() << std::endl;
-  std::cout << program;
-  exit(0);
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
 }
 
 auto input = program.get("input");
@@ -707,6 +781,24 @@ Thanks goes to these wonderful people:
   <tr>
     <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars3.githubusercontent.com/u/21022101?s=400&v=4" width="100px;" alt="mupp"/><br /><sub><b>mupp</b></sub></a></td>
     <td align="center"><a href="https://github.com/CrustyAuklet"><img src="https://avatars2.githubusercontent.com/u/9755578?s=400&v=4" width="100px;" alt="Ethan Slattery"/><br /><sub><b>Ethan Slattery</b></sub></a></td>
+    <td align="center"><a href="https://github.com/skrobinson"><img src="https://avatars.githubusercontent.com/u/49722376?v=4" width="100px;" alt="skrobinson"/><br /><sub><b>skrobinson</b></sub></a></td>
+    <td align="center"><a href="https://github.com/cekc"><img src="https://avatars.githubusercontent.com/u/31835620?v=4" width="100px;" alt="Mike Zozu"/><br /><sub><b>Mike Zozu</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Chuvi-w"><img src="https://avatars.githubusercontent.com/u/3652659?v=4" width="100px;" alt="Chuvi-w"/><br /><sub><b>Chuvi-w</b></sub></a></td>
+    <td align="center"><a href="https://github.com/KOLANICH"><img src="https://avatars.githubusercontent.com/u/240344?v=4" width="100px;" alt="KOLANICH"/><br /><sub><b>KOLANICH</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Bedzior"><img src="https://avatars.githubusercontent.com/u/19894088?v=4" width="100px;" alt="Rafał Będźkowski"/><br /><sub><b>Rafał Będźkowski</b></sub></a></td>
+    <td align="center"><a href="https://github.com/hokacci"><img src="https://avatars.githubusercontent.com/u/47231909?v=4" width="100px;" alt="Yoshihiro Hokazono"/><br /><sub><b>Yoshihiro Hokazono</b></sub></a></td>
+    <td align="center"><a href="https://github.com/qoelet"><img src="https://avatars.githubusercontent.com/u/115877?v=4" width="100px;" alt="Kenny Shen"/><br /><sub><b>Kenny Shen</b></sub></a></td>
+    <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars.githubusercontent.com/u/21022101?v=4" width="100px;" alt="The 42nd Mu00"/><br /><sub><b>The 42nd Mu00</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Ubpa"><img src="https://avatars.githubusercontent.com/u/15104079?v=4" width="100px;" alt="Ubpa"/><br /><sub><b>Ubpa</b></sub></a></td>
+    <td align="center"><a href="https://github.com/kfsone"><img src="https://avatars.githubusercontent.com/u/323009?v=4" width="100px;" alt="Oliver Smith"/><br /><sub><b>Oliver Smith</b></sub></a></td>    
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/JadeMatrix"><img src="https://avatars.githubusercontent.com/u/1753533?v=4" width="100px;" alt="Joseph Durel"/><br /><sub><b>Joseph Durel</b></sub></a></td>
+    <td align="center"><a href="https://github.com/rysson"><img src="https://avatars.githubusercontent.com/u/5898312?v=4" width="100px;" alt="rysson"/><br /><sub><b>rysson</b></sub></a></td>
+    <td align="center"><a href="https://github.com/aashwinr"><img src="https://avatars.githubusercontent.com/u/78666414?v=4" width="100px;" alt="aashwinr"/><br /><sub><b>aashwinr</b></sub></a></td>
+    <td align="center"><a href="https://github.com/bufferbase"><img src="https://avatars.githubusercontent.com/u/65209648?v=4" width="100px;" alt="bufferbase"/><br /><sub><b>bufferbase</b></sub></a></td>
   </tr>
 </table>
 
