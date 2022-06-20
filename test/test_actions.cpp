@@ -140,7 +140,7 @@ TEST_CASE("Users can use actions on remaining arguments" *
 
   std::string result = "";
   program.add_argument("all").remaining().action(
-      [](std::string &sum, std::string const &value) { sum += value; },
+      [](std::string &sum, const std::string &value) { sum += value; },
       std::ref(result));
 
   program.parse_args({"concat", "a", "-b", "-c", "--d"});
