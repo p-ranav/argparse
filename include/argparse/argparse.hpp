@@ -359,10 +359,10 @@ public:
   }
 };
 
-enum class NArgsPattern {
-  ZeroOrOne,
-  Any,
-  AtLeastOne
+enum class nargs_pattern {
+  zero_or_one,
+  any,
+  at_least_one
 };
 
 enum class default_arguments : unsigned int {
@@ -505,15 +505,15 @@ public:
     return *this;
   }
 
-  Argument &nargs(NArgsPattern num_args_pattern) {
-    switch (num_args_pattern) {
-    case NArgsPattern::ZeroOrOne:
+  Argument &nargs(nargs_pattern pattern) {
+    switch (pattern) {
+    case nargs_pattern::zero_or_one:
       m_num_args_range = SizeRange{0, 1};
       break;
-    case NArgsPattern::Any:
+    case nargs_pattern::any:
       m_num_args_range = SizeRange{0, std::numeric_limits<std::size_t>::max()};
       break;
-    case NArgsPattern::AtLeastOne:
+    case nargs_pattern::at_least_one:
       m_num_args_range = SizeRange{1, std::numeric_limits<std::size_t>::max()};
       break;
     }
@@ -522,7 +522,7 @@ public:
 
   Argument &remaining() {
     m_accepts_optional_like_value = true;
-    return nargs(NArgsPattern::Any);
+    return nargs(nargs_pattern::any);
   }
 
   template <typename Iterator>
