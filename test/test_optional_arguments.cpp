@@ -88,7 +88,7 @@ TEST_CASE("Parse optional arguments of many values" *
     program.add_argument("-i").remaining().scan<'i', int>();
 
     WHEN("provided no argument") {
-      THEN("the program accepts it bug gets nothing") {
+      THEN("the program accepts it but gets nothing") {
         REQUIRE_NOTHROW(program.parse_args({"test"}));
         REQUIRE_THROWS_AS(program.get<std::vector<int>>("-i"),
                           std::logic_error);
