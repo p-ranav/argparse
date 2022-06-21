@@ -588,7 +588,7 @@ public:
       if (!m_is_used && !m_default_value.has_value() && m_is_required) {
         throw_required_arg_not_used_error();
       }
-      if (m_is_used && m_is_required && m_values.size() == 0) {
+      if (m_is_used && m_is_required && m_values.empty()) {
         throw_required_arg_no_value_provided_error();
       }
     } else {
