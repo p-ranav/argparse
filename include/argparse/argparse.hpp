@@ -328,37 +328,6 @@ template <class T> struct parse_number<T, chars_format::fixed> {
 
 } // namespace details
 
-class NArgsRange {
-  std::size_t m_min;
-  std::size_t m_max;
-
-public:
-  NArgsRange(std::size_t minimum, std::size_t maximum) : m_min(minimum), m_max(maximum) {
-    if (minimum > maximum)
-      throw std::logic_error("Range of number of arguments is invalid");
-  }
-
-  bool contains(std::size_t value) const {
-    return value >= m_min && value <= m_max;
-  }
-
-  bool is_exact() const {
-    return m_min == m_max;
-  }
-
-  bool is_right_bounded() const {
-    return m_max < std::numeric_limits<std::size_t>::max();
-  }
-
-  std::size_t get_min() const {
-    return m_min;
-  }
-
-  std::size_t get_max() const {
-    return m_max;
-  }
-};
-
 enum class nargs_pattern {
   optional,
   any,
@@ -497,11 +466,6 @@ public:
 
   Argument &nargs(std::size_t num_args_min, std::size_t num_args_max) {
     m_num_args_range = NArgsRange{num_args_min, num_args_max};
-    return *this;
-  }
-
-  Argument &nargs(NArgsRange num_args_range) {
-    m_num_args_range = num_args_range;
     return *this;
   }
 
@@ -649,6 +613,37 @@ public:
   }
 
 private:
+
+  class NArgsRange {
+    std::size_t m_min;
+    std::size_t m_max;
+
+  public:
+    NArgsRange(std::size_t minimum, std::size_t maximum) : m_min(minimum), m_max(maximum) {
+      if (minimum > maximum)
+        throw std::logic_error("Range of number of arguments is invalid");
+    }
+
+    bool contains(std::size_t value) const {
+      return value >= m_min && value <= m_max;
+    }
+
+    bool is_exact() const {
+      return m_min == m_max;
+    }
+
+    bool is_right_bounded() const {
+      return m_max < std::numeric_limits<std::size_t>::max();
+    }
+
+    std::size_t get_min() const {
+      return m_min;
+    }
+
+    std::size_t get_max() const {
+      return m_max;
+    }
+  };
 
   void throw_nargs_range_validation_error() const {
     std::stringstream stream;
