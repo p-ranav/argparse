@@ -402,6 +402,29 @@ catch (const std::runtime_error& err) {
 auto query_point = program.get<std::vector<double>>("--query_point");  // {3.5, 4.7, 9.2}
 ```
 
+You can also make a variable length list of arguments with the ```.nargs```.
+Below are some examples.
+
+```cpp
+program.add_argument("--input_files")
+  .nargs(1, 3);  // This accepts 1 to 3 arguments.
+```
+
+Some useful patterns are defined like "?", "*", "+" of argparse in Python.
+
+```cpp
+program.add_argument("--input_files")
+  .nargs(argparse::nargs_pattern::any);  // "*" in Python. This accepts any number of arguments including 0.
+```
+```cpp
+program.add_argument("--input_files")
+  .nargs(argparse::nargs_pattern::at_least_one);  // "+" in Python. This accepts one or more number of arguments.
+```
+```cpp
+program.add_argument("--input_files")
+  .nargs(argparse::nargs_pattern::optional);  // "?" in Python. This accepts an argument optionally.
+```
+
 ### Compound Arguments
 
 Compound arguments are optional arguments that are combined and provided as a single argument. Example: ```ps -aux```

@@ -110,6 +110,86 @@ TEST_CASE("Parse optional arguments of many values" *
   }
 }
 
+TEST_CASE("Parse 2 optional arguments of many values" *
+          test_suite("optional_arguments")) {
+  GIVEN("a program that accepts 2 optional arguments of many values") {
+    argparse::ArgumentParser program("test");
+    program.add_argument("-i").nargs(argparse::nargs_pattern::any).scan<'i', int>();
+    program.add_argument("-s").nargs(argparse::nargs_pattern::any);
+
+    WHEN("provided no argument") {
+      THEN("the program accepts it and gets empty container") {
+        REQUIRE_NOTHROW(program.parse_args({"test"}));
+        auto i = program.get<std::vector<int>>("-i");
+        REQUIRE(i.size() == 0);
+
+        auto s = program.get<std::vector<std::string>>("-s");
+        REQUIRE(s.size() == 0);
+      }
+    }
+
+    WHEN("provided 2 options with many arguments") {
+      program.parse_args(
+        {"test", "-i", "-42", "8", "100", "300", "-s", "ok", "this", "works"});
+
+      THEN("the optional parameter consumes each arguments") {
+        auto i = program.get<std::vector<int>>("-i");
+        REQUIRE(i.size() == 4);
+        REQUIRE(i[0] == -42);
+        REQUIRE(i[1] == 8);
+        REQUIRE(i[2] == 100);
+        REQUIRE(i[3] == 300);
+
+        auto s = program.get<std::vector<std::string>>("-s");
+        REQUIRE(s.size() == 3);
+        REQUIRE(s[0] == "ok");
+        REQUIRE(s[1] == "this");
+        REQUIRE(s[2] == "works");
+      }
+    }
+  }
+}
+
+TEST_CASE("Parse an optional argument of many values"
+          " and a positional argument of many values" *
+          test_suite("optional_arguments")) {
+  GIVEN("a program that accepts an optional argument of many values"
+        " and a positional argument of many values") {
+    argparse::ArgumentParser program("test");
+    program.add_argument("-s").nargs(argparse::nargs_pattern::any);
+    program.add_argument("input").nargs(argparse::nargs_pattern::any);
+
+    WHEN("provided no argument") {
+      program.parse_args({"test"});
+      THEN("the program accepts it and gets empty containers") {
+        auto s = program.get<std::vector<std::string>>("-s");
+        REQUIRE(s.size() == 0);
+
+        auto input = program.get<std::vector<std::string>>("input");
+        REQUIRE(input.size() == 0);
+      }
+    }
+
+    WHEN("provided many arguments followed by an option with many arguments") {
+      program.parse_args(
+        {"test", "foo", "bar", "-s", "ok", "this", "works"});
+
+      THEN("the parameters consume each arguments") {
+        auto s = program.get<std::vector<std::string>>("-s");
+        REQUIRE(s.size() == 3);
+        REQUIRE(s[0] == "ok");
+        REQUIRE(s[1] == "this");
+        REQUIRE(s[2] == "works");
+
+        auto input = program.get<std::vector<std::string>>("input");
+        REQUIRE(input.size() == 2);
+        REQUIRE(input[0] == "foo");
+        REQUIRE(input[1] == "bar");
+      }
+    }
+  }
+}
+
 TEST_CASE("Parse arguments of different types" *
           test_suite("optional_arguments")) {
   using namespace std::literals;
