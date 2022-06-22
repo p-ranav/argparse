@@ -328,12 +328,12 @@ template <class T> struct parse_number<T, chars_format::fixed> {
 
 } // namespace details
 
-class SizeRange {
+class NArgsRange {
   std::size_t m_min;
   std::size_t m_max;
 
 public:
-  SizeRange(std::size_t minimum, std::size_t maximum) : m_min(minimum), m_max(maximum) {
+  NArgsRange(std::size_t minimum, std::size_t maximum) : m_min(minimum), m_max(maximum) {
     if (minimum > maximum)
       throw std::logic_error("Range of number of arguments is invalid");
   }
@@ -421,7 +421,7 @@ public:
 
   Argument &implicit_value(std::any value) {
     m_implicit_value = std::move(value);
-    m_num_args_range = SizeRange{0, 0};
+    m_num_args_range = NArgsRange{0, 0};
     return *this;
   }
 
@@ -491,16 +491,16 @@ public:
   }
 
   Argument &nargs(std::size_t num_args) {
-    m_num_args_range = SizeRange{num_args, num_args};
+    m_num_args_range = NArgsRange{num_args, num_args};
     return *this;
   }
 
   Argument &nargs(std::size_t num_args_min, std::size_t num_args_max) {
-    m_num_args_range = SizeRange{num_args_min, num_args_max};
+    m_num_args_range = NArgsRange{num_args_min, num_args_max};
     return *this;
   }
 
-  Argument &nargs(SizeRange num_args_range) {
+  Argument &nargs(NArgsRange num_args_range) {
     m_num_args_range = num_args_range;
     return *this;
   }
@@ -508,13 +508,13 @@ public:
   Argument &nargs(nargs_pattern pattern) {
     switch (pattern) {
     case nargs_pattern::optional:
-      m_num_args_range = SizeRange{0, 1};
+      m_num_args_range = NArgsRange{0, 1};
       break;
     case nargs_pattern::any:
-      m_num_args_range = SizeRange{0, std::numeric_limits<std::size_t>::max()};
+      m_num_args_range = NArgsRange{0, std::numeric_limits<std::size_t>::max()};
       break;
     case nargs_pattern::at_least_one:
-      m_num_args_range = SizeRange{1, std::numeric_limits<std::size_t>::max()};
+      m_num_args_range = NArgsRange{1, std::numeric_limits<std::size_t>::max()};
       break;
     }
     return *this;
@@ -916,7 +916,7 @@ private:
       std::in_place_type<valued_action>,
       [](const std::string &value) { return value; }};
   std::vector<std::any> m_values;
-  SizeRange m_num_args_range {1, 1};
+  NArgsRange m_num_args_range {1, 1};
   bool m_accepts_optional_like_value = false;
   bool m_is_optional : true;
   bool m_is_required : true;
