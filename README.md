@@ -422,7 +422,7 @@ program.add_argument("--input_files")
 ```
 ```cpp
 program.add_argument("--input_files")
-  .nargs(argparse::nargs_pattern::zero_or_one);  // "?" in Python. This accepts an argument optionally.
+  .nargs(argparse::nargs_pattern::optional);  // "?" in Python. This accepts an argument optionally.
 ```
 
 ### Compound Arguments

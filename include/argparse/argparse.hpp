@@ -360,7 +360,7 @@ public:
 };
 
 enum class nargs_pattern {
-  zero_or_one,
+  optional,
   any,
   at_least_one
 };
@@ -507,7 +507,7 @@ public:
 
   Argument &nargs(nargs_pattern pattern) {
     switch (pattern) {
-    case nargs_pattern::zero_or_one:
+    case nargs_pattern::optional:
       m_num_args_range = SizeRange{0, 1};
       break;
     case nargs_pattern::any:
