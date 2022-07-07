@@ -7,7 +7,7 @@
 
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 SPDX-License-Identifier: MIT
-Copyright (c) 2019-2021 Pranav Srinivas Kumar <pranav.srinivas.kumar@gmail.com>
+Copyright (c) 2019-2022 Pranav Srinivas Kumar <pranav.srinivas.kumar@gmail.com>
 and other contributors.
 
 Permission is hereby  granted, free of charge, to any  person obtaining a copy
@@ -505,7 +505,8 @@ public:
       m_values.emplace_back(m_implicit_value);
       std::visit([](const auto &f) { f({}); }, m_action);
       return start;
-    } else if ((dist = static_cast<std::size_t>(std::distance(start, end))) >= num_args_min) {
+    }
+    if ((dist = static_cast<std::size_t>(std::distance(start, end))) >= num_args_min) {
       if (num_args_max < dist) {
         end = std::next(start, num_args_max);
       }
@@ -525,8 +526,9 @@ public:
         void operator()(void_action &f) {
           std::for_each(first, last, f);
           if (!self.m_default_value.has_value()) {
-            if (!self.m_accepts_optional_like_value)
+            if (!self.m_accepts_optional_like_value) {
               self.m_values.resize(std::distance(first, last));
+            }
           }
         }
 
@@ -619,9 +621,11 @@ private:
     std::size_t m_max;
 
   public:
-    NArgsRange(std::size_t minimum, std::size_t maximum) : m_min(minimum), m_max(maximum) {
-      if (minimum > maximum)
+    NArgsRange(std::size_t minimum, std::size_t maximum)
+        : m_min(minimum), m_max(maximum) {
+      if (minimum > maximum) {
         throw std::logic_error("Range of number of arguments is invalid");
+      }
     }
 
     bool contains(std::size_t value) const {
@@ -647,8 +651,9 @@ private:
 
   void throw_nargs_range_validation_error() const {
     std::stringstream stream;
-    if (!m_used_name.empty())
+    if (!m_used_name.empty()) {
       stream << m_used_name << ": ";
+    }
     if (m_num_args_range.is_exact()) {
       stream << m_num_args_range.get_min();
     } else if (m_num_args_range.is_right_bounded()) {
@@ -656,8 +661,7 @@ private:
     } else {
       stream << m_num_args_range.get_min() << " or more";
     }
-    stream << " argument(s) expected. "
-      << m_values.size() << " provided.";
+    stream << " argument(s) expected. " << m_values.size() << " provided.";
     throw std::runtime_error(stream.str());
   }
 
@@ -862,11 +866,13 @@ private:
     }
     if (m_default_value.has_value()) {
       return std::any_cast<T>(m_default_value);
-    } else {
-      if constexpr (details::IsContainer<T>)
-        if (!m_accepts_optional_like_value)
-          return any_cast_container<T>(m_values);
     }
+    if constexpr (details::IsContainer<T>) {
+      if (!m_accepts_optional_like_value) {
+        return any_cast_container<T>(m_values);
+      }
+    }
+
     throw std::logic_error("No value provided for '" + m_names.back() + "'.");
   }
 
