@@ -775,6 +775,26 @@ $ ./main fex
 baz
 ```
 
+## CMake Integration 
+
+Use the latest argparse in your CMake project without copying any content.  
+
+```cmake
+cmake_minimum_required(VERSION 3.11)
+
+PROJECT(myproject)
+
+# fetch latest argparse
+include(FetchContent)
+FetchContent_Declare(
+    argparse
+    GIT_REPOSITORY https://github.com/p-ranav/argparse.git
+)
+FetchContent_MakeAvailable(argparse)
+
+add_executable(myproject main.cpp)
+target_link_libraries(myproject argparse)
+```
 ## Supported Toolchains
 
 | Compiler             | Standard Library | Test Environment   |
