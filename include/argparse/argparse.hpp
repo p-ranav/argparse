@@ -1172,7 +1172,32 @@ private:
   /*
    * @throws std::runtime_error in case of any invalid argument
    */
-  void parse_args_internal(const std::vector<std::string> &arguments) {
+  void parse_args_internal(const std::vector<std::string> &raw_arguments) {
+    // Pre-process this argument list. Anything starting with "--", that
+    // contains an =, where the prefix before the = has an entry in the
+    // options table, should be split.
+    std::vector<std::string> arguments;
+    for (const auto &arg : raw_arguments) {
+      // Check that:
+      // - We don't have an argument named exactly this
+      // - The argument starts with "--"
+      // - The argument contains a "="
+      std::size_t eqpos = arg.find("=");
+      if (m_argument_map.find(arg) == m_argument_map.end() &&
+          arg.rfind("--", 0) == 0 && eqpos != std::string::npos) {
+        // Get the name of the potential option, and check it exists
+        std::string opt_name = arg.substr(0, eqpos);
+        if (m_argument_map.find(opt_name) != m_argument_map.end()) {
+          // This is the name of an option! Split it into two parts
+          arguments.push_back(std::move(opt_name));
+          arguments.push_back(arg.substr(eqpos + 1));
+          continue;
+        }
+      }
+      // If we've fallen through to here, then it's a standard argument
+      arguments.push_back(arg);
+    }
+
     if (m_program_name.empty() && !arguments.empty()) {
       m_program_name = arguments.front();
     }
