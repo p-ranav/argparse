@@ -377,6 +377,11 @@ public:
     return *this;
   }
 
+  Argument &metavar(std::string metavar) {
+    m_metavar = std::move(metavar);
+    return *this;
+  }
+
   template <typename T> Argument &default_value(T &&value) {
     m_default_value_repr = details::repr(value);
     m_default_value = std::forward<T>(value);
@@ -565,11 +570,15 @@ public:
   }
 
   std::size_t get_arguments_length() const {
-    return std::accumulate(std::begin(m_names), std::end(m_names),
+    std::size_t size = std::accumulate(std::begin(m_names), std::end(m_names),
                            std::size_t(0), [](const auto &sum, const auto &s) {
                              return sum + s.size() +
                                     1; // +1 for space between names
                            });
+    if (!m_metavar.empty()) {
+      size += m_metavar.size() + 1;
+    }
+    return size;
   }
 
   friend std::ostream &operator<<(std::ostream &stream,
@@ -577,6 +586,9 @@ public:
     std::stringstream name_stream;
     std::copy(std::begin(argument.m_names), std::end(argument.m_names),
               std::ostream_iterator<std::string>(name_stream, " "));
+    if(!argument.m_metavar.empty() && argument.m_num_args_range.get_min() != 0) {
+      name_stream << argument.m_metavar << " ";
+    }
     stream << name_stream.str() << "\t" << argument.m_help;
     if (argument.m_default_value.has_value()) {
       if (!argument.m_help.empty()) {
@@ -908,6 +920,7 @@ private:
   std::vector<std::string> m_names;
   std::string_view m_used_name;
   std::string m_help;
+  std::string m_metavar;
   std::any m_default_value;
   std::string m_default_value_repr;
   std::any m_implicit_value;
