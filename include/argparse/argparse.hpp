@@ -569,6 +569,32 @@ public:
     }
   }
 
+  std::string get_inline_usage() const {
+    std::stringstream usage;
+    // Find the longest variant to show in the usage string
+    std::string longest_name = m_names[0];
+    for (const auto &s : m_names) {
+      if (s.size() > longest_name.size()) {
+        longest_name = s;
+      }
+    }
+    if (!m_is_required) {
+      usage << "[";
+    }
+    usage << longest_name;
+    const std::string metavar = m_metavar.size() > 0 ? m_metavar : "VAR";
+    if (m_num_args_range.get_max() > 0) {
+      usage << " " << metavar;
+      if (m_num_args_range.get_max() > 1) {
+        usage << "...";
+      }
+    }
+    if (!m_is_required) {
+      usage << "]";
+    }
+    return usage.str();
+  }
+
   std::size_t get_arguments_length() const {
     std::size_t size = std::accumulate(std::begin(m_names), std::end(m_names),
                            std::size_t(0), [](const auto &sum, const auto &s) {
@@ -1127,13 +1153,10 @@ public:
   friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream & {
     stream.setf(std::ios_base::left);
-    stream << "Usage: " << parser.m_program_name << " [options] ";
+
     std::size_t longest_arg_length = parser.get_length_of_longest_argument();
 
-    for (const auto &argument : parser.m_positional_arguments) {
-      stream << argument.m_names.front() << " ";
-    }
-    stream << "\n\n";
+    stream << parser.usage() << "\n\n";
 
     if (!parser.m_description.empty()) {
       stream << parser.m_description << "\n\n";
@@ -1171,6 +1194,34 @@ public:
     std::stringstream out;
     out << *this;
     return out;
+  }
+
+  // Format usage part of help only
+  auto usage() const -> std::string {
+    std::stringstream stream;
+    
+    stream << "Usage: " << this->m_program_name;
+
+    // Add any options inline here
+    for (const auto &argument : this->m_optional_arguments) {
+      if (argument.m_names[0] == "-v") {
+        continue;
+      } else if (argument.m_names[0] == "-h") {
+        stream << " [-h]";
+      } else {
+        stream << " " << argument.get_inline_usage();
+      }
+    }
+    // Put positional arguments after the optionals
+    for (const auto &argument : this->m_positional_arguments) {
+      if (!argument.m_metavar.empty()) {
+        stream << " " << argument.m_metavar;
+      } else {
+        stream << " " << argument.m_names.front();
+      }
+    }
+
+    return stream.str();
   }
 
   // Printing the one and only help message
