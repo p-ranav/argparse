@@ -303,15 +303,15 @@ The square of 4 is 16
 
 ```
 $ ./main --help
-Usage: main [options] square
+Usage: main [-h] [--verbose] square
 
 Positional arguments:
-square          display the square of a given number
+  square       	display the square of a given number
 
 Optional arguments:
--h --help       shows help message and exits [default: false]
--v --version    prints version information and exits [default: false]
---verbose       [default: false]
+  -h, --help   	shows help message and exits
+  -v, --version	prints version information and exits
+  --verbose
 ```
 
 You may also get the help message in string via `program.help().str()`.
@@ -336,16 +336,16 @@ std::cout << program << std::endl;
 
 ```bash
 $ ./main --help
-Usage: main thing
+Usage: main [-h] thing
 
 Forward a thing to the next member.
 
 Positional arguments:
-thing           Thing to use.
+  thing        	Thing to use.
 
 Optional arguments:
--h --help       shows help message and exits [default: false]
--v --version    prints version information and exits [default: false]
+  -h, --help   	shows help message and exits
+  -v, --version	prints version information and exits
 
 Possible things include betingalw, chiz, and res.
 ```
