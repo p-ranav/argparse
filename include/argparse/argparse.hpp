@@ -326,6 +326,21 @@ template <class T> struct parse_number<T, chars_format::fixed> {
   }
 };
 
+template <typename StrIt>
+std::string join(StrIt first, StrIt last, const std::string &separator) {
+  if (first == last) {
+    return "";
+  }
+  std::stringstream value;
+  value << *first;
+  ++first;
+  while (first != last) {
+    value << separator << *first;
+    ++first;
+  }
+  return value.str();
+}
+
 } // namespace details
 
 enum class nargs_pattern {
@@ -596,27 +611,52 @@ public:
   }
 
   std::size_t get_arguments_length() const {
-    std::size_t size = std::accumulate(std::begin(m_names), std::end(m_names),
-                           std::size_t(0), [](const auto &sum, const auto &s) {
-                             return sum + s.size() +
-                                    1; // +1 for space between names
-                           });
-    if (!m_metavar.empty()) {
+    std::size_t names_size = std::accumulate(
+        std::begin(m_names), std::end(m_names), std::size_t(0),
+        [](const auto &sum, const auto &s) { return sum + s.size(); });
+    if (is_positional(m_names.front())) {
+      // A set metavar means this replaces the names
+      if (!m_metavar.empty()) {
+        // Indent and metavar
+        return 2 + m_metavar.size();
+      } else {
+        // Indent and space-separated
+        return 2 + names_size + (m_names.size() - 1);
+      }
+    }
+    // Is an option - include both names _and_ metavar
+    // size = text + (", " between names)
+    std::size_t size = names_size + 2 * (m_names.size() - 1);
+    if (m_metavar.size() > 0 && m_num_args_range == NArgsRange{1, 1}) {
       size += m_metavar.size() + 1;
     }
-    return size;
+    return size + 2; // indent
   }
 
   friend std::ostream &operator<<(std::ostream &stream,
                                   const Argument &argument) {
     std::stringstream name_stream;
-    std::copy(std::begin(argument.m_names), std::end(argument.m_names),
-              std::ostream_iterator<std::string>(name_stream, " "));
-    if(!argument.m_metavar.empty() && argument.m_num_args_range.get_min() != 0) {
-      name_stream << argument.m_metavar << " ";
+    name_stream << "  "; // indent
+    if (argument.is_positional(argument.m_names.front())) {
+      if (!argument.m_metavar.empty()) {
+        name_stream << argument.m_metavar;
+      } else {
+        name_stream << details::join(argument.m_names.begin(),
+                                     argument.m_names.end(), " ");
+      }
+    } else {
+      name_stream << details::join(argument.m_names.begin(),
+                                   argument.m_names.end(), ", ");
+      // If we have a metavar, and one narg - print the metavar
+      if (argument.m_metavar.size() > 0 &&
+          argument.m_num_args_range == NArgsRange{1, 1}) {
+        name_stream << " " << argument.m_metavar;
+      }
     }
     stream << name_stream.str() << "\t" << argument.m_help;
-    if (argument.m_default_value.has_value()) {
+
+    if (argument.m_default_value.has_value() &&
+        argument.m_num_args_range != NArgsRange{0, 0}) {
       if (!argument.m_help.empty()) {
         stream << " ";
       }
@@ -685,6 +725,12 @@ private:
     std::size_t get_max() const {
       return m_max;
     }
+
+    bool operator==(const NArgsRange &rhs) const {
+      return rhs.m_min == m_min && rhs.m_max == m_max;
+    }
+
+    bool operator!=(const NArgsRange &rhs) const { return !(*this == rhs); }
   };
 
   void throw_nargs_range_validation_error() const {
@@ -1199,7 +1245,7 @@ public:
   // Format usage part of help only
   auto usage() const -> std::string {
     std::stringstream stream;
-    
+
     stream << "Usage: " << this->m_program_name;
 
     // Add any options inline here
