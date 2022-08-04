@@ -18,6 +18,7 @@ jobs:
           - macos-latest-clang
           - ubuntu-latest-clang
           - ubuntu-latest-gcc
+          - windows-2019-msvc
           - windows-latest-msvc
 
         include:
@@ -35,6 +36,11 @@ jobs:
             os: ubuntu-latest
             c_compiler: cc
             cxx_compiler: g++
+
+          - toolchain: windows-2019-msvc
+            os: windows-2019
+            c_compiler: msvc
+            cxx_compiler: msvc
 
           - toolchain: windows-latest-msvc
             os: windows-latest
