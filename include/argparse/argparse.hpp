@@ -856,16 +856,16 @@ private:
    * Get argument value given a type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T> T get() const {
+  template <typename T> auto get() const -> std::conditional_t<details::IsContainer<T>, T, T&> {
     if (!m_values.empty()) {
       if constexpr (details::IsContainer<T>) {
         return any_cast_container<T>(m_values);
       } else {
-        return std::any_cast<T>(m_values.front());
+        return std::any_cast<T&>(m_values.front());
       }
     }
     if (m_default_value.has_value()) {
-      return std::any_cast<T>(m_default_value);
+      return std::any_cast<T&>(m_default_value);
     }
     if constexpr (details::IsContainer<T>) {
       if (!m_accepts_optional_like_value) {
@@ -891,7 +891,7 @@ private:
     if constexpr (details::IsContainer<T>) {
       return any_cast_container<T>(m_values);
     }
-    return std::any_cast<T>(m_values.front());
+    return std::any_cast<T&>(m_values.front());
   }
 
   template <typename T>
@@ -901,7 +901,7 @@ private:
     T result;
     std::transform(
         std::begin(operand), std::end(operand), std::back_inserter(result),
-        [](const auto &value) { return std::any_cast<ValueType>(value); });
+        [](const auto &value) { return std::any_cast<ValueType&>(value); });
     return result;
   }
 
