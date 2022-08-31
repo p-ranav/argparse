@@ -271,3 +271,6 @@ analysis-cppcheck-build-dir
 ideas
 
 desktop.iniimages/
+
+# Bazel artifacts
+bazel-*
