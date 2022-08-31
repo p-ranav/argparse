@@ -1048,9 +1048,7 @@ public:
    */
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   void parse_args(int argc, const char *const argv[]) {
-    std::vector<std::string> arguments;
-    std::copy(argv, argv + argc, std::back_inserter(arguments));
-    parse_args(arguments);
+    parse_args({argv, argv + argc});
   }
 
   /* Getter for options with default values.
