@@ -201,7 +201,7 @@ TEST_CASE("Parse a vector of character arguments" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
-    .action([](const std::string& value) { return value[0]; });
+    .action([](std::string_view value) { return value[0]; });
   program.parse_args({ "test", "--vector", "a", "b", "c", "d", "e" });
   auto vector = program.get<std::vector<char>>("--vector");
   REQUIRE(vector.size() == 5);
@@ -217,14 +217,14 @@ TEST_CASE("Parse a vector of string arguments and construct objects" *
 
   class Foo {
   public:
-    Foo(const std::string& value) : value(value) {}
+    Foo(std::string_view value) : value(value) {}
     std::string value;
   };
 
   argparse::ArgumentParser program("test");
   program.add_argument("--vector")
     .nargs(5)
-    .action([](const std::string& value) { return Foo(value); });
+    .action([](std::string_view value) { return Foo(value); });
   program.parse_args({ "test", "--vector", "abc", "def", "ghi", "jkl", "mno" });
   auto vector = program.get<std::vector<Foo>>("--vector");
   REQUIRE(vector.size() == 5);

@@ -8,10 +8,10 @@ TEST_CASE("Users can use default value inside actions" *
   argparse::ArgumentParser program("test");
   program.add_argument("input")
     .default_value("bar")
-    .action([=](const std::string& value) {
+    .action([=](std::string_view value) {
       static const std::vector<std::string> choices = { "foo", "bar", "baz" };
       if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
-        return value;
+        return std::string(value);
       }
       return std::string{ "bar" };
     });
@@ -24,7 +24,7 @@ TEST_CASE("Users can add actions that return nothing" * test_suite("actions")) {
   argparse::ArgumentParser program("test");
   bool pressed = false;
   auto &arg = program.add_argument("button").action(
-      [&](const std::string &) mutable { pressed = true; });
+      [&](std::string_view) mutable { pressed = true; });
 
   REQUIRE_FALSE(pressed);
 
@@ -127,7 +127,7 @@ TEST_CASE("Users can use actions on nargs=ANY arguments" *
 
   int result = 0;
   program.add_argument("all").nargs(argparse::nargs_pattern::any).action(
-      [](int &sum, std::string const &value) { sum += std::stoi(value); },
+      [](int &sum, std::string_view value) { sum += std::stoi(std::string(value)); },
       std::ref(result));
 
   program.parse_args({"sum", "42", "100", "-3", "-20"});
@@ -140,7 +140,7 @@ TEST_CASE("Users can use actions on remaining arguments" *
 
   std::string result = "";
   program.add_argument("all").remaining().action(
-      [](std::string &sum, const std::string &value) { sum += value; },
+      [](std::string &sum, std::string_view value) { sum += value; },
       std::ref(result));
 
   program.parse_args({"concat", "a", "-b", "-c", "--d"});

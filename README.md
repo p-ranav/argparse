@@ -521,7 +521,7 @@ The grammar follows `std::from_chars`, but does not exactly duplicate it. For ex
 argparse::ArgumentParser program("test", "1.0", default_arguments::none);
 
 program.add_argument("-h", "--help")
-  .action([=](const std::string& s) {
+  .action([=](std::string_view s) {
     std::cout << help().str();
   })
   .default_value(false)
@@ -671,7 +671,7 @@ Note You must fully initialize the parsers before passing them via ```.add_paren
 argparse::ArgumentParser program("json_test");
 
 program.add_argument("config")
-  .action([](const std::string& value) {
+  .action([](std::string_view value) {
     // read a JSON file
     std::ifstream stream(value);
     nlohmann::json config_json;
@@ -749,7 +749,7 @@ argparse::ArgumentParser program("test");
 
 program.add_argument("input")
   .default_value("baz")
-  .action([](const std::string& value) {
+  .action([](std::string_view value) {
     static const std::vector<std::string> choices = { "foo", "bar", "baz" };
     if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
       return value;

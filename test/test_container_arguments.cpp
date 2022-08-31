@@ -54,8 +54,8 @@ TEST_CASE("Parse list of arguments and save in an object" *
 
   struct ConfigManager {
     std::vector<std::string> files;
-    void add_file(const std::string& file) {
-      files.push_back(file);
+    void add_file(std::string_view file) {
+      files.emplace_back(file);
     }    
   };
 
@@ -64,7 +64,7 @@ TEST_CASE("Parse list of arguments and save in an object" *
   argparse::ArgumentParser program("test");
   program.add_argument("--input_files")
     .nargs(2)
-    .action([&](const std::string& value) { config_manager.add_file(value); return value; });
+    .action([&](std::string_view value) { config_manager.add_file(value); return value; });
 
   program.parse_args({ "test", "--input_files", "config.xml", "system.json" });
 

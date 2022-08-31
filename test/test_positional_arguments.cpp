@@ -248,7 +248,7 @@ TEST_CASE("Square a number" * test_suite("positional_arguments")) {
 
   program.add_argument("square")
     .help("display a square of a given number")
-    .action([](const std::string& value) { return pow(std::stoi(value), 2); });
+    .action([](std::string_view value) { return pow(std::stoi(std::string(value)), 2); });
 
   program.parse_args({"./main", "15"});
   REQUIRE(program.get<double>("square") == 225);

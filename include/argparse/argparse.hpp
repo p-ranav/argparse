@@ -253,7 +253,7 @@ template <> inline const auto generic_strtod<long double> = strtold;
 
 } // namespace
 
-template <class T> inline auto do_strtod(std::string const &s) -> T {
+template <class T> inline auto do_strtod(std::string_view s) -> T {
   if (isspace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
     throw std::invalid_argument{"pattern not found"};
   }
@@ -276,7 +276,7 @@ template <class T> inline auto do_strtod(std::string const &s) -> T {
 }
 
 template <class T> struct parse_number<T, chars_format::general> {
-  auto operator()(std::string const &s) -> T {
+  auto operator()(std::string_view s) -> T {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal) {
       throw std::invalid_argument{
           "chars_format::general does not parse hexfloat"};
@@ -287,7 +287,7 @@ template <class T> struct parse_number<T, chars_format::general> {
 };
 
 template <class T> struct parse_number<T, chars_format::hex> {
-  auto operator()(std::string const &s) -> T {
+  auto operator()(std::string_view s) -> T {
     if (auto r = consume_hex_prefix(s); !r.is_hexadecimal) {
       throw std::invalid_argument{"chars_format::hex parses hexfloat"};
     }
@@ -297,7 +297,7 @@ template <class T> struct parse_number<T, chars_format::hex> {
 };
 
 template <class T> struct parse_number<T, chars_format::scientific> {
-  auto operator()(std::string const &s) -> T {
+  auto operator()(std::string_view s) -> T {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal) {
       throw std::invalid_argument{
           "chars_format::scientific does not parse hexfloat"};
@@ -312,7 +312,7 @@ template <class T> struct parse_number<T, chars_format::scientific> {
 };
 
 template <class T> struct parse_number<T, chars_format::fixed> {
-  auto operator()(std::string const &s) -> T {
+  auto operator()(std::string_view s) -> T {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal) {
       throw std::invalid_argument{
           "chars_format::fixed does not parse hexfloat"};
@@ -396,10 +396,10 @@ public:
 
   template <class F, class... Args>
   auto action(F &&callable, Args &&...bound_args)
-      -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string const>,
+      -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string_view>,
                           Argument &> {
     using action_type = std::conditional_t<
-        std::is_void_v<std::invoke_result_t<F, Args..., std::string const>>,
+        std::is_void_v<std::invoke_result_t<F, Args..., std::string_view>>,
         void_action, valued_action>;
     if constexpr (sizeof...(Args) == 0) {
       m_action.emplace<action_type>(std::forward<F>(callable));
@@ -407,7 +407,7 @@ public:
       m_action.emplace<action_type>(
           [f = std::forward<F>(callable),
            tup = std::make_tuple(std::forward<Args>(bound_args)...)](
-              std::string const &opt) mutable {
+              std::string_view opt) mutable {
             return details::apply_plus_one(f, tup, opt);
           });
     }
@@ -910,11 +910,11 @@ private:
   std::any m_default_value;
   std::string m_default_value_repr;
   std::any m_implicit_value;
-  using valued_action = std::function<std::any(const std::string &)>;
-  using void_action = std::function<void(const std::string &)>;
+  using valued_action = std::function<std::any(std::string_view)>;
+  using void_action = std::function<void(std::string_view)>;
   std::variant<valued_action, void_action> m_action{
       std::in_place_type<valued_action>,
-      [](const std::string &value) { return value; }};
+      [](std::string_view value) { return value; }};
   std::vector<std::any> m_values;
   NArgsRange m_num_args_range {1, 1};
   bool m_accepts_optional_like_value = false;
@@ -1033,7 +1033,7 @@ public:
    * This variant is used mainly for testing
    * @throws std::runtime_error in case of any invalid argument
    */
-  void parse_args(const std::vector<std::string> &arguments) {
+  void parse_args(const std::vector<std::string_view> &arguments) {
     parse_args_internal(arguments);
     // Check if all arguments are parsed
     for ([[maybe_unused]] const auto& [unused, argument] : m_argument_map) {
@@ -1171,7 +1171,7 @@ private:
   /*
    * @throws std::runtime_error in case of any invalid argument
    */
-  void parse_args_internal(const std::vector<std::string> &arguments) {
+  void parse_args_internal(const std::vector<std::string_view> &arguments) {
     if (m_program_name.empty() && !arguments.empty()) {
       m_program_name = arguments.front();
     }
@@ -1204,11 +1204,11 @@ private:
             auto argument = arg_map_it2->second;
             it = argument->consume(it, end, arg_map_it2->first);
           } else {
-            throw std::runtime_error("Unknown argument: " + current_argument);
+            throw std::runtime_error("Unknown argument: " + std::string(current_argument));
           }
         }
       } else {
-        throw std::runtime_error("Unknown argument: " + current_argument);
+        throw std::runtime_error("Unknown argument: " + std::string(current_argument));
       }
     }
     m_is_parsed = true;
