@@ -875,17 +875,16 @@ private:
    * @pre The object has no default value.
    * @returns The stored value if any, std::nullopt otherwise.
    */
-  template <typename T> auto present() const -> T {
+  template <typename T>
+  auto present() const
+      -> std::conditional_t<details::IsContainer<T>, T, const T *> {
     if (m_default_value.has_value()) {
       throw std::logic_error("Argument with default value always presents");
-    }
-    if (m_values.empty()) {
-      return std::nullopt;
     }
     if constexpr (details::IsContainer<T>) {
       return any_cast_container<T>(m_values);
     }
-    return std::any_cast<T>(m_values.front());
+    return std::any_cast<T>(&m_values.front());
   }
 
   template <typename T>
@@ -1064,7 +1063,8 @@ public:
    * @throws std::bad_any_cast if the option is not of type T
    */
   template <typename T = std::string>
-  auto present(std::string_view arg_name) const -> std::optional<T> {
+  auto present(std::string_view arg_name) const
+      -> std::conditional_t<details::IsContainer<T>, T, const T *> {
     return (*this)[arg_name].present<T>();
   }
 
