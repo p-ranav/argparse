@@ -875,7 +875,7 @@ private:
    * @pre The object has no default value.
    * @returns The stored value if any, std::nullopt otherwise.
    */
-  template <typename T> auto present() const -> std::optional<T> {
+  template <typename T> auto present() const -> T {
     if (m_default_value.has_value()) {
       throw std::logic_error("Argument with default value always presents");
     }
