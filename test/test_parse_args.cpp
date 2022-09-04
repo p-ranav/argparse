@@ -38,7 +38,7 @@ TEST_CASE("Parse a string argument without default value" *
     THEN("the option is nullopt") {
       auto opt = program.present("--config");
       REQUIRE_FALSE(opt);
-      REQUIRE(opt == std::nullopt);
+      REQUIRE(opt == nullptr);
     }
   }
 
@@ -147,8 +147,7 @@ TEST_CASE("Parse a vector of float without default value" *
 
     THEN("the option is nullopt") {
       auto opt = program.present<std::vector<float>>("--vector");
-      REQUIRE_FALSE(opt.has_value());
-      REQUIRE(opt == std::nullopt);
+      REQUIRE(opt.size() == 0);
     }
   }
 
@@ -156,10 +155,7 @@ TEST_CASE("Parse a vector of float without default value" *
     program.parse_args({"test", "--vector", ".3", "1.3", "6"});
 
     THEN("the option has a value") {
-      auto opt = program.present<std::vector<float>>("--vector");
-      REQUIRE(opt.has_value());
-
-      auto &&vec = opt.value();
+      auto &&vec = program.present<std::vector<float>>("--vector");
       REQUIRE(vec.size() == 3);
       REQUIRE(vec[0] == .3f);
       REQUIRE(vec[1] == 1.3f);
