@@ -855,11 +855,11 @@ private:
       if constexpr (details::IsContainer<T>) {
         return any_cast_container<T>(m_values);
       } else {
-        return *std::any_cast<T>(&m_values.front());
+        return std::any_cast<const T &>(m_values.front());
       }
     }
     if (m_default_value.has_value()) {
-      return *std::any_cast<T>(&m_default_value);
+      return std::any_cast<const T &>(m_default_value);
     }
     if constexpr (details::IsContainer<T>) {
       if (!m_accepts_optional_like_value) {
@@ -893,9 +893,10 @@ private:
     using ValueType = typename T::value_type;
 
     T result;
-    std::transform(
-        std::begin(operand), std::end(operand), std::back_inserter(result),
-        [](const auto &value) { return *std::any_cast<ValueType>(&value); });
+    std::transform(std::begin(operand), std::end(operand),
+                   std::back_inserter(result), [](const auto &value) {
+                     return std::any_cast<const ValueType &>(value);
+                   });
     return result;
   }
 
