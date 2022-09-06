@@ -49,6 +49,7 @@ SOFTWARE.
 #include <string_view>
 #include <tuple>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -948,7 +949,8 @@ public:
   explicit ArgumentParser(std::string program_name = {},
                           std::string version = "1.0",
                           default_arguments add_args = default_arguments::all)
-      : m_program_name(std::move(program_name)), m_version(std::move(version)) {
+      : m_program_name(std::move(program_name)), m_version(std::move(version)),
+        m_approximate_to(0) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
           .action([&](const auto & /*unused*/) {
@@ -980,6 +982,7 @@ public:
       : m_program_name(other.m_program_name), m_version(other.m_version),
         m_description(other.m_description), m_epilog(other.m_epilog),
         m_is_parsed(other.m_is_parsed),
+        m_approximate_to(other.m_approximate_to),
         m_positional_arguments(other.m_positional_arguments),
         m_optional_arguments(other.m_optional_arguments) {
     for (auto it = std::begin(m_positional_arguments);
@@ -1032,6 +1035,11 @@ public:
         index_argument(it);
       }
     }
+    return *this;
+  }
+
+  ArgumentParser &set_proximity(int distance) {
+    m_approximate_to = ApproximateTo(distance);
     return *this;
   }
 
@@ -1188,6 +1196,194 @@ public:
 
 private:
   /*
+   * Tests whether two strings are similar using Damerau–Levenshtein distance
+   * capped by `max_distance`. It's assumed the largest string is larger than
+   * `max_distance`. This is abused in various places.
+   *
+   * Author: @jun-sheaf
+   */
+  struct ApproximateTo {
+    explicit ApproximateTo(int max_distance) : m_infinity(max_distance + 1) {}
+
+    int max_distance() const { return m_infinity - 1; }
+
+    static constexpr auto get_ordered_pair(std::string_view lhs_value,
+                                           std::string_view rhs_value)
+        -> std::pair<std::string_view, std::string_view> const {
+      if (lhs_value.size() > rhs_value.size()) {
+        return {rhs_value, lhs_value};
+      } else {
+        return {lhs_value, rhs_value};
+      }
+    }
+
+    bool operator()(std::string_view lhs_value,
+                    std::string_view rhs_value) const {
+      //// Section 1. Preparing the strings.
+
+      // We only want to do half the computations since the metric is symmetric,
+      // but this requires we know which string is larger to understand the
+      // computations we need to perform. We order them here.
+      const auto [sm_value, lg_value] = get_ordered_pair(lhs_value, rhs_value);
+      const std::size_t lg_size = static_cast<std::size_t>(lg_value.size());
+      const std::size_t sm_size = static_cast<std::size_t>(sm_value.size());
+
+      // If the are larger than the maximum distance, then they cannot be
+      // similar.
+      if (lg_size - m_infinity > sm_size) {
+        return false;
+      }
+
+      // We know the difference will be no bigger than `m_infinity`, so we
+      // can store it as an `int`.
+      const int diff_size = lg_size - sm_size;
+
+      //// Section 2. Initial computations
+
+      // We store the position in an anonymous struct which get compiled away
+      // with optimization.
+      struct {
+        std::size_t x;
+        std::size_t y;
+      } pos;
+
+      // A kind of table that only has storage for half the computations we will
+      // do. See Table for more info.
+      Table<int> table(m_infinity + 1);
+
+      // Defines initial conditions.
+      for (pos.y = m_infinity; pos.y != -1; --pos.y) {
+        table.set(0, pos.y, static_cast<int>(pos.y));
+      }
+
+      //// Section 3. Computing the table.
+
+      // More anonymous structs that get compiled away. `trpos` is used to keep
+      // track of transposition information. `chars` and `dist` are for
+      // brevity.
+      struct {
+        std::size_t x;
+        std::size_t y;
+      } trpos;
+      struct {
+        char lg;
+        char sm;
+      } chars;
+      int dist;
+
+      // Track when a transposition may have occured.
+      struct {
+        std::size_t x;
+        std::unordered_map<char, std::size_t> y;
+      } trpos_ctx;
+
+      // We compute the table in an order that allows us to inspect the
+      // distance the fastest before doing further computations.
+      for (pos.y = 0; pos.y < lg_size; ++pos.y) {
+        chars.lg = lg_value[pos.y];
+        trpos_ctx.x = -1;
+
+        const std::size_t row_max = std::min(pos.y + 1, sm_size);
+        const std::size_t row_min =
+            pos.y - std::min(pos.y, static_cast<std::size_t>(m_infinity));
+        for (pos.x = row_min; pos.x < row_max; ++pos.x) {
+          chars.sm = sm_value[pos.x];
+          trpos.x = trpos_ctx.x;
+          trpos.y = trpos_ctx.y.try_emplace(chars.sm, -1).first->second;
+
+          dist = table.get(pos.x, pos.y);
+          if (chars.sm == chars.lg) {
+            trpos_ctx.x = pos.x;
+          } else {
+            // Substitution
+            ++dist;
+          }
+
+          if (trpos.x != -1 && trpos.y != -1) {
+            // Transposition
+            dist = std::min(dist, table.get(trpos.x, trpos.y) +
+                                      static_cast<int>(pos.y - trpos.y) +
+                                      static_cast<int>(pos.x - trpos.x) - 1);
+          }
+          if (pos.x > row_min) {
+            // Deletion.
+            dist = std::min(dist, table.get(pos.x, pos.y + 1) + 1);
+          }
+          if (pos.x < row_max - 1) {
+            // Insertion.
+            dist = std::min(dist, table.get(pos.x + 1, pos.y) + 1);
+          }
+
+          // This position gives the minimum distance between the two strings
+          // implying we can return here if they are too far.
+          if (pos.x + diff_size == pos.y && dist > m_infinity) {
+            return false;
+          }
+
+          table.set(pos.x + 1, pos.y + 1, dist);
+        }
+
+        trpos_ctx.y[chars.lg] = pos.y;
+      }
+
+      return true;
+    }
+
+  private:
+    /*
+     * Represents the upper triangular half of a table. For example,
+     *
+     *    1 1 1 1
+     *    0 1 1 1
+     *    0 0 1 1
+     *    0 0 0 1
+     *
+     */
+    template <typename T> class Table {
+    public:
+      using size_type = std::size_t;
+
+      inline explicit Table(size_type size)
+          : m_size(size), m_storage(new T[m_size * (m_size + 1) / 2]) {
+        for (size_type i = 0; i < m_size * (m_size + 1) / 2; ++i) {
+          m_storage[i] = 50000;
+        }
+      }
+
+      inline ~Table() { delete[] m_storage; }
+
+      inline const T &get(size_type i, size_type j) {
+        return m_storage[compute_index(i, j)];
+      }
+      inline void set(size_type i, size_type j, const T &value) {
+        m_storage[compute_index(i, j)] = value;
+      }
+
+    private:
+      constexpr size_type compute_index(size_type i, size_type j) {
+        std::tie(i, j) = translate_cell(i, j);
+        return i * m_size + j - (i + 1) * i / 2;
+      }
+
+      constexpr std::tuple<size_type, size_type> translate_cell(size_type i,
+                                                                size_type j) {
+        size_type j_0 = j;
+        while (j >= m_size) {
+          j = i - 1;
+          i = j_0 - m_size;
+          j_0 = j;
+        }
+        return {i, j};
+      }
+
+      size_type m_size;
+      T *m_storage;
+    };
+
+    int m_infinity;
+  };
+
+  /*
    * @throws std::runtime_error in case of any invalid argument
    */
   void parse_args_internal(const std::vector<std::string> &arguments) {
@@ -1208,7 +1404,7 @@ private:
         continue;
       }
 
-      auto arg_map_it = m_argument_map.find(current_argument);
+      auto arg_map_it = find_argument(current_argument);
       if (arg_map_it != m_argument_map.end()) {
         auto argument = arg_map_it->second;
         it = argument->consume(std::next(it), end, arg_map_it->first);
@@ -1218,10 +1414,10 @@ private:
         ++it;
         for (std::size_t j = 1; j < compound_arg.size(); j++) {
           auto hypothetical_arg = std::string{'-', compound_arg[j]};
-          auto arg_map_it2 = m_argument_map.find(hypothetical_arg);
-          if (arg_map_it2 != m_argument_map.end()) {
-            auto argument = arg_map_it2->second;
-            it = argument->consume(it, end, arg_map_it2->first);
+          arg_map_it = find_argument(hypothetical_arg);
+          if (arg_map_it != m_argument_map.end()) {
+            auto argument = arg_map_it->second;
+            it = argument->consume(it, end, arg_map_it->first);
           } else {
             throw std::runtime_error("Unknown argument: " + current_argument);
           }
@@ -1253,6 +1449,34 @@ private:
     }
   }
 
+  using map_list_iterator =
+      std::map<std::string_view, list_iterator, std::less<>>::iterator;
+
+  /*
+   * Finds an argument similar to the given one. If the argument size is less
+   * than or equal to the maximum distance or the distance is zero, then only
+   * exact matching is used.
+   */
+  auto find_argument(std::string_view argument) -> map_list_iterator const {
+    auto arg = m_argument_map.find(argument);
+    if (arg != m_argument_map.end()) {
+      return arg;
+    }
+    if (m_approximate_to.max_distance() == 0) {
+      return arg;
+    }
+    if (argument.size() <= m_approximate_to.max_distance()) {
+      return arg;
+    }
+    for (auto iter = m_argument_map.begin(); iter != arg; ++iter) {
+      if (m_approximate_to(iter->first, argument)) {
+        return iter;
+      }
+    }
+    return arg;
+  }
+
+  ApproximateTo m_approximate_to;
   std::string m_program_name;
   std::string m_version;
   std::string m_description;
