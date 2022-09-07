@@ -748,7 +748,7 @@ files = {"a.txt", "b.txt", "c.txt"}
 argparse::ArgumentParser program("test");
 
 program.add_argument("input")
-  .default_value("baz")
+  .default_value(std::string{"baz"})
   .action([](const std::string& value) {
     static const std::vector<std::string> choices = { "foo", "bar", "baz" };
     if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
