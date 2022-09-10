@@ -42,7 +42,6 @@ SOFTWARE.
 #include <list>
 #include <map>
 #include <numeric>
-#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -849,43 +848,66 @@ private:
    * @throws std::logic_error in case of incompatible types
    */
   template <typename T>
-  auto get() const
-      -> std::conditional_t<details::IsContainer<T>, T, const T &> {
+  auto get() const -> std::enable_if_t<details::IsContainer<T>, T> {
     if (!m_values.empty()) {
-      if constexpr (details::IsContainer<T>) {
-        return any_cast_container<T>(m_values);
-      } else {
-        return std::any_cast<const T &>(m_values.front());
-      }
+      return any_cast_container<T>(m_values);
     }
     if (m_default_value.has_value()) {
       return std::any_cast<const T &>(m_default_value);
     }
-    if constexpr (details::IsContainer<T>) {
-      if (!m_accepts_optional_like_value) {
-        return any_cast_container<T>(m_values);
-      }
+    if (!m_accepts_optional_like_value) {
+      return any_cast_container<T>(m_values);
     }
 
     throw std::logic_error("No value provided for '" + m_names.back() + "'.");
   }
 
   /*
+   * Get argument value given a type
+   * @throws std::logic_error in case of incompatible types
+   */
+  template <typename T>
+  auto get() const -> std::enable_if_t<!details::IsContainer<T>, const T &> {
+    if (!m_values.empty()) {
+      return std::any_cast<const T &>(m_values.front());
+    }
+    if (m_default_value.has_value()) {
+      return std::any_cast<const T &>(m_default_value);
+    }
+
+    throw std::logic_error("No value provided for '" + m_names.back() + "'.");
+  }
+
+  /*
+   * Get argument value given a container type.
+   * @pre The object has no default value.
+   * @returns The stored values emplaced in T.
+   */
+  template <typename T>
+  auto present() const -> std::enable_if_t<details::IsContainer<T>, T> {
+    if (m_default_value.has_value()) {
+      throw std::logic_error(
+          "Arguments with default values are always present.");
+    }
+    return any_cast_container<T>(m_values);
+  }
+
+  /*
    * Get argument value given a type.
    * @pre The object has no default value.
-   * @returns The stored value if any, std::nullopt otherwise.
+   * @returns The pointer to stored value if any.
    */
-  template <typename T> auto present() const -> std::optional<T> {
+  template <typename T>
+  auto present() const
+      -> std::enable_if_t<!details::IsContainer<T>, const T *> {
     if (m_default_value.has_value()) {
-      throw std::logic_error("Argument with default value always presents");
+      throw std::logic_error(
+          "Arguments with default values are always present.");
     }
     if (m_values.empty()) {
-      return std::nullopt;
+      return nullptr;
     }
-    if constexpr (details::IsContainer<T>) {
-      return any_cast_container<T>(m_values);
-    }
-    return std::any_cast<T>(m_values.front());
+    return std::any_cast<T>(&m_values.front());
   }
 
   template <typename T>
@@ -1065,7 +1087,8 @@ public:
    * @throws std::bad_any_cast if the option is not of type T
    */
   template <typename T = std::string>
-  auto present(std::string_view arg_name) const -> std::optional<T> {
+  auto present(std::string_view arg_name) const
+      -> std::conditional_t<details::IsContainer<T>, T, const T *> {
     return (*this)[arg_name].present<T>();
   }
 

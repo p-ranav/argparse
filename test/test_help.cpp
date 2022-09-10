@@ -1,6 +1,7 @@
 #include <argparse/argparse.hpp>
 #include <doctest.hpp>
 #include <sstream>
+#include <optional>
 
 using doctest::test_suite;
 
