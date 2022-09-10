@@ -152,7 +152,7 @@ if (auto fn = program.present("-o")) {
 }
 ```
 
-Similar to `get`, the `present` method also accepts a template argument.  But rather than returning `T`, `parser.present<T>(key)` returns `std::optional<T>`, so that when the user does not provide a value to this parameter, the return value compares equal to `std::nullopt`.
+Similar to `get`, the `present` method also accepts a template argument.  If `T` is not a container, than rather than returning `T`, `parser.present<T>(key)` returns `T *`, so that when the user does not provide a value to this parameter, the return value equals to `nullptr`. If `T` is a container, than `T` returns an empty container if there are no arguments.
 
 #### Deciding if the value was given by the user
 
