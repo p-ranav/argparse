@@ -806,46 +806,5 @@ target_link_libraries(myproject argparse)
 ## Contributing
 Contributions are welcome, have a look at the [CONTRIBUTING.md](CONTRIBUTING.md) document for more information.
 
-## Contributors ✨
-
-Thanks goes to these wonderful people:
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore -->
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/svanveen"><img src="https://avatars1.githubusercontent.com/u/23560108?s=400&v=4" width="100px;" alt="svanveen"/><br /><sub><b>svanveen</b></sub></a></td>
-    <td align="center"><a href="https://github.com/lichray"><img src="https://avatars0.githubusercontent.com/u/433009?s=400&v=4" width="100px;" alt="Zhihao Yuan"/><br /><sub><b>Zhihao Yuan</b></sub></a></td>
-    <td align="center"><a href="https://github.com/wtdcode"><img src="https://avatars2.githubusercontent.com/u/30623163?s=400&v=4" width="100px;" alt="Mio"/><br /><sub><b>Mio</b></sub></a></td>
-    <td align="center"><a href="https://github.com/zhihaoy"><img src="https://avatars0.githubusercontent.com/u/43971430?s=400&v=4" width="100px;" alt="zhihaoy"/><br /><sub><b>zhihaoy</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Jackojc"><img src="https://avatars1.githubusercontent.com/u/4932816?s=400&v=4" width="100px;" alt="Jack Clarke"/><br /><sub><b>Jack Clarke</b></sub></a></td>
-    <td align="center"><a href="https://github.com/SuperWig"><img src="https://avatars2.githubusercontent.com/u/2692096?s=400&v=4" width="100px;" alt="Daniel Marshall"/><br /><sub><b>Daniel Marshall</b></sub></a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars3.githubusercontent.com/u/21022101?s=400&v=4" width="100px;" alt="mupp"/><br /><sub><b>mupp</b></sub></a></td>
-    <td align="center"><a href="https://github.com/CrustyAuklet"><img src="https://avatars2.githubusercontent.com/u/9755578?s=400&v=4" width="100px;" alt="Ethan Slattery"/><br /><sub><b>Ethan Slattery</b></sub></a></td>
-    <td align="center"><a href="https://github.com/skrobinson"><img src="https://avatars.githubusercontent.com/u/49722376?v=4" width="100px;" alt="skrobinson"/><br /><sub><b>skrobinson</b></sub></a></td>
-    <td align="center"><a href="https://github.com/cekc"><img src="https://avatars.githubusercontent.com/u/31835620?v=4" width="100px;" alt="Mike Zozu"/><br /><sub><b>Mike Zozu</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Chuvi-w"><img src="https://avatars.githubusercontent.com/u/3652659?v=4" width="100px;" alt="Chuvi-w"/><br /><sub><b>Chuvi-w</b></sub></a></td>
-    <td align="center"><a href="https://github.com/KOLANICH"><img src="https://avatars.githubusercontent.com/u/240344?v=4" width="100px;" alt="KOLANICH"/><br /><sub><b>KOLANICH</b></sub></a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/Bedzior"><img src="https://avatars.githubusercontent.com/u/19894088?v=4" width="100px;" alt="Rafał Będźkowski"/><br /><sub><b>Rafał Będźkowski</b></sub></a></td>
-    <td align="center"><a href="https://github.com/hokacci"><img src="https://avatars.githubusercontent.com/u/47231909?v=4" width="100px;" alt="Yoshihiro Hokazono"/><br /><sub><b>Yoshihiro Hokazono</b></sub></a></td>
-    <td align="center"><a href="https://github.com/qoelet"><img src="https://avatars.githubusercontent.com/u/115877?v=4" width="100px;" alt="Kenny Shen"/><br /><sub><b>Kenny Shen</b></sub></a></td>
-    <td align="center"><a href="https://github.com/MU001999"><img src="https://avatars.githubusercontent.com/u/21022101?v=4" width="100px;" alt="The 42nd Mu00"/><br /><sub><b>The 42nd Mu00</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Ubpa"><img src="https://avatars.githubusercontent.com/u/15104079?v=4" width="100px;" alt="Ubpa"/><br /><sub><b>Ubpa</b></sub></a></td>
-    <td align="center"><a href="https://github.com/kfsone"><img src="https://avatars.githubusercontent.com/u/323009?v=4" width="100px;" alt="Oliver Smith"/><br /><sub><b>Oliver Smith</b></sub></a></td>    
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/JadeMatrix"><img src="https://avatars.githubusercontent.com/u/1753533?v=4" width="100px;" alt="Joseph Durel"/><br /><sub><b>Joseph Durel</b></sub></a></td>
-    <td align="center"><a href="https://github.com/rysson"><img src="https://avatars.githubusercontent.com/u/5898312?v=4" width="100px;" alt="rysson"/><br /><sub><b>rysson</b></sub></a></td>
-    <td align="center"><a href="https://github.com/aashwinr"><img src="https://avatars.githubusercontent.com/u/78666414?v=4" width="100px;" alt="aashwinr"/><br /><sub><b>aashwinr</b></sub></a></td>
-    <td align="center"><a href="https://github.com/bufferbase"><img src="https://avatars.githubusercontent.com/u/65209648?v=4" width="100px;" alt="bufferbase"/><br /><sub><b>bufferbase</b></sub></a></td>
-  </tr>
-</table>
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
 ## License
 The project is available under the [MIT](https://opensource.org/licenses/MIT) license.
