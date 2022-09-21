@@ -610,9 +610,9 @@ public:
       return get<T>() == rhs;
     } else {
       auto lhs = get<T>();
-      return std::equal(
-          std::begin(lhs), std::end(lhs), std::begin(rhs), std::end(rhs),
-          [](const auto &lhs, const auto &rhs) { return lhs == rhs; });
+      return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
+                        std::end(rhs),
+                        [](const auto &a, const auto &b) { return a == b; });
     }
   }
 
@@ -730,10 +730,10 @@ private:
     };
 
     // precondition: we have consumed or will consume at least one digit
-    auto consume_digits = [=](std::string_view s) {
+    auto consume_digits = [=](std::string_view sd) {
       // NOLINTNEXTLINE(readability-qualified-auto)
-      auto it = std::find_if_not(std::begin(s), std::end(s), is_digit);
-      return s.substr(static_cast<std::size_t>(it - std::begin(s)));
+      auto it = std::find_if_not(std::begin(sd), std::end(sd), is_digit);
+      return sd.substr(static_cast<std::size_t>(it - std::begin(sd)));
     };
 
     switch (lookahead(s)) {

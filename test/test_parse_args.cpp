@@ -200,8 +200,8 @@ TEST_CASE("Parse a vector of string arguments and construct objects" *
 
   class Foo {
   public:
-    Foo(const std::string &value) : value(value) {}
-    std::string value;
+    Foo(const std::string &value) : m_value(value) {}
+    std::string m_value;
   };
 
   argparse::ArgumentParser program("test");
@@ -211,9 +211,9 @@ TEST_CASE("Parse a vector of string arguments and construct objects" *
   program.parse_args({"test", "--vector", "abc", "def", "ghi", "jkl", "mno"});
   auto vector = program.get<std::vector<Foo>>("--vector");
   REQUIRE(vector.size() == 5);
-  REQUIRE(vector[0].value == Foo("abc").value);
-  REQUIRE(vector[1].value == Foo("def").value);
-  REQUIRE(vector[2].value == Foo("ghi").value);
-  REQUIRE(vector[3].value == Foo("jkl").value);
-  REQUIRE(vector[4].value == Foo("mno").value);
+  REQUIRE(vector[0].m_value == Foo("abc").m_value);
+  REQUIRE(vector[1].m_value == Foo("def").m_value);
+  REQUIRE(vector[2].m_value == Foo("ghi").m_value);
+  REQUIRE(vector[3].m_value == Foo("jkl").m_value);
+  REQUIRE(vector[4].m_value == Foo("mno").m_value);
 }
