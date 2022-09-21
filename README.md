@@ -36,7 +36,7 @@
      *    [Default Arguments](#default-arguments)
      *    [Gathering Remaining Arguments](#gathering-remaining-arguments)
      *    [Parent Parsers](#parent-parsers)
-     *    [Subparsers](#subparsers)
+     *    [Subcommands](#subcommands)
 *    [Further Examples](#further-examples)
      *    [Construct a JSON object from a filename argument](#construct-a-json-object-from-a-filename-argument)
      *    [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
@@ -693,7 +693,7 @@ bar_parser.parse_args({ "./main", "--bar", "YYY" });           // bar = YYY
 
 Note You must fully initialize the parsers before passing them via ```.add_parents```. If you change the parent parsers after the child parser, those changes will not be reflected in the child.
 
-### Subparsers
+### Subcommands
 
 Many programs split up their functionality into a number of sub-commands, for example, the `git` program can invoke sub-commands like `git checkout`, `git add`, and `git commit`. Splitting up functionality this way can be a particularly good idea when a program performs several different functions which require different kinds of command-line arguments. `ArgumentParser` supports the creation of such sub-commands with the `add_subparser()` member function.
 
