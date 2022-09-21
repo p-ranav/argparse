@@ -46,6 +46,7 @@
      *    [Restricting the set of values for an argument](#restricting-the-set-of-values-for-an-argument)
      *    [Using `option=value` syntax](#using-optionvalue-syntax)
 *    [CMake Integration](#cmake-integration)
+*    [Building, Installing, and Testing](#building-installing-and-testing)
 *    [Supported Toolchains](#supported-toolchains)
 *    [Contributing](#contributing)
 *    [License](#license)
@@ -1084,6 +1085,27 @@ FetchContent_MakeAvailable(argparse)
 add_executable(myproject main.cpp)
 target_link_libraries(myproject argparse)
 ```
+
+## Building, Installing, and Testing
+
+```bash
+# Clone the repository
+git clone https://github.com/p-ranav/argparse
+cd argparse
+
+# Build the tests
+mkdir build
+cd build
+cmake -DARGPARSE_BUILD_TESTS=on ..
+make
+
+# Run tests
+./test/tests
+
+# Install the library
+sudo make install
+```
+
 ## Supported Toolchains
 
 | Compiler             | Standard Library | Test Environment   |
