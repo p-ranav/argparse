@@ -42,6 +42,7 @@
      *    [Construct a JSON object from a filename argument](#construct-a-json-object-from-a-filename-argument)
      *    [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
      *    [Restricting the set of values for an argument](#restricting-the-set-of-values-for-an-argument)
+     *    [Using `option=value` syntax](#using-optionvalue-syntax)
 *    [CMake Integration](#cmake-integration)
 *    [Supported Toolchains](#supported-toolchains)
 *    [Contributing](#contributing)
@@ -932,6 +933,42 @@ std::cout << input << std::endl;
 ```console
 foo@bar:/home/dev/$ ./main fex
 baz
+```
+
+## Using `option=value` syntax
+
+```cpp
+#include "argparse.hpp"
+#include <cassert>
+
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--foo").implicit_value(true).default_value(false);
+  program.add_argument("--bar");
+
+  try {
+    program.parse_args(argc, argv);
+  }
+  catch (const std::runtime_error& err) {
+    std::cerr << err.what() << std::endl;
+    std::cerr << program;
+    std::exit(1);
+  }
+
+  if (program.is_used("--foo")) {
+    std::cout << "--foo: " << std::boolalpha << program.get<bool>("--foo") << "\n";
+  }
+
+  if (program.is_used("--bar")) {
+    std::cout << "--bar: " << program.get("--bar") << "\n";
+  }  
+}
+```
+
+```console
+foo@bar:/home/dev/$ ./test --bar=BAR --foo
+--foo: true
+--bar: BAR
 ```
 
 ## CMake Integration 
