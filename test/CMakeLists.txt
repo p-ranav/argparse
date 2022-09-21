@@ -47,6 +47,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_value_semantics.cpp
     test_version.cpp
     test_subparsers.cpp
+    test_parse_known_args.cpp
 )
 set_source_files_properties(main.cpp
     PROPERTIES
