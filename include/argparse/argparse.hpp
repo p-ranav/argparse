@@ -355,10 +355,12 @@ class Argument {
       -> std::ostream &;
 
   template <std::size_t N, std::size_t... I>
-  explicit Argument(std::array<std::string_view, N> &&a,
+  explicit Argument(std::string_view prefix_chars,
+                    std::array<std::string_view, N> &&a,
                     std::index_sequence<I...> /*unused*/)
-      : m_is_optional((is_optional(a[I]) || ...)), m_is_required(false),
-        m_is_repeatable(false), m_is_used(false) {
+      : m_is_optional((is_optional(a[I], prefix_chars) || ...)),
+        m_is_required(false), m_is_repeatable(false), m_is_used(false),
+        m_prefix_chars(prefix_chars) {
     ((void)m_names.emplace_back(a[I]), ...);
     std::sort(
         m_names.begin(), m_names.end(), [](const auto &lhs, const auto &rhs) {
@@ -368,8 +370,9 @@ class Argument {
 
 public:
   template <std::size_t N>
-  explicit Argument(std::array<std::string_view, N> &&a)
-      : Argument(std::move(a), std::make_index_sequence<N>{}) {}
+  explicit Argument(std::string_view prefix_chars,
+                    std::array<std::string_view, N> &&a)
+      : Argument(prefix_chars, std::move(a), std::make_index_sequence<N>{}) {}
 
   Argument &help(std::string help_text) {
     m_help = std::move(help_text);
@@ -513,7 +516,9 @@ public:
                                    num_args_max));
       }
       if (!m_accepts_optional_like_value) {
-        end = std::find_if(start, end, Argument::is_optional);
+        end = std::find_if(
+            start, end,
+            std::bind(is_optional, std::placeholders::_1, m_prefix_chars));
         dist = static_cast<std::size_t>(std::distance(start, end));
         if (dist < num_args_min) {
           throw std::runtime_error("Too few arguments");
@@ -821,8 +826,9 @@ private:
     return false;
   }
 
-  static bool is_optional(std::string_view name) {
-    return !is_positional(name);
+  static bool is_optional(std::string_view name,
+                          std::string_view prefix_chars) {
+    return !is_positional(name, prefix_chars);
   }
 
   /*
@@ -832,20 +838,21 @@ private:
    *    '-' decimal-literal
    *    !'-' anything
    */
-  static bool is_positional(std::string_view name) {
-    switch (lookahead(name)) {
-    case eof:
+  static bool is_positional(std::string_view name,
+                            std::string_view prefix_chars) {
+    auto first = lookahead(name);
+
+    if (first == eof) {
       return true;
-    case '-': {
+    } else if (prefix_chars.find(static_cast<char>(first)) !=
+               std::string::npos) {
       name.remove_prefix(1);
       if (name.empty()) {
         return true;
       }
       return is_decimal_literal(name);
     }
-    default:
-      return true;
-    }
+    return true;
   }
 
   /*
@@ -921,6 +928,7 @@ private:
   bool m_is_required : true;
   bool m_is_repeatable : true;
   bool m_is_used : true; // True if the optional argument is used by user
+  std::string_view m_prefix_chars; // ArgumentParser has the prefix_chars
 };
 
 class ArgumentParser {
@@ -960,7 +968,7 @@ public:
   ArgumentParser(const ArgumentParser &other)
       : m_program_name(other.m_program_name), m_version(other.m_version),
         m_description(other.m_description), m_epilog(other.m_epilog),
-        m_is_parsed(other.m_is_parsed),
+        m_prefix_chars(other.m_prefix_chars), m_is_parsed(other.m_is_parsed),
         m_positional_arguments(other.m_positional_arguments),
         m_optional_arguments(other.m_optional_arguments),
         m_parser_path(other.m_parser_path), m_subparsers(other.m_subparsers) {
@@ -991,8 +999,9 @@ public:
   // Call add_argument with variadic number of string arguments
   template <typename... Targs> Argument &add_argument(Targs... f_args) {
     using array_of_sv = std::array<std::string_view, sizeof...(Targs)>;
-    auto argument = m_optional_arguments.emplace(
-        std::cend(m_optional_arguments), array_of_sv{f_args...});
+    auto argument =
+        m_optional_arguments.emplace(std::cend(m_optional_arguments),
+                                     m_prefix_chars, array_of_sv{f_args...});
 
     if (!argument->m_is_optional) {
       m_positional_arguments.splice(std::cend(m_positional_arguments),
@@ -1029,6 +1038,16 @@ public:
 
   ArgumentParser &add_epilog(std::string epilog) {
     m_epilog = std::move(epilog);
+    return *this;
+  }
+
+  ArgumentParser &set_prefix_chars(std::string prefix_chars) {
+    m_prefix_chars = std::move(prefix_chars);
+    return *this;
+  }
+
+  ArgumentParser &set_assign_chars(std::string assign_chars) {
+    m_assign_chars = std::move(assign_chars);
     return *this;
   }
 
@@ -1126,16 +1145,19 @@ public:
     if (it != m_argument_map.end()) {
       return *(it->second);
     }
-    if (arg_name.front() != '-') {
+    if (!is_valid_prefix_char(arg_name.front())) {
       std::string name(arg_name);
+      const auto legal_prefix_char = get_any_valid_prefix_char();
+      const auto prefix = std::string(1, legal_prefix_char);
+
       // "-" + arg_name
-      name = "-" + name;
+      name = prefix + name;
       it = m_argument_map.find(name);
       if (it != m_argument_map.end()) {
         return *(it->second);
       }
       // "--" + arg_name
-      name = "-" + name;
+      name = prefix + name;
       it = m_argument_map.find(name);
       if (it != m_argument_map.end()) {
         return *(it->second);
@@ -1226,6 +1248,12 @@ public:
   }
 
 private:
+  bool is_valid_prefix_char(char c) const {
+    return m_prefix_chars.find(c) != std::string::npos;
+  }
+
+  char get_any_valid_prefix_char() const { return m_prefix_chars[0]; }
+
   /*
    * Pre-process this argument list. Anything starting with "--", that
    * contains an =, where the prefix before the = has an entry in the
@@ -1237,11 +1265,46 @@ private:
     for (const auto &arg : raw_arguments) {
       // Check that:
       // - We don't have an argument named exactly this
-      // - The argument starts with "--"
-      // - The argument contains a "="
-      std::size_t eqpos = arg.find("=");
+      // - The argument starts with a prefix char, e.g., "--"
+      // - The argument contains an assign char, e.g., "="
+      std::size_t eqpos = arg.find_first_of(m_assign_chars);
+
+      static const auto argument_starts_with_prefix_chars =
+          [this](const std::string &a) {
+            if (a.size() > 0) {
+
+              const auto legal_prefix = [this](char c) {
+                return m_prefix_chars.find(c) != std::string::npos;
+              };
+
+              // Windows-style
+              // if '/' is a legal prefix char
+              // then allow single '/' followed by argument name, followed by an
+              // assign char, e.g., ':' e.g., 'test.exe /A:Foo'
+              const auto windows_style = legal_prefix('/');
+
+              if (windows_style) {
+                if (legal_prefix(a[0])) {
+                  return true;
+                }
+              } else {
+                // Slash '/' is not a legal prefix char
+                // For all other characters, only support long arguments
+                // i.e., the argument must start with 2 prefix chars, e.g,
+                // '--foo' e,g, './test --foo=Bar -DARG=yes'
+                if (a.size() > 1) {
+                  if (legal_prefix(a[0]) && legal_prefix(a[1])) {
+                    return true;
+                  }
+                }
+              }
+            }
+            return false;
+          };
+
       if (m_argument_map.find(arg) == m_argument_map.end() &&
-          arg.rfind("--", 0) == 0 && eqpos != std::string::npos) {
+          argument_starts_with_prefix_chars(arg) &&
+          eqpos != std::string::npos) {
         // Get the name of the potential option, and check it exists
         std::string opt_name = arg.substr(0, eqpos);
         if (m_argument_map.find(opt_name) != m_argument_map.end()) {
@@ -1269,7 +1332,7 @@ private:
     auto positional_argument_it = std::begin(m_positional_arguments);
     for (auto it = std::next(std::begin(arguments)); it != end;) {
       const auto &current_argument = *it;
-      if (Argument::is_positional(current_argument)) {
+      if (Argument::is_positional(current_argument, m_prefix_chars)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
 
           std::string_view maybe_command = current_argument;
@@ -1302,8 +1365,9 @@ private:
         auto argument = arg_map_it->second;
         it = argument->consume(std::next(it), end, arg_map_it->first);
       } else if (const auto &compound_arg = current_argument;
-                 compound_arg.size() > 1 && compound_arg[0] == '-' &&
-                 compound_arg[1] != '-') {
+                 compound_arg.size() > 1 &&
+                 is_valid_prefix_char(compound_arg[0]) &&
+                 !is_valid_prefix_char(compound_arg[1])) {
         ++it;
         for (std::size_t j = 1; j < compound_arg.size(); j++) {
           auto hypothetical_arg = std::string{'-', compound_arg[j]};
@@ -1338,7 +1402,7 @@ private:
     auto positional_argument_it = std::begin(m_positional_arguments);
     for (auto it = std::next(std::begin(arguments)); it != end;) {
       const auto &current_argument = *it;
-      if (Argument::is_positional(current_argument)) {
+      if (Argument::is_positional(current_argument, m_prefix_chars)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
 
           std::string_view maybe_command = current_argument;
@@ -1375,8 +1439,9 @@ private:
         auto argument = arg_map_it->second;
         it = argument->consume(std::next(it), end, arg_map_it->first);
       } else if (const auto &compound_arg = current_argument;
-                 compound_arg.size() > 1 && compound_arg[0] == '-' &&
-                 compound_arg[1] != '-') {
+                 compound_arg.size() > 1 &&
+                 is_valid_prefix_char(compound_arg[0]) &&
+                 !is_valid_prefix_char(compound_arg[1])) {
         ++it;
         for (std::size_t j = 1; j < compound_arg.size(); j++) {
           auto hypothetical_arg = std::string{'-', compound_arg[j]};
@@ -1429,6 +1494,8 @@ private:
   std::string m_version;
   std::string m_description;
   std::string m_epilog;
+  std::string m_prefix_chars{"-"};
+  std::string m_assign_chars{"="};
   bool m_is_parsed = false;
   std::list<Argument> m_positional_arguments;
   std::list<Argument> m_optional_arguments;
