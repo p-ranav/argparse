@@ -37,6 +37,7 @@
      *    [Gathering Remaining Arguments](#gathering-remaining-arguments)
      *    [Parent Parsers](#parent-parsers)
      *    [Subcommands](#subcommands)
+     *    [Parse Known Args](#parse-known-args)
 *    [Further Examples](#further-examples)
      *    [Construct a JSON object from a filename argument](#construct-a-json-object-from-a-filename-argument)
      *    [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
@@ -798,6 +799,28 @@ update       	Update the registered submodules to match what the superproject ex
 When a help message is requested from a subparser, only the help for that particular parser will be printed. The help message will not include parent parser or sibling parser messages.
 
 Additionally, every parser has a `.is_subcommand_used("<command_name>")` member function to check if a subcommand was used. 
+
+### Parse Known Args
+
+Sometimes a program may only parse a few of the command-line arguments, passing the remaining arguments on to another script or program. In these cases, the `parse_known_args()` function can be useful. It works much like `parse_args()` except that it does not produce an error when extra arguments are present. Instead, it returns a list of remaining argument strings.
+
+```cpp
+#include <argparse/argparse.hpp>
+#include <cassert>
+
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--foo").implicit_value(true).default_value(false);
+  program.add_argument("bar");
+
+  auto unknown_args =
+    program.parse_known_args({"test", "--foo", "--badger", "BAR", "spam"});
+
+  assert(program.get<bool>("--foo") == true);
+  assert(program.get<std::string>("bar") == std::string{"BAR"});
+  assert((unknown_args == std::vector<std::string>{"--badger", "spam"}));
+}
+```
 
 ## Further Examples
 
