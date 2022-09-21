@@ -29,3 +29,11 @@ TEST_CASE("Duplicate =-named and standard" * test_suite("equals_form")) {
   std::string result2{parser.get("--long")};
   REQUIRE(result2 == "NO_VALUE");
 }
+
+TEST_CASE("Basic --value=value with nargs(2)" * test_suite("equals_form")) {
+  argparse::ArgumentParser parser("test");
+  parser.add_argument("--long").nargs(2);
+  parser.parse_args({"test", "--long=value1", "value2"});
+  REQUIRE((parser.get<std::vector<std::string>>("--long") ==
+           std::vector<std::string>{"value1", "value2"}));
+}
