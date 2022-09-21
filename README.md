@@ -38,6 +38,8 @@
      *    [Parent Parsers](#parent-parsers)
      *    [Subcommands](#subcommands)
      *    [Parse Known Args](#parse-known-args)
+     *    [Custom Prefix Characters](#custom-prefix-characters)
+     *    [Custom Assignment Characters](#custom-assignment-characters)
 *    [Further Examples](#further-examples)
      *    [Construct a JSON object from a filename argument](#construct-a-json-object-from-a-filename-argument)
      *    [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
@@ -821,6 +823,97 @@ int main(int argc, char *argv[]) {
   assert(program.get<std::string>("bar") == std::string{"BAR"});
   assert((unknown_args == std::vector<std::string>{"--badger", "spam"}));
 }
+```
+
+### Custom Prefix Characters 
+
+Most command-line options will use `-` as the prefix, e.g. `-f/--foo`. Parsers that need to support different or additional prefix characters, e.g. for options like `+f` or `/foo`, may specify them using the `set_prefix_chars()`.
+
+The default prefix character is `-`.
+
+```cpp
+#include <argparse/argparse.hpp>
+#include <cassert>
+
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("test");
+  program.set_prefix_chars("-+/");
+
+  program.add_argument("+f");
+  program.add_argument("--bar");
+  program.add_argument("/foo");
+
+  try {
+    program.parse_args(argc, argv);
+  }
+  catch (const std::runtime_error& err) {
+    std::cerr << err.what() << std::endl;
+    std::cerr << program;
+    std::exit(1);
+  }
+
+  if (program.is_used("+f")) {
+    std::cout << "+f    : " << program.get("+f") << "\n";
+  }
+
+  if (program.is_used("--bar")) {
+    std::cout << "--bar : " << program.get("--bar") << "\n";
+  }
+
+  if (program.is_used("/foo")) {
+    std::cout << "/foo  : " << program.get("/foo") << "\n";
+  }  
+}
+```
+
+```console
+foo@bar:/home/dev/$ ./main +f 5 --bar 3.14f /foo "Hello"
++f    : 5
+--bar : 3.14f
+/foo  : Hello
+```
+
+### Custom Assignment Characters 
+
+In addition to prefix characters, custom 'assign' characters can be set. This setting is used to allow invocations like `./test --foo=Foo /B:Bar`.
+
+The default assign character is `=`.
+
+```cpp
+#include <argparse/argparse.hpp>
+#include <cassert>
+
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("test");
+  program.set_prefix_chars("-+/");
+  program.set_assign_chars("=:");
+
+  program.add_argument("--foo");
+  program.add_argument("/B");
+
+  try {
+    program.parse_args(argc, argv);
+  }
+  catch (const std::runtime_error& err) {
+    std::cerr << err.what() << std::endl;
+    std::cerr << program;
+    std::exit(1);
+  }
+
+  if (program.is_used("--foo")) {
+    std::cout << "--foo : " << program.get("--foo") << "\n";
+  }
+
+  if (program.is_used("/B")) {
+    std::cout << "/B    : " << program.get("/B") << "\n";
+  }
+}
+```
+
+```console
+foo@bar:/home/dev/$ ./main --foo=Foo /B:Bar
+--foo : Foo
+/B    : Bar
 ```
 
 ## Further Examples
