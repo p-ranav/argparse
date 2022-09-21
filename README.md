@@ -697,6 +697,93 @@ Note You must fully initialize the parsers before passing them via ```.add_paren
 
 Many programs split up their functionality into a number of sub-commands, for example, the `git` program can invoke sub-commands like `git checkout`, `git add`, and `git commit`. Splitting up functionality this way can be a particularly good idea when a program performs several different functions which require different kinds of command-line arguments. `ArgumentParser` supports the creation of such sub-commands with the `add_subparser()` member function.
 
+```cpp
+#include <argparse/argparse.hpp>
+
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("git");
+
+  argparse::ArgumentParser add_command("add");
+  add_command.add_argument("files")
+    .help("Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files.")
+    .remaining();
+
+  argparse::ArgumentParser commit_command("commit");
+  commit_command.add_argument("-a", "--all")
+    .help("Tell the command to automatically stage files that have been modified and deleted.")
+    .default_value(false)
+    .implicit_value(true);
+
+  commit_command.add_argument("-m", "--message")
+    .help("Use the given <msg> as the commit message.");
+
+  argparse::ArgumentParser catfile_command("cat-file");
+  catfile_command.add_argument("-t")
+    .help("Instead of the content, show the object type identified by <object>.");
+
+  catfile_command.add_argument("-p")
+    .help("Pretty-print the contents of <object> based on its type.");
+
+  argparse::ArgumentParser submodule_command("submodule");
+  argparse::ArgumentParser submodule_update_command("update");
+  submodule_update_command.add_argument("--init")
+    .default_value(false)
+    .implicit_value(true);
+  submodule_update_command.add_argument("--recursive")
+    .default_value(false)
+    .implicit_value(true);
+  submodule_command.add_subparser(submodule_update_command);
+
+  program.add_subparser(add_command);
+  program.add_subparser(commit_command);
+  program.add_subparser(catfile_command);
+  program.add_subparser(submodule_command);
+
+  try {
+    program.parse_args(argc, argv);
+  }
+  catch (const std::runtime_error& err) {
+    std::cerr << err.what() << std::endl;
+    std::cerr << program;
+    std::exit(1);
+  }
+
+  // Use arguments
+}
+```
+
+```bash
+$ ./git --help
+Usage: git [options] <command> [<args>]
+
+Optional arguments:
+-h --help    	shows help message and exits [default: false]
+-v --version 	prints version information and exits [default: false]
+
+Subcommands:
+{add, cat-file, commit, submodule}
+
+$ ./git add --help
+Usage: git add [options] files 
+
+Positional arguments:
+files        	Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files.
+
+Optional arguments:
+-h --help    	shows help message and exits [default: false]
+-v --version 	prints version information and exits [default: false]
+
+$ ./git submodule update --help
+Usage: submodule update [options] 
+
+Optional arguments:
+-h --help    	shows help message and exits [default: false]
+-v --version 	prints version information and exits [default: false]
+--init       	[default: false]
+--recursive  	[default: false]
+
+```
+
 ## Further Examples
 
 ### Construct a JSON object from a filename argument
