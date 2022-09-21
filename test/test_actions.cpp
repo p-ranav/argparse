@@ -1,22 +1,21 @@
-#include <doctest.hpp>
 #include <argparse/argparse.hpp>
+#include <doctest.hpp>
 
 using doctest::test_suite;
 
 TEST_CASE("Users can use default value inside actions" *
           test_suite("actions")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("input")
-    .default_value("bar")
-    .action([=](const std::string& value) {
-      static const std::vector<std::string> choices = { "foo", "bar", "baz" };
-      if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
-        return value;
-      }
-      return std::string{ "bar" };
-    });
+  program.add_argument("input").default_value("bar").action(
+      [=](const std::string &value) {
+        static const std::vector<std::string> choices = {"foo", "bar", "baz"};
+        if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
+          return value;
+        }
+        return std::string{"bar"};
+      });
 
-  program.parse_args({ "test", "fez" });
+  program.parse_args({"test", "fez"});
   REQUIRE(program.get("input") == "bar");
 }
 
@@ -126,9 +125,11 @@ TEST_CASE("Users can use actions on nargs=ANY arguments" *
   argparse::ArgumentParser program("sum");
 
   int result = 0;
-  program.add_argument("all").nargs(argparse::nargs_pattern::any).action(
-      [](int &sum, std::string const &value) { sum += std::stoi(value); },
-      std::ref(result));
+  program.add_argument("all")
+      .nargs(argparse::nargs_pattern::any)
+      .action(
+          [](int &sum, std::string const &value) { sum += std::stoi(value); },
+          std::ref(result));
 
   program.parse_args({"sum", "42", "100", "-3", "-20"});
   REQUIRE(result == 119);
@@ -154,11 +155,11 @@ TEST_CASE("Users can run actions on parameterless optional arguments" *
   GIVEN("a flag argument with a counting action") {
     int count = 0;
     program.add_argument("-V", "--verbose")
-      .action([&](const auto &) { ++count; })
-      .append()
-      .default_value(false)
-      .implicit_value(true)
-      .nargs(0);
+        .action([&](const auto &) { ++count; })
+        .append()
+        .default_value(false)
+        .implicit_value(true)
+        .nargs(0);
 
     WHEN("the flag is repeated") {
       program.parse_args({"test", "-VVVV"});

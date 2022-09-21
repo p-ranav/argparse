@@ -1,6 +1,6 @@
-#include <doctest.hpp>
 #include <argparse/argparse.hpp>
 #include <cmath>
+#include <doctest.hpp>
 
 using doctest::test_suite;
 
@@ -8,7 +8,7 @@ TEST_CASE("Parse positional arguments" * test_suite("positional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output");
-  program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv" });
+  program.parse_args({"test", "rocket.mesh", "thrust_profile.csv"});
   REQUIRE(program.get("input") == "rocket.mesh");
   REQUIRE(program.get("output") == "thrust_profile.csv");
 }
@@ -17,7 +17,7 @@ TEST_CASE("Missing expected positional argument" *
           test_suite("positional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
-  REQUIRE_THROWS_WITH_AS(program.parse_args({ "test" }),
+  REQUIRE_THROWS_WITH_AS(program.parse_args({"test"}),
                          "1 argument(s) expected. 0 provided.",
                          std::runtime_error);
 }
@@ -27,7 +27,8 @@ TEST_CASE("Parse positional arguments with fixed nargs" *
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);
-  program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv", "output.mesh" });
+  program.parse_args(
+      {"test", "rocket.mesh", "thrust_profile.csv", "output.mesh"});
   REQUIRE(program.get("input") == "rocket.mesh");
   auto outputs = program.get<std::vector<std::string>>("output");
   REQUIRE(outputs.size() == 2);
@@ -40,9 +41,9 @@ TEST_CASE("Parse positional arguments with optional arguments" *
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);
-  program.add_argument("--num_iterations")
-    .scan<'i', int>();
-  program.parse_args({ "test", "rocket.mesh", "--num_iterations", "15", "thrust_profile.csv", "output.mesh" });
+  program.add_argument("--num_iterations").scan<'i', int>();
+  program.parse_args({"test", "rocket.mesh", "--num_iterations", "15",
+                      "thrust_profile.csv", "output.mesh"});
   REQUIRE(program.get<int>("--num_iterations") == 15);
   REQUIRE(program.get("input") == "rocket.mesh");
   auto outputs = program.get<std::vector<std::string>>("output");
@@ -56,14 +57,16 @@ TEST_CASE("Parse positional arguments with optional arguments in the middle" *
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   program.add_argument("output").nargs(2);
-  program.add_argument("--num_iterations")
-    .scan<'i', int>();
-  REQUIRE_THROWS(program.parse_args({ "test", "rocket.mesh", "thrust_profile.csv", "--num_iterations", "15", "output.mesh" }));
+  program.add_argument("--num_iterations").scan<'i', int>();
+  REQUIRE_THROWS(
+      program.parse_args({"test", "rocket.mesh", "thrust_profile.csv",
+                          "--num_iterations", "15", "output.mesh"}));
 }
 
 TEST_CASE("Parse positional nargs=1..2 arguments" *
           test_suite("positional_arguments")) {
-  GIVEN("a program that accepts an optional argument and nargs=1..2 positional arguments") {
+  GIVEN("a program that accepts an optional argument and nargs=1..2 positional "
+        "arguments") {
     argparse::ArgumentParser program("test");
     program.add_argument("-o");
     program.add_argument("input").nargs(1, 2);
@@ -131,7 +134,8 @@ TEST_CASE("Parse positional nargs=1..2 arguments" *
 
     WHEN("provided an optional in between positional arguments") {
       THEN("the program does not accept it") {
-        REQUIRE_THROWS(program.parse_args({"test", "a.c", "-o", "a.out", "b.c"}));
+        REQUIRE_THROWS(
+            program.parse_args({"test", "a.c", "-o", "a.out", "b.c"}));
       }
     }
   }
@@ -139,7 +143,8 @@ TEST_CASE("Parse positional nargs=1..2 arguments" *
 
 TEST_CASE("Parse positional nargs=ANY arguments" *
           test_suite("positional_arguments")) {
-  GIVEN("a program that accepts an optional argument and nargs=ANY positional arguments") {
+  GIVEN("a program that accepts an optional argument and nargs=ANY positional "
+        "arguments") {
     argparse::ArgumentParser program("test");
     program.add_argument("-o");
     program.add_argument("input").nargs(argparse::nargs_pattern::any);
@@ -236,19 +241,21 @@ TEST_CASE("Parse remaining arguments deemed positional" *
 TEST_CASE("Reversed order nargs is not allowed" *
           test_suite("positional_arguments")) {
   argparse::ArgumentParser program("test");
-  REQUIRE_THROWS_AS(program.add_argument("output").nargs(2, 1), std::logic_error);
+  REQUIRE_THROWS_AS(program.add_argument("output").nargs(2, 1),
+                    std::logic_error);
 }
 
 TEST_CASE("Square a number" * test_suite("positional_arguments")) {
   argparse::ArgumentParser program;
   program.add_argument("--verbose", "-v")
-    .help("enable verbose logging")
-    .default_value(false)
-    .implicit_value(true);
+      .help("enable verbose logging")
+      .default_value(false)
+      .implicit_value(true);
 
   program.add_argument("square")
-    .help("display a square of a given number")
-    .action([](const std::string& value) { return pow(std::stoi(value), 2); });
+      .help("display a square of a given number")
+      .action(
+          [](const std::string &value) { return pow(std::stoi(value), 2); });
 
   program.parse_args({"./main", "15"});
   REQUIRE(program.get<double>("square") == 225);

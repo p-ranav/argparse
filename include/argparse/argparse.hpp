@@ -149,8 +149,9 @@ constexpr bool standard_integer =
     standard_signed_integer<T> || standard_unsigned_integer<T>;
 
 template <class F, class Tuple, class Extra, std::size_t... I>
-constexpr decltype(auto) apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
-                                             std::index_sequence<I...> /*unused*/) {
+constexpr decltype(auto)
+apply_plus_one_impl(F &&f, Tuple &&t, Extra &&x,
+                    std::index_sequence<I...> /*unused*/) {
   return std::invoke(std::forward<F>(f), std::get<I>(std::forward<Tuple>(t))...,
                      std::forward<Extra>(x));
 }
@@ -328,11 +329,7 @@ template <class T> struct parse_number<T, chars_format::fixed> {
 
 } // namespace details
 
-enum class nargs_pattern {
-  optional,
-  any,
-  at_least_one
-};
+enum class nargs_pattern { optional, any, at_least_one };
 
 enum class default_arguments : unsigned int {
   none = 0,
@@ -395,7 +392,7 @@ public:
   }
 
   template <class F, class... Args>
-  auto action(F &&callable, Args &&...bound_args)
+  auto action(F &&callable, Args &&... bound_args)
       -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string const>,
                           Argument &> {
     using action_type = std::conditional_t<
@@ -429,7 +426,8 @@ public:
 
     if constexpr (is_one_of(Shape, 'd') && details::standard_integer<T>) {
       action(details::parse_number<T, details::radix_10>());
-    } else if constexpr (is_one_of(Shape, 'i') && details::standard_integer<T>) {
+    } else if constexpr (is_one_of(Shape, 'i') &&
+                         details::standard_integer<T>) {
       action(details::parse_number<T>());
     } else if constexpr (is_one_of(Shape, 'u') &&
                          details::standard_unsigned_integer<T>) {
@@ -506,7 +504,8 @@ public:
       std::visit([](const auto &f) { f({}); }, m_action);
       return start;
     }
-    if ((dist = static_cast<std::size_t>(std::distance(start, end))) >= num_args_min) {
+    if ((dist = static_cast<std::size_t>(std::distance(start, end))) >=
+        num_args_min) {
       if (num_args_max < dist) {
         end = std::next(start, num_args_max);
       }
@@ -558,7 +557,8 @@ public:
         throw_required_arg_no_value_provided_error();
       }
     } else {
-      if (!m_num_args_range.contains(m_values.size()) && !m_default_value.has_value()) {
+      if (!m_num_args_range.contains(m_values.size()) &&
+          !m_default_value.has_value()) {
         throw_nargs_range_validation_error();
       }
     }
@@ -606,15 +606,13 @@ public:
       return get<T>() == rhs;
     } else {
       auto lhs = get<T>();
-      return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
-                        std::end(rhs), [](const auto &lhs, const auto &rhs) {
-                          return lhs == rhs;
-                        });
+      return std::equal(
+          std::begin(lhs), std::end(lhs), std::begin(rhs), std::end(rhs),
+          [](const auto &lhs, const auto &rhs) { return lhs == rhs; });
     }
   }
 
 private:
-
   class NArgsRange {
     std::size_t m_min;
     std::size_t m_max;
@@ -631,21 +629,15 @@ private:
       return value >= m_min && value <= m_max;
     }
 
-    bool is_exact() const {
-      return m_min == m_max;
-    }
+    bool is_exact() const { return m_min == m_max; }
 
     bool is_right_bounded() const {
       return m_max < std::numeric_limits<std::size_t>::max();
     }
 
-    std::size_t get_min() const {
-      return m_min;
-    }
+    std::size_t get_min() const { return m_min; }
 
-    std::size_t get_max() const {
-      return m_max;
-    }
+    std::size_t get_max() const { return m_max; }
   };
 
   void throw_nargs_range_validation_error() const {
@@ -656,7 +648,8 @@ private:
     if (m_num_args_range.is_exact()) {
       stream << m_num_args_range.get_min();
     } else if (m_num_args_range.is_right_bounded()) {
-      stream << m_num_args_range.get_min() << " to " << m_num_args_range.get_max();
+      stream << m_num_args_range.get_min() << " to "
+             << m_num_args_range.get_max();
     } else {
       stream << m_num_args_range.get_min() << " or more";
     }
@@ -855,7 +848,9 @@ private:
    * Get argument value given a type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T> auto get() const -> std::conditional_t<details::IsContainer<T>, T, const T&> {
+  template <typename T>
+  auto get() const
+      -> std::conditional_t<details::IsContainer<T>, T, const T &> {
     if (!m_values.empty()) {
       if constexpr (details::IsContainer<T>) {
         return any_cast_container<T>(m_values);
@@ -916,7 +911,7 @@ private:
       std::in_place_type<valued_action>,
       [](const std::string &value) { return value; }};
   std::vector<std::any> m_values;
-  NArgsRange m_num_args_range {1, 1};
+  NArgsRange m_num_args_range{1, 1};
   bool m_accepts_optional_like_value = false;
   bool m_is_optional : true;
   bool m_is_required : true;
@@ -932,7 +927,7 @@ public:
       : m_program_name(std::move(program_name)), m_version(std::move(version)) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
-          .action([&](const auto &/*unused*/) {
+          .action([&](const auto & /*unused*/) {
             std::cout << help().str();
             std::exit(0);
           })
@@ -943,7 +938,7 @@ public:
     }
     if ((add_args & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
-          .action([&](const auto &/*unused*/) {
+          .action([&](const auto & /*unused*/) {
             std::cout << m_version << std::endl;
             std::exit(0);
           })
@@ -958,10 +953,8 @@ public:
   ArgumentParser &operator=(ArgumentParser &&) = default;
 
   ArgumentParser(const ArgumentParser &other)
-      : m_program_name(other.m_program_name),
-        m_version(other.m_version),
-        m_description(other.m_description),
-        m_epilog(other.m_epilog),
+      : m_program_name(other.m_program_name), m_version(other.m_version),
+        m_description(other.m_description), m_epilog(other.m_epilog),
         m_is_parsed(other.m_is_parsed),
         m_positional_arguments(other.m_positional_arguments),
         m_optional_arguments(other.m_optional_arguments) {
@@ -1002,7 +995,7 @@ public:
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
   template <typename... Targs>
-  ArgumentParser &add_parents(const Targs &...f_args) {
+  ArgumentParser &add_parents(const Targs &... f_args) {
     for (const ArgumentParser &parent_parser : {std::ref(f_args)...}) {
       for (const auto &argument : parent_parser.m_positional_arguments) {
         auto it = m_positional_arguments.insert(
@@ -1036,7 +1029,7 @@ public:
   void parse_args(const std::vector<std::string> &arguments) {
     parse_args_internal(arguments);
     // Check if all arguments are parsed
-    for ([[maybe_unused]] const auto& [unused, argument] : m_argument_map) {
+    for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
       argument->validate();
     }
   }
@@ -1056,8 +1049,9 @@ public:
    * @throws std::logic_error if the option has no value
    * @throws std::bad_any_cast if the option is not of type T
    */
-  template <typename T = std::string> auto get(std::string_view arg_name) const
-    -> std::conditional_t<details::IsContainer<T>, T, const T&> {
+  template <typename T = std::string>
+  auto get(std::string_view arg_name) const
+      -> std::conditional_t<details::IsContainer<T>, T, const T &> {
     if (!m_is_parsed) {
       throw std::logic_error("Nothing parsed, no arguments are available.");
     }
@@ -1148,17 +1142,16 @@ public:
     }
 
     if (!parser.m_subparser_map.empty()) {
-      stream << (parser.m_positional_arguments.empty() ? 
-                  (parser.m_optional_arguments.empty() ? "" : "\n") : 
-                  "\n") 
+      stream << (parser.m_positional_arguments.empty()
+                     ? (parser.m_optional_arguments.empty() ? "" : "\n")
+                     : "\n")
              << "Subcommands:\n";
       stream << "{";
-      std::size_t i = 0; 
+      std::size_t i = 0;
       for (const auto &[argument, unused] : parser.m_subparser_map) {
         if (i == 0) {
           stream << argument;
-        }
-        else {
+        } else {
           stream << ", " << argument;
         }
         ++i;
@@ -1190,7 +1183,8 @@ public:
     return out.str();
   }
 
-  void add_subparser(ArgumentParser& parser) {
+  void add_subparser(ArgumentParser &parser) {
+
     auto it = m_subparsers.emplace(std::cend(m_subparsers), parser);
     m_subparser_map.insert_or_assign(parser.m_program_name, it);
   }
@@ -1217,11 +1211,13 @@ private:
           if (subparser_it != m_subparser_map.end()) {
 
             // build list of remaining args
-            const auto unprocessed_arguments = std::vector<std::string>(it, end);
+            const auto unprocessed_arguments =
+                std::vector<std::string>(it, end);
 
             // invoke subparser
             m_is_parsed = true;
-            return subparser_it->second->get().parse_args(unprocessed_arguments);
+            return subparser_it->second->get().parse_args(
+                unprocessed_arguments);
           }
 
           throw std::runtime_error(
@@ -1263,17 +1259,18 @@ private:
       return 0;
     }
     std::size_t max_size = 0;
-    for ([[maybe_unused]] const auto& [unused, argument] : m_argument_map) {
+    for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
       max_size = std::max(max_size, argument->get_arguments_length());
     }
-    for ([[maybe_unused]] const auto& [command, unused] : m_subparser_map) {
+    for ([[maybe_unused]] const auto &[command, unused] : m_subparser_map) {
       max_size = std::max(max_size, command.size());
     }
     return max_size;
   }
 
   using argument_it = std::list<Argument>::iterator;
-  using argument_parser_it = std::list<std::reference_wrapper<ArgumentParser>>::iterator;
+  using argument_parser_it =
+      std::list<std::reference_wrapper<ArgumentParser>>::iterator;
 
   void index_argument(argument_it it) {
     for (const auto &name : std::as_const(it->m_names)) {

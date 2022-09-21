@@ -64,12 +64,10 @@ TEST_CASE("Users can replace default -h/--help" * test_suite("help")) {
                                    argparse::default_arguments::version);
   std::stringstream buffer;
   program.add_argument("-h", "--help")
-    .action([&](const auto &) {
-      buffer << program;
-    })
-    .default_value(false)
-    .implicit_value(true)
-    .nargs(0);
+      .action([&](const auto &) { buffer << program; })
+      .default_value(false)
+      .implicit_value(true)
+      .nargs(0);
 
   REQUIRE(buffer.str().empty());
   program.parse_args({"test", "--help"});

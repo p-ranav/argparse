@@ -16,6 +16,35 @@
 * Requires C++17
 * MIT License
 
+## Table of Contents
+
+*    [Quick Start](#quick-start)
+     *    [Positional Arguments](#positional-arguments)
+     *    [Optional Arguments](#optional-arguments)
+          *    [Requiring optional arguments](#requiring-optional-arguments)
+          *    [Accessing optional arguments without default values](#accessing-optional-arguments-without-default-values)
+          *    [Deciding if the value was given by the user](#deciding-if-the-value-was-given-by-the-user)
+          *    [Joining values of repeated optional arguments](#joining-values-of-repeated-optional-arguments)
+          *    [Repeating an argument to increase a value](#repeating-an-argument-to-increase-a-value)
+     *    [Negative Numbers](#negative-numbers)
+     *    [Combining Positional and Optional Arguments](#combining-positional-and-optional-arguments)
+     *    [Printing Help](#printing-help)
+     *    [Adding a description and an epilog to help](#adding-a-description-and-an-epilog-to-help)
+     *    [List of Arguments](#list-of-arguments)
+     *    [Compound Arguments](#compound-arguments)
+     *    [Converting to Numeric Types](#converting-to-numeric-types)
+     *    [Default Arguments](#default-arguments)
+     *    [Gathering Remaining Arguments](#gathering-remaining-arguments)
+     *    [Parent Parsers](#parent-parsers)
+*    [Further Examples](#further-examples)
+     *     [Construct a JSON object from a filename argument](#construct-a-json-object-from-a-filename-argument)
+     *     [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
+     *     [Restricting the set of values for an argument](#restricting-the-set-of-values-for-an-argument)
+*    [CMake Integration](#cmake-integration)
+*    [Supported Toolchains](#supported-toolchains)
+*    [Contributing](#contributing)
+*    [License](#license)
+
 ## Quick Start
 
 Simply include argparse.hpp and you're good to go.

@@ -1,5 +1,5 @@
-#include <doctest.hpp>
 #include <argparse/argparse.hpp>
+#include <doctest.hpp>
 
 using doctest::test_suite;
 
@@ -7,10 +7,10 @@ TEST_CASE("Parse toggle arguments with default value" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--verbose", "-v")
-    .default_value(false)
-    .implicit_value(true);
+      .default_value(false)
+      .implicit_value(true);
 
-  program.parse_args({ "./test.exe" });
+  program.parse_args({"./test.exe"});
   REQUIRE(program.get<bool>("--verbose") == false);
   REQUIRE(program["--verbose"] == false);
 }
@@ -19,18 +19,16 @@ TEST_CASE("Argument '-' is not an optional argument" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
   program.add_argument("input");
-  program.parse_args({ "./test.exe", "-"});
+  program.parse_args({"./test.exe", "-"});
   REQUIRE(program.get<std::string>("input") == "-");
 }
 
 TEST_CASE("Argument '-' is not an optional argument but '-l' is" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-l")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-l").default_value(false).implicit_value(true);
   program.add_argument("input");
-  program.parse_args({ "./test.exe", "-l", "-"});
+  program.parse_args({"./test.exe", "-l", "-"});
   REQUIRE(program.get<bool>("-l") == true);
   REQUIRE(program.get<std::string>("input") == "-");
 }
@@ -38,11 +36,9 @@ TEST_CASE("Argument '-' is not an optional argument but '-l' is" *
 TEST_CASE("Argument '-l' is an optional argument but '-' is not" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-l")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-l").default_value(false).implicit_value(true);
   program.add_argument("input");
-  program.parse_args({ "./test.exe", "-", "-l"});
+  program.parse_args({"./test.exe", "-", "-l"});
   REQUIRE(program.get<bool>("-l") == true);
   REQUIRE(program.get<std::string>("input") == "-");
 }
@@ -50,11 +46,9 @@ TEST_CASE("Argument '-l' is an optional argument but '-' is not" *
 TEST_CASE("Parse toggle arguments with implicit value" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("--verbose")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("--verbose").default_value(false).implicit_value(true);
 
-  program.parse_args({ "./test.exe", "--verbose" });
+  program.parse_args({"./test.exe", "--verbose"});
   REQUIRE(program.get<bool>("--verbose") == true);
   REQUIRE(program["--verbose"] == true);
   REQUIRE(program["--verbose"] != false);
@@ -63,19 +57,13 @@ TEST_CASE("Parse toggle arguments with implicit value" *
 TEST_CASE("Parse multiple toggle arguments with implicit values" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-a")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-a").default_value(false).implicit_value(true);
 
-  program.add_argument("-u")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-u").default_value(false).implicit_value(true);
 
-  program.add_argument("-x")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-x").default_value(false).implicit_value(true);
 
-  program.parse_args({ "./test.exe", "-a", "-x" });
+  program.parse_args({"./test.exe", "-a", "-x"});
   REQUIRE(program.get<bool>("-a") == true);
   REQUIRE(program.get<bool>("-u") == false);
   REQUIRE(program.get<bool>("-x") == true);
@@ -114,7 +102,9 @@ TEST_CASE("Parse 2 optional arguments of many values" *
           test_suite("optional_arguments")) {
   GIVEN("a program that accepts 2 optional arguments of many values") {
     argparse::ArgumentParser program("test");
-    program.add_argument("-i").nargs(argparse::nargs_pattern::any).scan<'i', int>();
+    program.add_argument("-i")
+        .nargs(argparse::nargs_pattern::any)
+        .scan<'i', int>();
     program.add_argument("-s").nargs(argparse::nargs_pattern::any);
 
     WHEN("provided no argument") {
@@ -129,8 +119,8 @@ TEST_CASE("Parse 2 optional arguments of many values" *
     }
 
     WHEN("provided 2 options with many arguments") {
-      program.parse_args(
-        {"test", "-i", "-42", "8", "100", "300", "-s", "ok", "this", "works"});
+      program.parse_args({"test", "-i", "-42", "8", "100", "300", "-s", "ok",
+                          "this", "works"});
 
       THEN("the optional parameter consumes each arguments") {
         auto i = program.get<std::vector<int>>("-i");
@@ -171,8 +161,7 @@ TEST_CASE("Parse an optional argument of many values"
     }
 
     WHEN("provided many arguments followed by an option with many arguments") {
-      program.parse_args(
-        {"test", "foo", "bar", "-s", "ok", "this", "works"});
+      program.parse_args({"test", "foo", "bar", "-s", "ok", "this", "works"});
 
       THEN("the parameters consume each arguments") {
         auto s = program.get<std::vector<std::string>>("-s");

@@ -5,7 +5,7 @@ using doctest::test_suite;
 
 TEST_CASE("Include all default arguments" * test_suite("default_args")) {
   argparse::ArgumentParser parser("test");
-  auto help_msg { parser.help().str() };
+  auto help_msg{parser.help().str()};
   REQUIRE(help_msg.find("shows help message") != std::string::npos);
   REQUIRE(help_msg.find("prints version information") != std::string::npos);
 }
