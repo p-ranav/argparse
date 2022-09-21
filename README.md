@@ -42,6 +42,7 @@
      *    [Construct a JSON object from a filename argument](#construct-a-json-object-from-a-filename-argument)
      *    [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
      *    [Restricting the set of values for an argument](#restricting-the-set-of-values-for-an-argument)
+     *    [Using `option=value` syntax](#using-optionvalue-syntax)
 *    [CMake Integration](#cmake-integration)
 *    [Supported Toolchains](#supported-toolchains)
 *    [Contributing](#contributing)
