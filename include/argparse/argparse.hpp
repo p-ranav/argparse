@@ -845,7 +845,7 @@ private:
     if (first == eof) {
       return true;
     } else if (prefix_chars.find(static_cast<char>(first)) !=
-               std::string::npos) {
+               std::string_view::npos) {
       name.remove_prefix(1);
       if (name.empty()) {
         return true;
@@ -968,7 +968,8 @@ public:
   ArgumentParser(const ArgumentParser &other)
       : m_program_name(other.m_program_name), m_version(other.m_version),
         m_description(other.m_description), m_epilog(other.m_epilog),
-        m_prefix_chars(other.m_prefix_chars), m_is_parsed(other.m_is_parsed),
+        m_prefix_chars(other.m_prefix_chars),
+        m_assign_chars(other.m_assign_chars), m_is_parsed(other.m_is_parsed),
         m_positional_arguments(other.m_positional_arguments),
         m_optional_arguments(other.m_optional_arguments),
         m_parser_path(other.m_parser_path), m_subparsers(other.m_subparsers) {
@@ -1260,57 +1261,56 @@ private:
    * options table, should be split.
    */
   std::vector<std::string>
-  preprocess_arguments(const std::vector<std::string> &raw_arguments) {
-    std::vector<std::string> arguments;
+  preprocess_arguments(const std::vector<std::string> &raw_arguments) const {
+    std::vector<std::string> arguments{};
     for (const auto &arg : raw_arguments) {
+
+      const auto argument_starts_with_prefix_chars =
+          [this](const std::string &a) -> bool {
+        if (!a.empty()) {
+
+          const auto legal_prefix = [this](char c) -> bool {
+            return m_prefix_chars.find(c) != std::string::npos;
+          };
+
+          // Windows-style
+          // if '/' is a legal prefix char
+          // then allow single '/' followed by argument name, followed by an
+          // assign char, e.g., ':' e.g., 'test.exe /A:Foo'
+          const auto windows_style = legal_prefix('/');
+
+          if (windows_style) {
+            if (legal_prefix(a[0])) {
+              return true;
+            }
+          } else {
+            // Slash '/' is not a legal prefix char
+            // For all other characters, only support long arguments
+            // i.e., the argument must start with 2 prefix chars, e.g,
+            // '--foo' e,g, './test --foo=Bar -DARG=yes'
+            if (a.size() > 1) {
+              return (legal_prefix(a[0]) && legal_prefix(a[1]));
+            }
+          }
+        }
+        return false;
+      };
+
       // Check that:
       // - We don't have an argument named exactly this
       // - The argument starts with a prefix char, e.g., "--"
       // - The argument contains an assign char, e.g., "="
-      std::size_t eqpos = arg.find_first_of(m_assign_chars);
-
-      static const auto argument_starts_with_prefix_chars =
-          [this](const std::string &a) {
-            if (a.size() > 0) {
-
-              const auto legal_prefix = [this](char c) {
-                return m_prefix_chars.find(c) != std::string::npos;
-              };
-
-              // Windows-style
-              // if '/' is a legal prefix char
-              // then allow single '/' followed by argument name, followed by an
-              // assign char, e.g., ':' e.g., 'test.exe /A:Foo'
-              const auto windows_style = legal_prefix('/');
-
-              if (windows_style) {
-                if (legal_prefix(a[0])) {
-                  return true;
-                }
-              } else {
-                // Slash '/' is not a legal prefix char
-                // For all other characters, only support long arguments
-                // i.e., the argument must start with 2 prefix chars, e.g,
-                // '--foo' e,g, './test --foo=Bar -DARG=yes'
-                if (a.size() > 1) {
-                  if (legal_prefix(a[0]) && legal_prefix(a[1])) {
-                    return true;
-                  }
-                }
-              }
-            }
-            return false;
-          };
+      auto assign_char_pos = arg.find_first_of(m_assign_chars);
 
       if (m_argument_map.find(arg) == m_argument_map.end() &&
           argument_starts_with_prefix_chars(arg) &&
-          eqpos != std::string::npos) {
+          assign_char_pos != std::string::npos) {
         // Get the name of the potential option, and check it exists
-        std::string opt_name = arg.substr(0, eqpos);
+        std::string opt_name = arg.substr(0, assign_char_pos);
         if (m_argument_map.find(opt_name) != m_argument_map.end()) {
           // This is the name of an option! Split it into two parts
           arguments.push_back(std::move(opt_name));
-          arguments.push_back(arg.substr(eqpos + 1));
+          arguments.push_back(arg.substr(assign_char_pos + 1));
           continue;
         }
       }
