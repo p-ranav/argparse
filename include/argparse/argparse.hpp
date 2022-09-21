@@ -1041,6 +1041,21 @@ public:
     }
   }
 
+  /* Call parse_known_args_internal - which does all the work
+   * Then, validate the parsed arguments
+   * This variant is used mainly for testing
+   * @throws std::runtime_error in case of any invalid argument
+   */
+  std::vector<std::string>
+  parse_known_args(const std::vector<std::string> &arguments) {
+    auto unknown_arguments = parse_known_args_internal(arguments);
+    // Check if all arguments are parsed
+    for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
+      argument->validate();
+    }
+    return unknown_arguments;
+  }
+
   /* Main entry point for parsing command-line arguments using this
    * ArgumentParser
    * @throws std::runtime_error in case of any invalid argument
@@ -1048,6 +1063,15 @@ public:
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
   void parse_args(int argc, const char *const argv[]) {
     parse_args({argv, argv + argc});
+  }
+
+  /* Main entry point for parsing command-line arguments using this
+   * ArgumentParser
+   * @throws std::runtime_error in case of any invalid argument
+   */
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
+  void parse_known_args(int argc, const char *const argv[]) {
+    parse_known_args({argv, argv + argc});
   }
 
   /* Getter for options with default values.
@@ -1260,6 +1284,83 @@ private:
       }
     }
     m_is_parsed = true;
+  }
+
+  /*
+   * Like parse_args_internal but collects unused args into a vector<string>
+   */
+  std::vector<std::string>
+  parse_known_args_internal(const std::vector<std::string> &arguments) {
+
+    std::vector<std::string> unknown_arguments{};
+
+    if (m_program_name.empty() && !arguments.empty()) {
+      m_program_name = arguments.front();
+    }
+    auto end = std::end(arguments);
+    auto positional_argument_it = std::begin(m_positional_arguments);
+    for (auto it = std::next(std::begin(arguments)); it != end;) {
+      const auto &current_argument = *it;
+      if (Argument::is_positional(current_argument)) {
+        if (positional_argument_it == std::end(m_positional_arguments)) {
+
+          std::string_view maybe_command = current_argument;
+
+          // Check sub-parsers
+          auto subparser_it = m_subparser_map.find(maybe_command);
+          if (subparser_it != m_subparser_map.end()) {
+
+            // build list of remaining args
+            const auto unprocessed_arguments =
+                std::vector<std::string>(it, end);
+
+            // invoke subparser
+            m_is_parsed = true;
+            m_subparser_used[maybe_command] = true;
+            return subparser_it->second->get().parse_known_args_internal(
+                unprocessed_arguments);
+          }
+
+          // save current argument as unknown and go to next argument
+          unknown_arguments.push_back(current_argument);
+          ++it;
+        } else {
+          // current argument is the value of a positional argument
+          // consume it
+          auto argument = positional_argument_it++;
+          it = argument->consume(it, end);
+        }
+        continue;
+      }
+
+      auto arg_map_it = m_argument_map.find(current_argument);
+      if (arg_map_it != m_argument_map.end()) {
+        auto argument = arg_map_it->second;
+        it = argument->consume(std::next(it), end, arg_map_it->first);
+      } else if (const auto &compound_arg = current_argument;
+                 compound_arg.size() > 1 && compound_arg[0] == '-' &&
+                 compound_arg[1] != '-') {
+        ++it;
+        for (std::size_t j = 1; j < compound_arg.size(); j++) {
+          auto hypothetical_arg = std::string{'-', compound_arg[j]};
+          auto arg_map_it2 = m_argument_map.find(hypothetical_arg);
+          if (arg_map_it2 != m_argument_map.end()) {
+            auto argument = arg_map_it2->second;
+            it = argument->consume(it, end, arg_map_it2->first);
+          } else {
+            unknown_arguments.push_back(current_argument);
+            break;
+          }
+        }
+      } else {
+        // current argument is an optional-like argument that is unknown
+        // save it and move to next argument
+        unknown_arguments.push_back(current_argument);
+        ++it;
+      }
+    }
+    m_is_parsed = true;
+    return unknown_arguments;
   }
 
   // Used by print_help.
