@@ -98,8 +98,10 @@ template <typename T> std::string repr(T const &val) {
       out << repr(*val.begin());
       std::for_each(
           std::next(val.begin()),
-          std::next(val.begin(),
-                    std::min<std::size_t>(size, repr_max_container_size) - 1),
+          std::next(
+              val.begin(),
+              static_cast<typename T::iterator::difference_type>(
+                  std::min<std::size_t>(size, repr_max_container_size) - 1)),
           [&out](const auto &v) { out << " " << repr(v); });
       if (size <= repr_max_container_size) {
         out << " ";
@@ -507,7 +509,8 @@ public:
     if ((dist = static_cast<std::size_t>(std::distance(start, end))) >=
         num_args_min) {
       if (num_args_max < dist) {
-        end = std::next(start, num_args_max);
+        end = std::next(start, static_cast<typename Iterator::difference_type>(
+                                   num_args_max));
       }
       if (!m_accepts_optional_like_value) {
         end = std::find_if(start, end, Argument::is_optional);
@@ -526,7 +529,8 @@ public:
           std::for_each(first, last, f);
           if (!self.m_default_value.has_value()) {
             if (!self.m_accepts_optional_like_value) {
-              self.m_values.resize(std::distance(first, last));
+              self.m_values.resize(
+                  static_cast<std::size_t>(std::distance(first, last)));
             }
           }
         }
@@ -729,7 +733,7 @@ private:
     auto consume_digits = [=](std::string_view s) {
       // NOLINTNEXTLINE(readability-qualified-auto)
       auto it = std::find_if_not(std::begin(s), std::end(s), is_digit);
-      return s.substr(it - std::begin(s));
+      return s.substr(static_cast<std::size_t>(it - std::begin(s)));
     };
 
     switch (lookahead(s)) {
@@ -1165,7 +1169,7 @@ public:
     }
 
     for (const auto &argument : parser.m_positional_arguments) {
-      stream.width(longest_arg_length);
+      stream.width(static_cast<std::streamsize>(longest_arg_length));
       stream << argument;
     }
 
@@ -1175,7 +1179,7 @@ public:
     }
 
     for (const auto &argument : parser.m_optional_arguments) {
-      stream.width(longest_arg_length);
+      stream.width(static_cast<std::streamsize>(longest_arg_length));
       stream << argument;
     }
 
@@ -1185,7 +1189,7 @@ public:
                      : "\n")
              << "Subcommands:\n";
       for (const auto &[command, subparser] : parser.m_subparser_map) {
-        stream.width(longest_arg_length);
+        stream.width(static_cast<std::streamsize>(longest_arg_length));
         stream << command << "\t" << subparser->get().m_description << "\n";
       }
     }
