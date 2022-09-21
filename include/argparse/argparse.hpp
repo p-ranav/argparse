@@ -1113,11 +1113,15 @@ public:
       -> std::ostream & {
     stream.setf(std::ios_base::left);
     stream << "Usage: " << parser.m_program_name << " [options] ";
-    std::size_t longest_arg_length = parser.get_length_of_longest_argument();
-
     for (const auto &argument : parser.m_positional_arguments) {
       stream << argument.m_names.front() << " ";
     }
+
+    if (!parser.m_subparser_map.empty()) {
+      stream << (parser.m_positional_arguments.empty() ? "" : " ")
+             << "<command> [<args>]";
+    }
+    std::size_t longest_arg_length = parser.get_length_of_longest_argument();
     stream << "\n\n";
 
     if (!parser.m_description.empty()) {
@@ -1141,6 +1145,25 @@ public:
     for (const auto &argument : parser.m_optional_arguments) {
       stream.width(longest_arg_length);
       stream << argument;
+    }
+
+    if (!parser.m_subparser_map.empty()) {
+      stream << (parser.m_positional_arguments.empty() ? 
+                  (parser.m_optional_arguments.empty() ? "" : "\n") : 
+                  "\n") 
+             << "Subcommands:\n";
+      stream << "{";
+      std::size_t i = 0; 
+      for (const auto &[argument, unused] : parser.m_subparser_map) {
+        if (i == 0) {
+          stream << argument;
+        }
+        else {
+          stream << ", " << argument;
+        }
+        ++i;
+      }
+      stream << "}\n";
     }
 
     if (!parser.m_epilog.empty()) {
@@ -1242,6 +1265,9 @@ private:
     std::size_t max_size = 0;
     for ([[maybe_unused]] const auto& [unused, argument] : m_argument_map) {
       max_size = std::max(max_size, argument->get_arguments_length());
+    }
+    for ([[maybe_unused]] const auto& [command, unused] : m_subparser_map) {
+      max_size = std::max(max_size, command.size());
     }
     return max_size;
   }
