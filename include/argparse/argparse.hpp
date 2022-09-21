@@ -924,7 +924,8 @@ public:
   explicit ArgumentParser(std::string program_name = {},
                           std::string version = "1.0",
                           default_arguments add_args = default_arguments::all)
-      : m_program_name(std::move(program_name)), m_version(std::move(version)) {
+      : m_program_name(std::move(program_name)), m_version(std::move(version)),
+      m_parser_path(m_program_name) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
           .action([&](const auto & /*unused*/) {
@@ -957,7 +958,9 @@ public:
         m_description(other.m_description), m_epilog(other.m_epilog),
         m_is_parsed(other.m_is_parsed),
         m_positional_arguments(other.m_positional_arguments),
-        m_optional_arguments(other.m_optional_arguments) {
+        m_optional_arguments(other.m_optional_arguments),
+        m_parser_path(other.m_parser_path),
+        m_subparsers(other.m_subparsers) {
     for (auto it = std::begin(m_positional_arguments);
          it != std::end(m_positional_arguments); ++it) {
       index_argument(it);
@@ -965,6 +968,10 @@ public:
     for (auto it = std::begin(m_optional_arguments);
          it != std::end(m_optional_arguments); ++it) {
       index_argument(it);
+    }
+    for (auto it = std::begin(m_subparsers);
+        it != std::end(m_subparsers); ++it) {
+      m_subparser_map.insert_or_assign(it->get().m_program_name, it);
     }
   }
 
@@ -1106,7 +1113,7 @@ public:
   friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream & {
     stream.setf(std::ios_base::left);
-    stream << "Usage: " << parser.m_program_name << " [options] ";
+    stream << "Usage: " << parser.m_parser_path << " [options] ";
     for (const auto &argument : parser.m_positional_arguments) {
       stream << argument.m_names.front() << " ";
     }
@@ -1184,7 +1191,7 @@ public:
   }
 
   void add_subparser(ArgumentParser &parser) {
-
+    parser.m_parser_path = m_program_name + " " + parser.m_program_name;
     auto it = m_subparsers.emplace(std::cend(m_subparsers), parser);
     m_subparser_map.insert_or_assign(parser.m_program_name, it);
   }
@@ -1286,6 +1293,7 @@ private:
   std::list<Argument> m_positional_arguments;
   std::list<Argument> m_optional_arguments;
   std::map<std::string_view, argument_it, std::less<>> m_argument_map;
+  std::string m_parser_path;
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
   std::map<std::string_view, argument_parser_it, std::less<>> m_subparser_map;
 };
