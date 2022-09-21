@@ -1167,6 +1167,11 @@ public:
     return out.str();
   }
 
+  void add_subparser(ArgumentParser& parser) {
+    auto it = m_subparsers.emplace(std::cend(m_subparsers), parser);
+    m_subparser_map.insert_or_assign(parser.m_program_name, it);
+  }
+
 private:
   /*
    * @throws std::runtime_error in case of any invalid argument
@@ -1181,6 +1186,21 @@ private:
       const auto &current_argument = *it;
       if (Argument::is_positional(current_argument)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
+
+          std::string_view maybe_command = current_argument;
+
+          // Check sub-parsers
+          auto subparser_it = m_subparser_map.find(maybe_command);
+          if (subparser_it != m_subparser_map.end()) {
+
+            // build list of remaining args
+            const auto unprocessed_arguments = std::vector<std::string>(it, end);
+
+            // invoke subparser
+            m_is_parsed = true;
+            return subparser_it->second->get().parse_args(unprocessed_arguments);
+          }
+
           throw std::runtime_error(
               "Maximum number of positional arguments exceeded");
         }
@@ -1226,9 +1246,10 @@ private:
     return max_size;
   }
 
-  using list_iterator = std::list<Argument>::iterator;
+  using argument_it = std::list<Argument>::iterator;
+  using argument_parser_it = std::list<std::reference_wrapper<ArgumentParser>>::iterator;
 
-  void index_argument(list_iterator it) {
+  void index_argument(argument_it it) {
     for (const auto &name : std::as_const(it->m_names)) {
       m_argument_map.insert_or_assign(name, it);
     }
@@ -1241,7 +1262,9 @@ private:
   bool m_is_parsed = false;
   std::list<Argument> m_positional_arguments;
   std::list<Argument> m_optional_arguments;
-  std::map<std::string_view, list_iterator, std::less<>> m_argument_map;
+  std::map<std::string_view, argument_it, std::less<>> m_argument_map;
+  std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
+  std::map<std::string_view, argument_parser_it, std::less<>> m_subparser_map;
 };
 
 } // namespace argparse
