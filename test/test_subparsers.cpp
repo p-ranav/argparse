@@ -17,6 +17,7 @@ TEST_CASE("Add subparsers" * test_suite("subparsers")) {
   program.add_subparser(command_2);
 
   program.parse_args({"test", "--output", "thrust_profile.csv"});
+  REQUIRE(program.is_subcommand_used("add") == false);
   REQUIRE(program.get("--output") == "thrust_profile.csv");
 }
 
@@ -37,6 +38,7 @@ TEST_CASE("Parse subparser command" * test_suite("subparsers")) {
 
   SUBCASE("command 1") {
     program.parse_args({"test", "add", "file1.txt", "file2.txt"});
+    REQUIRE(program.is_subcommand_used("add") == true);
     REQUIRE(command_1.is_used("file"));
     REQUIRE((command_1.get<std::vector<std::string>>("file") ==
              std::vector<std::string>{"file1.txt", "file2.txt"}));
@@ -44,6 +46,7 @@ TEST_CASE("Parse subparser command" * test_suite("subparsers")) {
 
   SUBCASE("command 2") {
     program.parse_args({"test", "clean", "--fullclean"});
+    REQUIRE(program.is_subcommand_used("clean") == true);
     REQUIRE(command_2.get<bool>("--fullclean") == true);
   }
 }
@@ -66,6 +69,7 @@ TEST_CASE("Parse subparser command with optional argument" *
 
   SUBCASE("Optional argument BEFORE subcommand") {
     program.parse_args({"test", "--verbose", "clean", "--fullclean"});
+    REQUIRE(program.is_subcommand_used("clean") == true);
     REQUIRE(program.get<bool>("--verbose") == true);
     REQUIRE(command_2.get<bool>("--fullclean") == true);
   }
@@ -98,6 +102,7 @@ TEST_CASE("Parse subparser command with parent parser" *
 
   SUBCASE("Optional argument BEFORE subcommand") {
     program.parse_args({"test", "--verbose", "clean", "--fullclean"});
+    REQUIRE(program.is_subcommand_used("clean") == true);
     REQUIRE(program.get<bool>("--verbose") == true);
     REQUIRE(command_2.get<bool>("--fullclean") == true);
   }
@@ -141,12 +146,14 @@ TEST_CASE("Parse git commands" * test_suite("subparsers")) {
 
   SUBCASE("git add") {
     program.parse_args({"git", "add", "main.cpp", "foo.hpp", "foo.cpp"});
+    REQUIRE(program.is_subcommand_used("add") == true);
     REQUIRE((add_command.get<std::vector<std::string>>("files") ==
              std::vector<std::string>{"main.cpp", "foo.hpp", "foo.cpp"}));
   }
 
   SUBCASE("git commit") {
     program.parse_args({"git", "commit", "-am", "Initial commit"});
+    REQUIRE(program.is_subcommand_used("commit") == true);
     REQUIRE(commit_command.get<bool>("-a") == true);
     REQUIRE(commit_command.get<std::string>("-m") ==
             std::string{"Initial commit"});
@@ -154,31 +161,41 @@ TEST_CASE("Parse git commands" * test_suite("subparsers")) {
 
   SUBCASE("git cat-file -t") {
     program.parse_args({"git", "cat-file", "-t", "3739f5"});
+    REQUIRE(program.is_subcommand_used("cat-file") == true);
     REQUIRE(catfile_command.get<std::string>("-t") == std::string{"3739f5"});
   }
 
   SUBCASE("git cat-file -p") {
     program.parse_args({"git", "cat-file", "-p", "3739f5"});
+    REQUIRE(program.is_subcommand_used("cat-file") == true);
     REQUIRE(catfile_command.get<std::string>("-p") == std::string{"3739f5"});
   }
 
   SUBCASE("git submodule update") {
     program.parse_args({"git", "submodule", "update"});
+    REQUIRE(program.is_subcommand_used("submodule") == true);
+    REQUIRE(submodule_command.is_subcommand_used("update") == true);
   }
 
   SUBCASE("git submodule update --init") {
     program.parse_args({"git", "submodule", "update", "--init"});
+    REQUIRE(program.is_subcommand_used("submodule") == true);
+    REQUIRE(submodule_command.is_subcommand_used("update") == true);
     REQUIRE(submodule_update_command.get<bool>("--init") == true);
     REQUIRE(submodule_update_command.get<bool>("--recursive") == false);
   }
 
   SUBCASE("git submodule update --recursive") {
     program.parse_args({"git", "submodule", "update", "--recursive"});
+    REQUIRE(program.is_subcommand_used("submodule") == true);
+    REQUIRE(submodule_command.is_subcommand_used("update") == true);
     REQUIRE(submodule_update_command.get<bool>("--recursive") == true);
   }
 
   SUBCASE("git submodule update --init --recursive") {
     program.parse_args({"git", "submodule", "update", "--init", "--recursive"});
+    REQUIRE(program.is_subcommand_used("submodule") == true);
+    REQUIRE(submodule_command.is_subcommand_used("update") == true);
     REQUIRE(submodule_update_command.get<bool>("--init") == true);
     REQUIRE(submodule_update_command.get<bool>("--recursive") == true);
   }

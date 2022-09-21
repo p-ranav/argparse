@@ -925,7 +925,7 @@ public:
                           std::string version = "1.0",
                           default_arguments add_args = default_arguments::all)
       : m_program_name(std::move(program_name)), m_version(std::move(version)),
-      m_parser_path(m_program_name) {
+        m_parser_path(m_program_name) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
           .action([&](const auto & /*unused*/) {
@@ -959,8 +959,7 @@ public:
         m_is_parsed(other.m_is_parsed),
         m_positional_arguments(other.m_positional_arguments),
         m_optional_arguments(other.m_optional_arguments),
-        m_parser_path(other.m_parser_path),
-        m_subparsers(other.m_subparsers) {
+        m_parser_path(other.m_parser_path), m_subparsers(other.m_subparsers) {
     for (auto it = std::begin(m_positional_arguments);
          it != std::end(m_positional_arguments); ++it) {
       index_argument(it);
@@ -969,9 +968,10 @@ public:
          it != std::end(m_optional_arguments); ++it) {
       index_argument(it);
     }
-    for (auto it = std::begin(m_subparsers);
-        it != std::end(m_subparsers); ++it) {
+    for (auto it = std::begin(m_subparsers); it != std::end(m_subparsers);
+         ++it) {
       m_subparser_map.insert_or_assign(it->get().m_program_name, it);
+      m_subparser_used.insert_or_assign(it->get().m_program_name, false);
     }
   }
 
@@ -1082,6 +1082,13 @@ public:
     return (*this)[arg_name].m_is_used;
   }
 
+  /* Getter that returns true for user-supplied options. Returns false if not
+   * user-supplied, even with a default value.
+   */
+  auto is_subcommand_used(std::string_view subcommand_name) const {
+    return m_subparser_used.at(subcommand_name);
+  }
+
   /* Indexing operator. Return a reference to an Argument object
    * Used in conjuction with Argument.operator== e.g., parser["foo"] == true
    * @throws std::logic_error in case of an invalid argument name
@@ -1153,17 +1160,10 @@ public:
                      ? (parser.m_optional_arguments.empty() ? "" : "\n")
                      : "\n")
              << "Subcommands:\n";
-      stream << "{";
-      std::size_t i = 0;
-      for (const auto &[argument, unused] : parser.m_subparser_map) {
-        if (i == 0) {
-          stream << argument;
-        } else {
-          stream << ", " << argument;
-        }
-        ++i;
+      for (const auto &[command, subparser] : parser.m_subparser_map) {
+        stream.width(longest_arg_length);
+        stream << command << "\t" << subparser->get().m_description << "\n";
       }
-      stream << "}\n";
     }
 
     if (!parser.m_epilog.empty()) {
@@ -1194,6 +1194,7 @@ public:
     parser.m_parser_path = m_program_name + " " + parser.m_program_name;
     auto it = m_subparsers.emplace(std::cend(m_subparsers), parser);
     m_subparser_map.insert_or_assign(parser.m_program_name, it);
+    m_subparser_used.insert_or_assign(parser.m_program_name, false);
   }
 
 private:
@@ -1223,6 +1224,7 @@ private:
 
             // invoke subparser
             m_is_parsed = true;
+            m_subparser_used[maybe_command] = true;
             return subparser_it->second->get().parse_args(
                 unprocessed_arguments);
           }
@@ -1296,6 +1298,7 @@ private:
   std::string m_parser_path;
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
   std::map<std::string_view, argument_parser_it, std::less<>> m_subparser_map;
+  std::map<std::string_view, bool, std::less<>> m_subparser_used;
 };
 
 } // namespace argparse

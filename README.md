@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
 
 And running the code:
 
-```bash
-$ ./main 15
+```console
+foo@bar:/home/dev/$ ./main 15
 225
 ```
 
@@ -141,8 +141,8 @@ if (program["--verbose"] == true) {
 }
 ```
 
-```bash
-$ ./main --verbose
+```console
+foo@bar:/home/dev/$ ./main --verbose
 Verbosity enabled
 ```
 
@@ -276,8 +276,8 @@ catch (const std::runtime_error& err) {
 // Some code to print arguments
 ```
 
-```bash
-$ ./main -5 -1.1 -3.1415 -3.1e2 -4.51329E3
+```console
+foo@bar:/home/dev/$ ./main -5 -1.1 -3.1415 -3.1e2 -4.51329E3
 integer : -5
 floats  : -1.1 -3.1415 -310 -4513.29
 ```
@@ -316,14 +316,14 @@ else {
 }
 ```
 
-```bash
-$ ./main 4
+```console
+foo@bar:/home/dev/$ ./main 4
 16
 
-$ ./main 4 --verbose
+foo@bar:/home/dev/$ ./main 4 --verbose
 The square of 4 is 16
 
-$ ./main --verbose 4
+foo@bar:/home/dev/$ ./main --verbose 4
 The square of 4 is 16
 ```
 
@@ -332,7 +332,7 @@ The square of 4 is 16
 `std::cout << program` prints a help message, including the program usage and information about the arguments registered with the `ArgumentParser`. For the previous example, here's the default help message:
 
 ```
-$ ./main --help
+foo@bar:/home/dev/$ ./main --help
 Usage: main [options] square
 
 Positional arguments:
@@ -364,8 +364,8 @@ program.parse_args(argc, argv);
 std::cout << program << std::endl;
 ```
 
-```bash
-$ ./main --help
+```console
+foo@bar:/home/dev/$ ./main --help
 Usage: main thing
 
 Forward a thing to the next member.
@@ -491,13 +491,13 @@ auto c = program.get<std::vector<float>>("-c");    // {1.95, 2.47}
 /// Some code that prints parsed arguments
 ```
 
-```bash
-$ ./main -ac 3.14 2.718
+```console
+foo@bar:/home/dev/$ ./main -ac 3.14 2.718
 a = true
 b = false
 c = {3.14, 2.718}
 
-$ ./main -cb
+foo@bar:/home/dev/$ ./main -cb
 a = false
 b = true
 c = {0.0, 0.0}
@@ -568,8 +568,8 @@ The default is `default_arguments::all` for included arguments. No default argum
 
 `argparse` supports gathering "remaining" arguments at the end of the command, e.g., for use in a compiler:
 
-```bash
-$ compiler file1 file2 file3
+```console
+foo@bar:/home/dev/$ compiler file1 file2 file3
 ```
 
 To enable this, simply create an argument and mark it as `remaining`. All remaining arguments passed to argparse are gathered here.
@@ -601,15 +601,15 @@ try {
 
 When no arguments are provided:
 
-```bash
-$ ./compiler
+```console
+foo@bar:/home/dev/$ ./compiler
 No files provided
 ```
 
 and when multiple arguments are provided:
 
-```bash
-$ ./compiler foo.txt bar.txt baz.txt
+```console
+foo@bar:/home/dev/$ ./compiler foo.txt bar.txt baz.txt
 3 files provided
 foo.txt
 bar.txt
@@ -650,8 +650,8 @@ try {
 
 ```
 
-```bash
-$ ./compiler -o main foo.cpp bar.cpp baz.cpp
+```console
+foo@bar:/home/dev/$ ./compiler -o main foo.cpp bar.cpp baz.cpp
 Output filename: main
 3 files provided
 foo.cpp
@@ -661,8 +661,8 @@ baz.cpp
 
 ***NOTE***: Remember to place all optional arguments BEFORE the remaining argument. If the optional argument is placed after the remaining arguments, it too will be deemed remaining:
 
-```bash
-$ ./compiler foo.cpp bar.cpp baz.cpp -o main
+```console
+foo@bar:/home/dev/$ ./compiler foo.cpp bar.cpp baz.cpp -o main
 5 arguments provided
 foo.cpp
 bar.cpp
@@ -703,11 +703,13 @@ Many programs split up their functionality into a number of sub-commands, for ex
 int main(int argc, char *argv[]) {
   argparse::ArgumentParser program("git");
 
+  // git add subparser
   argparse::ArgumentParser add_command("add");
   add_command.add_argument("files")
     .help("Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files.")
     .remaining();
 
+  // git commit subparser
   argparse::ArgumentParser commit_command("commit");
   commit_command.add_argument("-a", "--all")
     .help("Tell the command to automatically stage files that have been modified and deleted.")
@@ -717,6 +719,7 @@ int main(int argc, char *argv[]) {
   commit_command.add_argument("-m", "--message")
     .help("Use the given <msg> as the commit message.");
 
+  // git cat-file subparser
   argparse::ArgumentParser catfile_command("cat-file");
   catfile_command.add_argument("-t")
     .help("Instead of the content, show the object type identified by <object>.");
@@ -724,6 +727,7 @@ int main(int argc, char *argv[]) {
   catfile_command.add_argument("-p")
     .help("Pretty-print the contents of <object> based on its type.");
 
+  // git submodule subparser
   argparse::ArgumentParser submodule_command("submodule");
   argparse::ArgumentParser submodule_update_command("update");
   submodule_update_command.add_argument("--init")
@@ -752,8 +756,8 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-```bash
-$ ./git --help
+```console
+foo@bar:/home/dev/$ ./git --help
 Usage: git [options] <command> [<args>]
 
 Optional arguments:
@@ -761,10 +765,15 @@ Optional arguments:
 -v --version 	prints version information and exits [default: false]
 
 Subcommands:
-{add, cat-file, commit, submodule}
+add          	Add file contents to the index
+cat-file     	Provide content or type and size information for repository objects
+commit       	Record changes to the repository
+submodule    	Initialize, update or inspect submodules
 
-$ ./git add --help
+foo@bar:/home/dev/$ ./git add --help
 Usage: git add [options] files 
+
+Add file contents to the index
 
 Positional arguments:
 files        	Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files.
@@ -773,16 +782,22 @@ Optional arguments:
 -h --help    	shows help message and exits [default: false]
 -v --version 	prints version information and exits [default: false]
 
-$ ./git submodule update --help
-Usage: submodule update [options] 
+foo@bar:/home/dev/$ ./git submodule --help
+Usage: git submodule [options] <command> [<args>]
+
+Initialize, update or inspect submodules
 
 Optional arguments:
 -h --help    	shows help message and exits [default: false]
 -v --version 	prints version information and exits [default: false]
---init       	[default: false]
---recursive  	[default: false]
 
+Subcommands:
+update       	Update the registered submodules to match what the superproject expects
 ```
+
+When a help message is requested from a subparser, only the help for that particular parser will be printed. The help message will not include parent parser or sibling parser messages.
+
+Additionally, every parser has a `.is_subcommand_used("<command_name>")` member function to check if a subcommand was used. 
 
 ## Further Examples
 
@@ -854,8 +869,8 @@ auto files = program.get<std::vector<std::string>>("--files");  // {"a.txt", "b.
 /// Some code that prints parsed arguments
 ```
 
-```bash
-$ ./main 1 2 3 -abc 3.14 2.718 --files a.txt b.txt c.txt
+```console
+foo@bar:/home/dev/$ ./main 1 2 3 -abc 3.14 2.718 --files a.txt b.txt c.txt
 numbers = {1, 2, 3}
 a = true
 b = true
@@ -891,8 +906,8 @@ auto input = program.get("input");
 std::cout << input << std::endl;
 ```
 
-```bash
-$ ./main fex
+```console
+foo@bar:/home/dev/$ ./main fex
 baz
 ```
 
