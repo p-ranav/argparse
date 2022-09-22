@@ -668,16 +668,16 @@ public:
     }
     stream << name_stream.str() << "\t" << argument.m_help;
 
+    // print nargs spec
+    if (!argument.m_help.empty()) {
+      stream << " ";
+    }
+    stream << argument.m_num_args_range;
+
     if (argument.m_default_value.has_value() &&
         argument.m_num_args_range != NArgsRange{0, 0}) {
-      if (!argument.m_help.empty()) {
-        stream << " ";
-      }
       stream << "[default: " << argument.m_default_value_repr << "]";
     } else if (argument.m_is_required) {
-      if (!argument.m_help.empty()) {
-        stream << " ";
-      }
       stream << "[required]";
     }
     stream << "\n";
@@ -729,6 +729,23 @@ private:
     std::size_t get_min() const { return m_min; }
 
     std::size_t get_max() const { return m_max; }
+
+    // Print help message
+    friend auto operator<<(std::ostream &stream, const NArgsRange &range)
+        -> std::ostream & {
+      if (range.m_min == range.m_max) {
+        if (range.m_min != 0 && range.m_min != 1) {
+          stream << "[nargs: " << range.m_min << "] ";
+        }
+      } else {
+        if (range.m_max == std::numeric_limits<std::size_t>::max()) {
+          stream << "[nargs: " << range.m_min << " or more] ";
+        } else {
+          stream << "[nargs=" << range.m_min << ".." << range.m_max << "] ";
+        }
+      }
+      return stream;
+    }
 
     bool operator==(const NArgsRange &rhs) const {
       return rhs.m_min == m_min && rhs.m_max == m_max;

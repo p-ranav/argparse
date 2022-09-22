@@ -142,7 +142,7 @@ catch (const std::runtime_error& err) {
 }
 
 if (program["--verbose"] == true) {
-    std::cout << "Verbosity enabled" << std::endl;
+  std::cout << "Verbosity enabled" << std::endl;
 }
 ```
 
