@@ -36,6 +36,7 @@ SOFTWARE.
 #include <charconv>
 #include <cstdlib>
 #include <functional>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -329,6 +330,21 @@ template <class T> struct parse_number<T, chars_format::fixed> {
   }
 };
 
+template <typename StrIt>
+std::string join(StrIt first, StrIt last, const std::string &separator) {
+  if (first == last) {
+    return "";
+  }
+  std::stringstream value;
+  value << *first;
+  ++first;
+  while (first != last) {
+    value << separator << *first;
+    ++first;
+  }
+  return value.str();
+}
+
 } // namespace details
 
 enum class nargs_pattern { optional, any, at_least_one };
@@ -376,6 +392,11 @@ public:
 
   Argument &help(std::string help_text) {
     m_help = std::move(help_text);
+    return *this;
+  }
+
+  Argument &metavar(std::string metavar) {
+    m_metavar = std::move(metavar);
     return *this;
   }
 
@@ -573,29 +594,90 @@ public:
     }
   }
 
+  std::string get_inline_usage() const {
+    std::stringstream usage;
+    // Find the longest variant to show in the usage string
+    std::string longest_name = m_names[0];
+    for (const auto &s : m_names) {
+      if (s.size() > longest_name.size()) {
+        longest_name = s;
+      }
+    }
+    if (!m_is_required) {
+      usage << "[";
+    }
+    usage << longest_name;
+    const std::string metavar = !m_metavar.empty() ? m_metavar : "VAR";
+    if (m_num_args_range.get_max() > 0) {
+      usage << " " << metavar;
+      if (m_num_args_range.get_max() > 1) {
+        usage << "...";
+      }
+    }
+    if (!m_is_required) {
+      usage << "]";
+    }
+    return usage.str();
+  }
+
   std::size_t get_arguments_length() const {
-    return std::accumulate(std::begin(m_names), std::end(m_names),
-                           std::size_t(0), [](const auto &sum, const auto &s) {
-                             return sum + s.size() +
-                                    1; // +1 for space between names
-                           });
+
+    std::size_t names_size = std::accumulate(
+        std::begin(m_names), std::end(m_names), std::size_t(0),
+        [](const auto &sum, const auto &s) { return sum + s.size(); });
+
+    if (is_positional(m_names.front(), m_prefix_chars)) {
+      // A set metavar means this replaces the names
+      if (!m_metavar.empty()) {
+        // Indent and metavar
+        return 2 + m_metavar.size();
+      }
+
+      // Indent and space-separated
+      return 2 + names_size + (m_names.size() - 1);
+    }
+    // Is an option - include both names _and_ metavar
+    // size = text + (", " between names)
+    std::size_t size = names_size + 2 * (m_names.size() - 1);
+    if (!m_metavar.empty() && m_num_args_range == NArgsRange{1, 1}) {
+      size += m_metavar.size() + 1;
+    }
+    return size + 2; // indent
   }
 
   friend std::ostream &operator<<(std::ostream &stream,
                                   const Argument &argument) {
     std::stringstream name_stream;
-    std::copy(std::begin(argument.m_names), std::end(argument.m_names),
-              std::ostream_iterator<std::string>(name_stream, " "));
-    stream << name_stream.str() << "\t" << argument.m_help;
-    if (argument.m_default_value.has_value()) {
-      if (!argument.m_help.empty()) {
-        stream << " ";
+    name_stream << "  "; // indent
+    if (argument.is_positional(argument.m_names.front(),
+                               argument.m_prefix_chars)) {
+      if (!argument.m_metavar.empty()) {
+        name_stream << argument.m_metavar;
+      } else {
+        name_stream << details::join(argument.m_names.begin(),
+                                     argument.m_names.end(), " ");
       }
+    } else {
+      name_stream << details::join(argument.m_names.begin(),
+                                   argument.m_names.end(), ", ");
+      // If we have a metavar, and one narg - print the metavar
+      if (!argument.m_metavar.empty() &&
+          argument.m_num_args_range == NArgsRange{1, 1}) {
+        name_stream << " " << argument.m_metavar;
+      }
+    }
+    stream << name_stream.str() << "\t" << argument.m_help;
+
+    // print nargs spec
+    if (!argument.m_help.empty()) {
+      stream << " ";
+    }
+    stream << argument.m_num_args_range;
+
+    if (argument.m_default_value.has_value() &&
+        argument.m_num_args_range != NArgsRange{0, 0}) {
       stream << "[default: " << argument.m_default_value_repr << "]";
     } else if (argument.m_is_required) {
-      if (!argument.m_help.empty()) {
-        stream << " ";
-      }
       stream << "[required]";
     }
     stream << "\n";
@@ -647,6 +729,29 @@ private:
     std::size_t get_min() const { return m_min; }
 
     std::size_t get_max() const { return m_max; }
+
+    // Print help message
+    friend auto operator<<(std::ostream &stream, const NArgsRange &range)
+        -> std::ostream & {
+      if (range.m_min == range.m_max) {
+        if (range.m_min != 0 && range.m_min != 1) {
+          stream << "[nargs: " << range.m_min << "] ";
+        }
+      } else {
+        if (range.m_max == std::numeric_limits<std::size_t>::max()) {
+          stream << "[nargs: " << range.m_min << " or more] ";
+        } else {
+          stream << "[nargs=" << range.m_min << ".." << range.m_max << "] ";
+        }
+      }
+      return stream;
+    }
+
+    bool operator==(const NArgsRange &rhs) const {
+      return rhs.m_min == m_min && rhs.m_max == m_max;
+    }
+
+    bool operator!=(const NArgsRange &rhs) const { return !(*this == rhs); }
   };
 
   void throw_nargs_range_validation_error() const {
@@ -913,6 +1018,7 @@ private:
   std::vector<std::string> m_names;
   std::string_view m_used_name;
   std::string m_help;
+  std::string m_metavar;
   std::any m_default_value;
   std::string m_default_value_repr;
   std::any m_implicit_value;
@@ -1094,8 +1200,8 @@ public:
    * @throws std::runtime_error in case of any invalid argument
    */
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
-  void parse_known_args(int argc, const char *const argv[]) {
-    parse_known_args({argv, argv + argc});
+  auto parse_known_args(int argc, const char *const argv[]) {
+    return parse_known_args({argv, argv + argc});
   }
 
   /* Getter for options with default values.
@@ -1171,17 +1277,10 @@ public:
   friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream & {
     stream.setf(std::ios_base::left);
-    stream << "Usage: " << parser.m_parser_path << " [options] ";
-    for (const auto &argument : parser.m_positional_arguments) {
-      stream << argument.m_names.front() << " ";
-    }
 
-    if (!parser.m_subparser_map.empty()) {
-      stream << (parser.m_positional_arguments.empty() ? "" : " ")
-             << "<command> [<args>]";
-    }
-    std::size_t longest_arg_length = parser.get_length_of_longest_argument();
-    stream << "\n\n";
+    auto longest_arg_length = parser.get_length_of_longest_argument();
+
+    stream << parser.usage() << "\n\n";
 
     if (!parser.m_description.empty()) {
       stream << parser.m_description << "\n\n";
@@ -1212,8 +1311,10 @@ public:
                      : "\n")
              << "Subcommands:\n";
       for (const auto &[command, subparser] : parser.m_subparser_map) {
-        stream.width(static_cast<std::streamsize>(longest_arg_length));
-        stream << command << "\t" << subparser->get().m_description << "\n";
+        stream << std::setw(2) << " ";
+        stream << std::setw(static_cast<int>(longest_arg_length - 2))
+               << command;
+        stream << " " << subparser->get().m_description << "\n";
       }
     }
 
@@ -1230,6 +1331,48 @@ public:
     std::stringstream out;
     out << *this;
     return out;
+  }
+
+  // Format usage part of help only
+  auto usage() const -> std::string {
+    std::stringstream stream;
+
+    stream << "Usage: " << this->m_program_name;
+
+    // Add any options inline here
+    for (const auto &argument : this->m_optional_arguments) {
+      if (argument.m_names[0] == "-v") {
+        continue;
+      } else if (argument.m_names[0] == "-h") {
+        stream << " [-h]";
+      } else {
+        stream << " " << argument.get_inline_usage();
+      }
+    }
+    // Put positional arguments after the optionals
+    for (const auto &argument : this->m_positional_arguments) {
+      if (!argument.m_metavar.empty()) {
+        stream << " " << argument.m_metavar;
+      } else {
+        stream << " " << argument.m_names.front();
+      }
+    }
+    // Put subcommands after positional arguments
+    if (!m_subparser_map.empty()) {
+      stream << " {";
+      std::size_t i{0};
+      for (const auto &[command, unused] : m_subparser_map) {
+        if (i == 0) {
+          stream << command;
+        } else {
+          stream << "," << command;
+        }
+        ++i;
+      }
+      stream << "}";
+    }
+
+    return stream.str();
   }
 
   // Printing the one and only help message

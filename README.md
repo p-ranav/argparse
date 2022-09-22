@@ -142,7 +142,7 @@ catch (const std::runtime_error& err) {
 }
 
 if (program["--verbose"] == true) {
-    std::cout << "Verbosity enabled" << std::endl;
+  std::cout << "Verbosity enabled" << std::endl;
 }
 ```
 
@@ -338,15 +338,15 @@ The square of 4 is 16
 
 ```
 foo@bar:/home/dev/$ ./main --help
-Usage: main [options] square
+Usage: main [-h] [--verbose] square
 
 Positional arguments:
-square          display the square of a given number
+  square       	display the square of a given number
 
 Optional arguments:
--h --help       shows help message and exits [default: false]
--v --version    prints version information and exits [default: false]
---verbose       [default: false]
+  -h, --help   	shows help message and exits
+  -v, --version	prints version information and exits
+  --verbose
 ```
 
 You may also get the help message in string via `program.help().str()`.
@@ -357,30 +357,36 @@ You may also get the help message in string via `program.help().str()`.
 information. `ArgumentParser::add_epilog` will add text after all other help output.
 
 ```cpp
-argparse::ArgumentParser program("main");
+#include <argparse/argparse.hpp>
 
-program.add_argument("thing")
-  .help("Thing to use.");
-program.add_description("Forward a thing to the next member.");
-program.add_epilog("Possible things include betingalw, chiz, and res.");
+int main(int argc, char *argv[]) {
+  argparse::ArgumentParser program("main");
+  program.add_argument("thing").help("Thing to use.").metavar("THING");
+  program.add_argument("--member").help("The alias for the member to pass to.").metavar("ALIAS");
+  program.add_argument("--verbose").default_value(false).implicit_value(true);
 
-program.parse_args(argc, argv);
+  program.add_description("Forward a thing to the next member.");
+  program.add_epilog("Possible things include betingalw, chiz, and res.");
 
-std::cout << program << std::endl;
+  program.parse_args(argc, argv);
+
+  std::cout << program << std::endl;
+}
 ```
 
 ```console
-foo@bar:/home/dev/$ ./main --help
-Usage: main thing
+Usage: main [-h] [--member ALIAS] [--verbose] THING
 
 Forward a thing to the next member.
 
 Positional arguments:
-thing           Thing to use.
+  THING         	Thing to use.
 
 Optional arguments:
--h --help       shows help message and exits [default: false]
--v --version    prints version information and exits [default: false]
+  -h, --help    	shows help message and exits
+  -v, --version 	prints version information and exits
+  --member ALIAS	The alias for the member to pass to.
+  --verbose     	
 
 Possible things include betingalw, chiz, and res.
 ```
@@ -710,12 +716,14 @@ int main(int argc, char *argv[]) {
 
   // git add subparser
   argparse::ArgumentParser add_command("add");
+  add_command.add_description("Add file contents to the index");
   add_command.add_argument("files")
     .help("Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files.")
     .remaining();
 
   // git commit subparser
   argparse::ArgumentParser commit_command("commit");
+  commit_command.add_description("Record changes to the repository");
   commit_command.add_argument("-a", "--all")
     .help("Tell the command to automatically stage files that have been modified and deleted.")
     .default_value(false)
@@ -726,6 +734,7 @@ int main(int argc, char *argv[]) {
 
   // git cat-file subparser
   argparse::ArgumentParser catfile_command("cat-file");
+  catfile_command.add_description("Provide content or type and size information for repository objects");
   catfile_command.add_argument("-t")
     .help("Instead of the content, show the object type identified by <object>.");
 
@@ -734,7 +743,9 @@ int main(int argc, char *argv[]) {
 
   // git submodule subparser
   argparse::ArgumentParser submodule_command("submodule");
+  submodule_command.add_description("Initialize, update or inspect submodules");
   argparse::ArgumentParser submodule_update_command("update");
+  submodule_update_command.add_description("Update the registered submodules to match what the superproject expects");
   submodule_update_command.add_argument("--init")
     .default_value(false)
     .implicit_value(true);
@@ -763,41 +774,52 @@ int main(int argc, char *argv[]) {
 
 ```console
 foo@bar:/home/dev/$ ./git --help
-Usage: git [options] <command> [<args>]
+Usage: git [-h] {add,cat-file,commit,submodule}
 
 Optional arguments:
--h --help    	shows help message and exits [default: false]
--v --version 	prints version information and exits [default: false]
+  -h, --help   	shows help message and exits
+  -v, --version	prints version information and exits
 
 Subcommands:
-add          	Add file contents to the index
-cat-file     	Provide content or type and size information for repository objects
-commit       	Record changes to the repository
-submodule    	Initialize, update or inspect submodules
+  add           Add file contents to the index
+  cat-file      Provide content or type and size information for repository objects
+  commit        Record changes to the repository
+  submodule     Initialize, update or inspect submodules
 
 foo@bar:/home/dev/$ ./git add --help
-Usage: git add [options] files 
+Usage: add [-h] files
 
 Add file contents to the index
 
 Positional arguments:
-files        	Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files.
+  files        	Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching files.
 
 Optional arguments:
--h --help    	shows help message and exits [default: false]
--v --version 	prints version information and exits [default: false]
+  -h, --help   	shows help message and exits
+  -v, --version	prints version information and exits
+
+foo@bar:/home/dev/$ ./git commit --help
+Usage: commit [-h] [--all] [--message VAR]
+
+Record changes to the repository
+
+Optional arguments:
+  -h, --help   	shows help message and exits
+  -v, --version	prints version information and exits
+  -a, --all    	Tell the command to automatically stage files that have been modified and deleted.
+  -m, --message	Use the given <msg> as the commit message.
 
 foo@bar:/home/dev/$ ./git submodule --help
-Usage: git submodule [options] <command> [<args>]
+Usage: submodule [-h] {update}
 
 Initialize, update or inspect submodules
 
 Optional arguments:
--h --help    	shows help message and exits [default: false]
--v --version 	prints version information and exits [default: false]
+  -h, --help   	shows help message and exits
+  -v, --version	prints version information and exits
 
 Subcommands:
-update       	Update the registered submodules to match what the superproject expects
+  update        Update the registered submodules to match what the superproject expects
 ```
 
 When a help message is requested from a subparser, only the help for that particular parser will be printed. The help message will not include parent parser or sibling parser messages.

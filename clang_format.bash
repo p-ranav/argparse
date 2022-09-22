@@ -1,1 +1,1 @@
-clang-format -i include/argparse/*.hpp test/*.cpp
+clang-format -i include/argparse/*.hpp test/*.cpp samples/*.cpp
