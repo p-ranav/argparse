@@ -1200,8 +1200,8 @@ public:
    * @throws std::runtime_error in case of any invalid argument
    */
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
-  void parse_known_args(int argc, const char *const argv[]) {
-    parse_known_args({argv, argv + argc});
+  auto parse_known_args(int argc, const char *const argv[]) {
+    return parse_known_args({argv, argv + argc});
   }
 
   /* Getter for options with default values.
