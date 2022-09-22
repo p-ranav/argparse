@@ -1118,7 +1118,7 @@ cd argparse
 # Build the tests
 mkdir build
 cd build
-cmake -DARGPARSE_BUILD_TESTS=on ..
+cmake -DARGPARSE_BUILD_SAMPLES=on -DARGPARSE_BUILD_TESTS=on ..
 make
 
 # Run tests
