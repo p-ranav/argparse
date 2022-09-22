@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 project(argparse
-        VERSION 2.8.0 
+        VERSION 2.9.0 
         DESCRIPTION "A single header argument parser for C++17"
         HOMEPAGE_URL "https://github.com/p-ranav/argparse"
         LANGUAGES CXX
