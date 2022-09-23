@@ -18,7 +18,7 @@ TEST_CASE("Missing expected positional argument" *
   argparse::ArgumentParser program("test");
   program.add_argument("input");
   REQUIRE_THROWS_WITH_AS(program.parse_args({"test"}),
-                         "1 argument(s) expected. 0 provided.",
+                         "input: 1 argument(s) expected. 0 provided.",
                          std::runtime_error);
 }
 

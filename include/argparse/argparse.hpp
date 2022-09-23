@@ -758,6 +758,8 @@ private:
     std::stringstream stream;
     if (!m_used_name.empty()) {
       stream << m_used_name << ": ";
+    } else {
+      stream << m_names.front() << ": ";
     }
     if (m_num_args_range.is_exact()) {
       stream << m_num_args_range.get_min();
