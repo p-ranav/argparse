@@ -597,7 +597,7 @@ public:
   std::string get_inline_usage() const {
     std::stringstream usage;
     // Find the longest variant to show in the usage string
-    std::string longest_name = m_names[0];
+    std::string longest_name = m_names.front();
     for (const auto &s : m_names) {
       if (s.size() > longest_name.size()) {
         longest_name = s;
@@ -758,6 +758,8 @@ private:
     std::stringstream stream;
     if (!m_used_name.empty()) {
       stream << m_used_name << ": ";
+    } else {
+      stream << m_names.front() << ": ";
     }
     if (m_num_args_range.is_exact()) {
       stream << m_num_args_range.get_min();
@@ -773,7 +775,7 @@ private:
 
   void throw_required_arg_not_used_error() const {
     std::stringstream stream;
-    stream << m_names[0] << ": required.";
+    stream << m_names.front() << ": required.";
     throw std::runtime_error(stream.str());
   }
 
@@ -1341,9 +1343,9 @@ public:
 
     // Add any options inline here
     for (const auto &argument : this->m_optional_arguments) {
-      if (argument.m_names[0] == "-v") {
+      if (argument.m_names.front() == "-v") {
         continue;
-      } else if (argument.m_names[0] == "-h") {
+      } else if (argument.m_names.front() == "-h") {
         stream << " [-h]";
       } else {
         stream << " " << argument.get_inline_usage();
