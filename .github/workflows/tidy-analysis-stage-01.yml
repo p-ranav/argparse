@@ -1,0 +1,42 @@
+# Insecure workflow with limited permissions that should provide analysis
+# results through an artifact.
+name: Tidy analysis
+
+on: pull_request
+
+jobs:
+
+  clang-tidy:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+
+    - name: Install clang-tidy
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-tidy-12
+
+    - name: Prepare compile_commands.json
+      run: cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+    - name: Create results directory
+      run: mkdir clang-tidy-result
+
+    - name: Analyze
+      run: git diff -U0 HEAD^ | clang-tidy-diff-12.py -p1 -path build -export-fixes clang-tidy-result/fixes.yml
+
+    - name: Save PR metadata
+      run: |
+        echo ${{ github.event.number }} > clang-tidy-result/pr-id.txt
+        echo ${{ github.event.pull_request.head.repo.full_name }} > clang-tidy-result/pr-head-repo.txt
+        echo ${{ github.event.pull_request.head.ref }} > clang-tidy-result/pr-head-ref.txt
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: clang-tidy-result
+        path: clang-tidy-result/
