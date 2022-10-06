@@ -1644,11 +1644,11 @@ private:
   bool m_is_parsed = false;
   std::list<Argument> m_positional_arguments;
   std::list<Argument> m_optional_arguments;
-  std::map<std::string_view, argument_it, std::less<>> m_argument_map;
+  std::map<std::string_view, argument_it> m_argument_map;
   std::string m_parser_path;
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
-  std::map<std::string_view, argument_parser_it, std::less<>> m_subparser_map;
-  std::map<std::string_view, bool, std::less<>> m_subparser_used;
+  std::map<std::string_view, argument_parser_it> m_subparser_map;
+  std::map<std::string_view, bool> m_subparser_used;
 };
 
 } // namespace argparse
