@@ -23,7 +23,7 @@ TEST_CASE_TEMPLATE("Test built-in float types representation" *
                        test_suite("repr"),
                    T, float, double, long double) {
   std::stringstream ss;
-  T v = 0.3333333333;
+  T v = static_cast<T>(0.3333333333);
   ss << v;
   REQUIRE(argparse::details::repr(v) == ss.str());
 }

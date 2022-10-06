@@ -1,5 +1,5 @@
-#include <doctest.hpp>
 #include <argparse/argparse.hpp>
+#include <doctest.hpp>
 #include <test_utility.hpp>
 
 using doctest::test_suite;
@@ -7,19 +7,13 @@ using doctest::test_suite;
 TEST_CASE("Parse compound toggle arguments with implicit values" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-a")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-a").default_value(false).implicit_value(true);
 
-  program.add_argument("-u")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-u").default_value(false).implicit_value(true);
 
-  program.add_argument("-x")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-x").default_value(false).implicit_value(true);
 
-  program.parse_args({ "./test.exe", "-aux" });
+  program.parse_args({"./test.exe", "-aux"});
   REQUIRE(program.get<bool>("-a") == true);
   REQUIRE(program.get<bool>("-u") == true);
   REQUIRE(program.get<bool>("-x") == true);
@@ -28,23 +22,16 @@ TEST_CASE("Parse compound toggle arguments with implicit values" *
 TEST_CASE("Parse compound toggle arguments with implicit values and nargs" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-a")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-a").default_value(false).implicit_value(true);
 
-  program.add_argument("-b")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-b").default_value(false).implicit_value(true);
 
-  program.add_argument("-c")
-    .nargs(2)
-    .action([](const std::string& value) { return std::stof(value); });
+  program.add_argument("-c").nargs(2).scan<'g', float>();
 
-  program.add_argument("--input_files")
-    .nargs(3);
+  program.add_argument("--input_files").nargs(3);
 
-  program.parse_args({ "./test.exe", "-abc", "3.14", "2.718", "--input_files",
-    "a.txt", "b.txt", "c.txt" });
+  program.parse_args({"./test.exe", "-abc", "3.14", "2.718", "--input_files",
+                      "a.txt", "b.txt", "c.txt"});
   REQUIRE(program.get<bool>("-a") == true);
   REQUIRE(program.get<bool>("-b") == true);
   auto c = program.get<std::vector<float>>("-c");
@@ -63,49 +50,36 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and "
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
-  program.add_argument("numbers")
-    .nargs(3)
-    .action([](const std::string& value) { return std::stoi(value); });
+  program.add_argument("numbers").nargs(3).scan<'i', int>();
 
-  program.add_argument("-a")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-a").default_value(false).implicit_value(true);
 
-  program.add_argument("-b")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-b").default_value(false).implicit_value(true);
 
-  program.add_argument("-c")
-    .nargs(2)
-    .action([](const std::string& value) { return std::stof(value); });
+  program.add_argument("-c").nargs(2).scan<'g', float>();
 
-  program.add_argument("--input_files")
-    .nargs(3);
+  program.add_argument("--input_files").nargs(3);
 
-  REQUIRE_THROWS(program.parse_args({ "./test.exe", "1", "-abc", "3.14", "2.718", "2", "--input_files", "a.txt", "b.txt", "c.txt", "3" }));
+  REQUIRE_THROWS(
+      program.parse_args({"./test.exe", "1", "-abc", "3.14", "2.718", "2",
+                          "--input_files", "a.txt", "b.txt", "c.txt", "3"}));
 }
 
 TEST_CASE("Parse out-of-order compound arguments" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
-  program.add_argument("-a")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-a").default_value(false).implicit_value(true);
 
-  program.add_argument("-b")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-b").default_value(false).implicit_value(true);
 
-  program.add_argument("-c")
-    .nargs(2)
-    .action([](const std::string& value) { return std::stof(value); });
+  program.add_argument("-c").nargs(2).scan<'g', float>();
 
-  program.parse_args({ "./main", "-cab", "3.14", "2.718" });
+  program.parse_args({"./main", "-cab", "3.14", "2.718"});
 
-  auto a = program.get<bool>("-a");                // true
-  auto b = program.get<bool>("-b");                // true
-  auto c = program.get<std::vector<float>>("-c");  // {3.14f, 2.718f}
+  auto a = program.get<bool>("-a");               // true
+  auto b = program.get<bool>("-b");               // true
+  auto c = program.get<std::vector<float>>("-c"); // {3.14f, 2.718f}
   REQUIRE(a == true);
   REQUIRE(b == true);
   REQUIRE(program["-c"] == std::vector<float>{3.14f, 2.718f});
@@ -115,20 +89,16 @@ TEST_CASE("Parse out-of-order compound arguments. Second variation" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
-  program.add_argument("-a")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-a").default_value(false).implicit_value(true);
 
-  program.add_argument("-b")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-b").default_value(false).implicit_value(true);
 
   program.add_argument("-c")
-    .nargs(2)
-    .default_value(std::vector<float>{0.0f, 0.0f})
-    .action([](const std::string& value) { return std::stof(value); });
+      .nargs(2)
+      .default_value(std::vector<float>{0.0f, 0.0f})
+      .scan<'g', float>();
 
-  program.parse_args({"./main", "-cb"}); 
+  program.parse_args({"./main", "-cb"});
 
   auto a = program.get<bool>("-a");
   auto b = program.get<bool>("-b");
