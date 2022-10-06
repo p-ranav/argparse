@@ -1092,7 +1092,7 @@ foo@bar:/home/dev/$ ./test --bar=BAR --foo
 Use the latest argparse in your CMake project without copying any content.  
 
 ```cmake
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.14)
 
 PROJECT(myproject)
 
