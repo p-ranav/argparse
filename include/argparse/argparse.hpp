@@ -1104,6 +1104,21 @@ public:
     return *this;
   }
 
+  explicit operator bool() const {
+    auto arg_used = std::any_of(m_argument_map.cbegin(),
+                                m_argument_map.cend(),
+                                [](auto &it) {
+                                    return it.second->m_is_used;
+                                });
+    auto subparser_used = std::any_of(m_subparser_used.cbegin(),
+                                      m_subparser_used.cend(),
+                                      [](auto &it) {
+                                          return it.second;
+                                      });
+
+    return m_is_parsed && (arg_used || subparser_used);
+  }
+
   // Parameter packing
   // Call add_argument with variadic number of string arguments
   template <typename... Targs> Argument &add_argument(Targs... f_args) {

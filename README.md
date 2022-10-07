@@ -38,6 +38,7 @@
      *    [Parent Parsers](#parent-parsers)
      *    [Subcommands](#subcommands)
      *    [Parse Known Args](#parse-known-args)
+     *    [ArgumentParser in bool Context](#argumentparser-in-bool-context)
      *    [Custom Prefix Characters](#custom-prefix-characters)
      *    [Custom Assignment Characters](#custom-assignment-characters)
 *    [Further Examples](#further-examples)
@@ -848,7 +849,13 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-### Custom Prefix Characters 
+### ArgumentParser in bool Context
+
+An `ArgumentParser` is `false` until it (or one of its subparsers) have extracted
+known value(s) with `.parse_args` or `.parse_known_args`. When using `.parse_known_args`,
+unknown arguments will not make a parser `true`.
+
+### Custom Prefix Characters
 
 Most command-line options will use `-` as the prefix, e.g. `-f/--foo`. Parsers that need to support different or additional prefix characters, e.g. for options like `+f` or `/foo`, may specify them using the `set_prefix_chars()`.
 
