@@ -25,7 +25,6 @@ endif()
 function(add_sample NAME)
   ADD_EXECUTABLE(ARGPARSE_SAMPLE_${NAME} ${NAME}.cpp)
   INCLUDE_DIRECTORIES("../include" ".")
-  TARGET_LINK_LIBRARIES(ARGPARSE_SAMPLE_${NAME} PRIVATE argparse::argparse)
   set_target_properties(ARGPARSE_SAMPLE_${NAME} PROPERTIES OUTPUT_NAME ${NAME})
 endfunction()
 
