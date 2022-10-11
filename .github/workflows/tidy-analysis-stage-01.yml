@@ -28,7 +28,7 @@ jobs:
       run: mkdir clang-tidy-result
 
     - name: Analyze
-      run: git diff -U0 HEAD^ | clang-tidy-diff-12.py -p1 -path build -export-fixes clang-tidy-result/fixes.yml
+      run: git diff -U0 HEAD^ | clang-tidy-diff-12.py -p1 -path build -extra-arg=-Iinclude -export-fixes clang-tidy-result/fixes.yml
 
     - name: Save PR metadata
       run: |
