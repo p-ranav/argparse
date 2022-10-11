@@ -27,6 +27,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     main.cpp
     test_actions.cpp
     test_append.cpp
+    test_bool_operator.cpp
     test_compound_arguments.cpp
     test_container_arguments.cpp
     test_const_correct.cpp
