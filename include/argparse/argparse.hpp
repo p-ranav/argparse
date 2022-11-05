@@ -63,6 +63,8 @@ struct HasContainerTraits : std::false_type {};
 
 template <> struct HasContainerTraits<std::string> : std::false_type {};
 
+template <> struct HasContainerTraits<std::string_view> : std::false_type {};
+
 template <typename T>
 struct HasContainerTraits<
     T, std::void_t<typename T::value_type, decltype(std::declval<T>().begin()),
