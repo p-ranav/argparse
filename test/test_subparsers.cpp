@@ -200,3 +200,40 @@ TEST_CASE("Parse git commands" * test_suite("subparsers")) {
     REQUIRE(submodule_update_command.get<bool>("--recursive") == true);
   }
 }
+
+TEST_CASE("Check is_subcommand_used after parse" * test_suite("subparsers")) {
+  argparse::ArgumentParser command_1("add");
+
+  argparse::ArgumentParser command_2("clean");
+  command_2.add_argument("--fullclean")
+        .default_value(false)
+        .implicit_value(true);
+
+  argparse::ArgumentParser program("test");
+  program.add_subparser(command_1);
+  program.add_subparser(command_2);
+
+  SUBCASE("command 1") {
+    program.parse_args({"test", "add"});
+    REQUIRE(program.is_subcommand_used("add") == true);
+    REQUIRE(program.is_subcommand_used(command_1) == true);
+    REQUIRE(program.is_subcommand_used("clean") == false);
+    REQUIRE(program.is_subcommand_used(command_2) == false);
+  }
+
+  SUBCASE("command 2") {
+    program.parse_args({"test", "clean", "--fullclean"});
+    REQUIRE(program.is_subcommand_used("add") == false);
+    REQUIRE(program.is_subcommand_used(command_1) == false);
+    REQUIRE(program.is_subcommand_used("clean") == true);
+    REQUIRE(program.is_subcommand_used(command_2) == true);
+  }
+
+  SUBCASE("none") {
+    program.parse_args({"test"});
+    REQUIRE(program.is_subcommand_used("add") == false);
+    REQUIRE(program.is_subcommand_used(command_1) == false);
+    REQUIRE(program.is_subcommand_used("clean") == false);
+    REQUIRE(program.is_subcommand_used(command_2) == false);
+  }
+}

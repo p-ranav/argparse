@@ -1255,11 +1255,16 @@ public:
     return (*this)[arg_name].m_is_used;
   }
 
-  /* Getter that returns true for user-supplied options. Returns false if not
-   * user-supplied, even with a default value.
+  /* Getter that returns true if a subcommand is used.
    */
   auto is_subcommand_used(std::string_view subcommand_name) const {
     return m_subparser_used.at(subcommand_name);
+  }
+
+  /* Getter that returns true if a subcommand is used.
+   */
+  auto is_subcommand_used(const ArgumentParser &subparser) const {
+    return is_subcommand_used(subparser.m_program_name);
   }
 
   /* Indexing operator. Return a reference to an Argument object

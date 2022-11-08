@@ -825,7 +825,7 @@ Subcommands:
 
 When a help message is requested from a subparser, only the help for that particular parser will be printed. The help message will not include parent parser or sibling parser messages.
 
-Additionally, every parser has a `.is_subcommand_used("<command_name>")` member function to check if a subcommand was used. 
+Additionally, every parser has the `.is_subcommand_used("<command_name>")` and `.is_subcommand_used(subparser)` member functions to check if a subcommand was used. 
 
 ### Parse Known Args
 
