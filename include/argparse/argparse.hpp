@@ -1167,6 +1167,22 @@ public:
     return *this;
   }
 
+  /* Getter for arguments and subparsers.
+   * @throws std::logic_error in case of an invalid argument or subparser name
+   */
+  template <typename T = Argument>
+  T& at(std::string_view name) {
+    if constexpr (std::is_same_v<T, Argument>) {
+      return (*this)[name];
+    } else {
+      auto subparser_it = m_subparser_map.find(name);
+      if (subparser_it != m_subparser_map.end()) {
+        return subparser_it->second->get();
+      }
+      throw std::logic_error("No such subparser: " + std::string(name));
+    }
+  }
+
   ArgumentParser &set_prefix_chars(std::string prefix_chars) {
     m_prefix_chars = std::move(prefix_chars);
     return *this;

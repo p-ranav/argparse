@@ -827,6 +827,20 @@ When a help message is requested from a subparser, only the help for that partic
 
 Additionally, every parser has the `.is_subcommand_used("<command_name>")` and `.is_subcommand_used(subparser)` member functions to check if a subcommand was used. 
 
+### Getting Argument and Subparser Instances
+
+```Argument``` and ```ArgumentParser``` instances added to an ```ArgumentParser``` can be retrieved with ```.at<T>()```. The default return type is ```Argument```.
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("--dir");
+program.at("--dir").default_value(std::string("/home/user"));
+
+program.add_subparser(argparse::ArgumentParser{"walk"});
+program.at<argparse::ArgumentParser>("walk").add_argument("depth");
+```
+
 ### Parse Known Args
 
 Sometimes a program may only parse a few of the command-line arguments, passing the remaining arguments on to another script or program. In these cases, the `parse_known_args()` function can be useful. It works much like `parse_args()` except that it does not produce an error when extra arguments are present. Instead, it returns a list of remaining argument strings.
