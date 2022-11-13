@@ -1365,13 +1365,7 @@ public:
 
     // Add any options inline here
     for (const auto &argument : this->m_optional_arguments) {
-      if (argument.m_names.front() == "-v") {
-        continue;
-      } else if (argument.m_names.front() == "-h") {
-        stream << " [-h]";
-      } else {
-        stream << " " << argument.get_inline_usage();
-      }
+      stream << " " << argument.get_inline_usage();
     }
     // Put positional arguments after the optionals
     for (const auto &argument : this->m_positional_arguments) {
