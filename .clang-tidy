@@ -18,4 +18,4 @@ CheckOptions:
   - { key: readability-identifier-naming.StructIgnoredRegexp, value: "parse_number" }
   - { key: readability-identifier-naming.VariableCase, value: lower_case }
 
-HeaderFilterRegex: '.*'
+HeaderFilterRegex: 'argparse/.+\.hpp'
