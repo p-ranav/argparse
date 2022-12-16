@@ -1041,6 +1041,13 @@ private:
   std::string_view m_prefix_chars; // ArgumentParser has the prefix_chars
 };
 
+class NormalProgramTermination : public std::exception {
+public:
+  const char * what () {
+    return "Normal program termination is expected";
+  }
+};
+  
 class ArgumentParser {
 public:
   explicit ArgumentParser(std::string program_name = {},
@@ -1052,7 +1059,7 @@ public:
       add_argument("-h", "--help")
           .action([&](const auto & /*unused*/) {
             std::cout << help().str();
-            std::exit(0);
+            throw NormalProgramTermination();
           })
           .default_value(false)
           .help("shows help message and exits")
@@ -1063,7 +1070,7 @@ public:
       add_argument("-v", "--version")
           .action([&](const auto & /*unused*/) {
             std::cout << m_version << std::endl;
-            std::exit(0);
+            throw NormalProgramTermination();
           })
           .default_value(false)
           .help("prints version information and exits")
