@@ -68,6 +68,8 @@ argparse::ArgumentParser program("program_name");
 
 **NOTE:** There is an optional second argument to the `ArgumentParser` which is the program version. Example: `argparse::ArgumentParser program("libfoo", "1.9.0");`
 
+**NOTE:** There is an optional third argument to the `ArgumentParser` which controls default arguments. Example: `argparse::ArgumentParser program("libfoo", "1.9.0", default_arguments::none);` See [Default Arguments](#default-arguments), below.
+
 To add a new argument, simply call ```.add_argument(...)```. You can provide a variadic list of argument names that you want to group together, e.g., ```-v``` and ```--verbose```
 
 ```cpp
@@ -557,7 +559,7 @@ The grammar follows `std::from_chars`, but does not exactly duplicate it. For ex
 
 ### Default Arguments
 
-`argparse` provides predefined arguments and actions for `-h`/`--help` and `-v`/`--version`. These default actions exit the program after displaying a help or version message, respectively. These defaults arguments can be disabled during `ArgumentParser` creation so that you can handle these arguments in your own way. (Note that a program name and version must be included when choosing default arguments.)
+`argparse` provides predefined arguments and actions for `-h`/`--help` and `-v`/`--version`. These default actions **exit** the program after displaying a help or version message, respectively. These defaults arguments can be disabled during `ArgumentParser` creation so that you can handle these arguments in your own way. (Note that a program name and version must be included when choosing default arguments.)
 
 ```cpp
 argparse::ArgumentParser program("test", "1.0", default_arguments::none);
