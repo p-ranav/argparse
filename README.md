@@ -687,25 +687,30 @@ main
 
 ### Parent Parsers
 
-Sometimes, several parsers share a common set of arguments. Rather than repeating the definitions of these arguments, a single parser with all the common arguments can be added as a parent to another ArgumentParser instance. The ```.add_parents``` method takes a list of ArgumentParser objects, collects all the positional and optional actions from them, and adds these actions to the ArgumentParser object being constructed:
+A parser may use arguments that could be used by other parsers.
+
+These shared arguments can be added to a parser which is then used as a "parent" for parsers which also need those arguments. One or more parent parsers may be added to a parser with `.add_parents`. The positional and optional arguments in each parent is added to the child parser.
 
 ```cpp
-argparse::ArgumentParser parent_parser("main");
-parent_parser.add_argument("--parent")
+argparse::ArgumentParser surface_parser("surface", 1.0, argparse::default_arguments::none);
+parent_parser.add_argument("--area")
   .default_value(0)
   .scan<'i', int>();
 
-argparse::ArgumentParser foo_parser("foo");
-foo_parser.add_argument("foo");
-foo_parser.add_parents(parent_parser);
-foo_parser.parse_args({ "./main", "--parent", "2", "XXX" });   // parent = 2, foo = XXX
+argparse::ArgumentParser floor_parser("floor");
+floor_parser.add_argument("tile_size").scan<'i', int>();
+floor_parser.add_parents(surface_parser);
+floor_parser.parse_args({ "./main", "--area", "200", "12" });  // --area = 200, tile_size = 12
 
-argparse::ArgumentParser bar_parser("bar");
-bar_parser.add_argument("--bar");
-bar_parser.parse_args({ "./main", "--bar", "YYY" });           // bar = YYY
+argparse::ArgumentParser ceiling_parser("ceiling");
+ceiling_parser.add_argument("--color");
+ceiling_parser.add_parents(surface_parser);
+ceiling_parser.parse_args({ "./main", "--color", "gray" });  // --area = 0, --color = "gray"
 ```
 
-Note You must fully initialize the parsers before passing them via ```.add_parents```. If you change the parent parsers after the child parser, those changes will not be reflected in the child.
+Changes made to parents after they are added to a parser are not reflected in any child parsers. Completely initialize parent parsers before adding them to a parser.
+
+Each parser will have the standard set of default arguments. Disable the default arguments in parent parsers to avoid duplicate help output.
 
 ### Subcommands
 
