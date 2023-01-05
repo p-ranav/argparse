@@ -376,7 +376,8 @@ class Argument {
   explicit Argument(std::string_view prefix_chars,
                     std::array<std::string_view, N> &&a,
                     std::index_sequence<I...> /*unused*/)
-      : m_is_optional((is_optional(a[I], prefix_chars) || ...)),
+      : m_accepts_optional_like_value(false),
+        m_is_optional((is_optional(a[I], prefix_chars) || ...)),
         m_is_required(false), m_is_repeatable(false), m_is_used(false),
         m_prefix_chars(prefix_chars) {
     ((void)m_names.emplace_back(a[I]), ...);
@@ -1033,11 +1034,12 @@ private:
       [](const std::string &value) { return value; }};
   std::vector<std::any> m_values;
   NArgsRange m_num_args_range{1, 1};
-  bool m_accepts_optional_like_value = false;
-  bool m_is_optional : true;
-  bool m_is_required : true;
-  bool m_is_repeatable : true;
-  bool m_is_used : true; // True if the optional argument is used by user
+  // Bit field of bool values. Set default value in ctor.
+  bool m_accepts_optional_like_value : 1;
+  bool m_is_optional : 1;
+  bool m_is_required : 1;
+  bool m_is_repeatable : 1;
+  bool m_is_used : 1;
   std::string_view m_prefix_chars; // ArgumentParser has the prefix_chars
 };
 
