@@ -408,6 +408,10 @@ public:
     return *this;
   }
 
+  Argument &default_value(const char *value) {
+    return default_value(std::string(value));
+  }
+
   Argument &required() {
     m_is_required = true;
     return *this;
