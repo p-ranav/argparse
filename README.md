@@ -1157,7 +1157,7 @@ sudo make install
 | :------------------- | :--------------- | :----------------- |
 | GCC >= 8.3.0         | libstdc++        | Ubuntu 18.04       |
 | Clang >= 7.0.0       | libc++           | Xcode 10.2         |
-| MSVC >= 14.16        | Microsoft STL    | Visual Studio 2017 |
+| MSVC >= 16.8         | Microsoft STL    | Visual Studio 2019 |
 
 ## Contributing
 Contributions are welcome, have a look at the [CONTRIBUTING.md](CONTRIBUTING.md) document for more information.
