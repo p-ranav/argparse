@@ -699,10 +699,13 @@ public:
     if constexpr (!details::IsContainer<T>) {
       return get<T>() == rhs;
     } else {
+      using ValueType = typename T::value_type;
       auto lhs = get<T>();
       return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
                         std::end(rhs),
-                        [](const auto &a, const auto &b) { return a == b; });
+                        [](const auto &a, const auto &b) {
+                          return std::any_cast<const ValueType &>(a) == b;
+                        });
     }
   }
 
@@ -969,18 +972,16 @@ private:
    * Get argument value given a type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T>
-  auto get() const
-      -> std::conditional_t<details::IsContainer<T>, T, const T &> {
+  template <typename T> T get() const {
     if (!m_values.empty()) {
       if constexpr (details::IsContainer<T>) {
         return any_cast_container<T>(m_values);
       } else {
-        return *std::any_cast<T>(&m_values.front());
+        return std::any_cast<T>(m_values.front());
       }
     }
     if (m_default_value.has_value()) {
-      return *std::any_cast<T>(&m_default_value);
+      return std::any_cast<T>(m_default_value);
     }
     if constexpr (details::IsContainer<T>) {
       if (!m_accepts_optional_like_value) {
@@ -1016,7 +1017,7 @@ private:
     T result;
     std::transform(
         std::begin(operand), std::end(operand), std::back_inserter(result),
-        [](const auto &value) { return *std::any_cast<ValueType>(&value); });
+        [](const auto &value) { return std::any_cast<ValueType>(value); });
     return result;
   }
 
@@ -1247,9 +1248,7 @@ public:
    * @throws std::logic_error if the option has no value
    * @throws std::bad_any_cast if the option is not of type T
    */
-  template <typename T = std::string>
-  auto get(std::string_view arg_name) const
-      -> std::conditional_t<details::IsContainer<T>, T, const T &> {
+  template <typename T = std::string> T get(std::string_view arg_name) const {
     if (!m_is_parsed) {
       throw std::logic_error("Nothing parsed, no arguments are available.");
     }
