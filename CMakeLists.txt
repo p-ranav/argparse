@@ -7,8 +7,8 @@ project(argparse
         LANGUAGES CXX
 )
 
-option(ARGPARSE_INSTALL ON)
-option(ARGPARSE_BUILD_TESTS OFF)
+option(ARGPARSE_INSTALL "Include an install target" ON)
+option(ARGPARSE_BUILD_TESTS "Build tests" OFF)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
