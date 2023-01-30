@@ -1371,6 +1371,8 @@ public:
                      : "\n")
              << "Subcommands:\n";
       for (const auto &[command, subparser] : parser.m_subparser_map) {
+        if (subparser->get().m_hide_from_help)
+          continue;
         stream << std::setw(2) << " ";
         stream << std::setw(static_cast<int>(longest_arg_length - 2))
                << command;
@@ -1415,7 +1417,9 @@ public:
     if (!m_subparser_map.empty()) {
       stream << " {";
       std::size_t i{0};
-      for (const auto &[command, unused] : m_subparser_map) {
+      for (const auto &[command, subparser] : m_subparser_map) {
+        if (subparser->get().m_hide_from_help)
+          continue;
         if (i == 0) {
           stream << command;
         } else {
@@ -1438,11 +1442,17 @@ public:
     return out.str();
   }
 
-  void add_subparser(ArgumentParser &parser) {
+  void add_subparser(ArgumentParser &parser, bool hidden_from_help = false) {
+    if (hidden_from_help)
+      parser.set_hide_from_help(true);
     parser.m_parser_path = m_program_name + " " + parser.m_program_name;
     auto it = m_subparsers.emplace(std::cend(m_subparsers), parser);
     m_subparser_map.insert_or_assign(parser.m_program_name, it);
     m_subparser_used.insert_or_assign(parser.m_program_name, false);
+  }
+
+  void set_hide_from_help(bool hide) {
+    m_hide_from_help = hide;
   }
 
 private:
@@ -1701,6 +1711,7 @@ private:
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
   std::map<std::string_view, argument_parser_it> m_subparser_map;
   std::map<std::string_view, bool> m_subparser_used;
+  bool m_hide_from_help = false;
 };
 
 } // namespace argparse
