@@ -668,7 +668,27 @@ public:
         name_stream << " " << argument.m_metavar;
       }
     }
-    stream << name_stream.str() << "\t" << argument.m_help;
+    auto spacing = name_stream.str().size();
+    auto pos = 0;
+    auto prev = 0;
+    auto first_line = true;
+    stream << name_stream.str();
+    while ((pos = argument.m_help.find('\n', prev)) != std::string::npos) {
+      auto line = argument.m_help.substr(prev, pos - prev + 1);
+      if (first_line) {
+        stream << "\t" << line;
+        first_line = false;
+      } else
+        stream << std::string(spacing, ' ') << "\t" << line;
+      prev += pos - prev + 1;
+    }
+    if (first_line)
+      stream << "\t" << argument.m_help;
+    else {
+      auto leftover = argument.m_help.substr(prev, argument.m_help.size() - prev);
+      if (leftover.size() > 0)
+        stream << std::string(spacing, ' ') << "\t" << leftover;
+    }
 
     // print nargs spec
     if (!argument.m_help.empty()) {
