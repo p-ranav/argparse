@@ -376,7 +376,8 @@ class Argument {
   explicit Argument(std::string_view prefix_chars,
                     std::array<std::string_view, N> &&a,
                     std::index_sequence<I...> /*unused*/)
-      : m_is_optional((is_optional(a[I], prefix_chars) || ...)),
+      : m_accepts_optional_like_value(false),
+        m_is_optional((is_optional(a[I], prefix_chars) || ...)),
         m_is_required(false), m_is_repeatable(false), m_is_used(false),
         m_prefix_chars(prefix_chars) {
     ((void)m_names.emplace_back(a[I]), ...);
@@ -702,10 +703,13 @@ public:
     if constexpr (!details::IsContainer<T>) {
       return get<T>() == rhs;
     } else {
+      using ValueType = typename T::value_type;
       auto lhs = get<T>();
       return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
                         std::end(rhs),
-                        [](const auto &a, const auto &b) { return a == b; });
+                        [](const auto &a, const auto &b) {
+                          return std::any_cast<const ValueType &>(a) == b;
+                        });
     }
   }
 
@@ -972,18 +976,16 @@ private:
    * Get argument value given a type
    * @throws std::logic_error in case of incompatible types
    */
-  template <typename T>
-  auto get() const
-      -> std::conditional_t<details::IsContainer<T>, T, const T &> {
+  template <typename T> T get() const {
     if (!m_values.empty()) {
       if constexpr (details::IsContainer<T>) {
         return any_cast_container<T>(m_values);
       } else {
-        return *std::any_cast<T>(&m_values.front());
+        return std::any_cast<T>(m_values.front());
       }
     }
     if (m_default_value.has_value()) {
-      return *std::any_cast<T>(&m_default_value);
+      return std::any_cast<T>(m_default_value);
     }
     if constexpr (details::IsContainer<T>) {
       if (!m_accepts_optional_like_value) {
@@ -1019,7 +1021,7 @@ private:
     T result;
     std::transform(
         std::begin(operand), std::end(operand), std::back_inserter(result),
-        [](const auto &value) { return *std::any_cast<ValueType>(&value); });
+        [](const auto &value) { return std::any_cast<ValueType>(value); });
     return result;
   }
 
@@ -1037,11 +1039,12 @@ private:
       [](const std::string &value) { return value; }};
   std::vector<std::any> m_values;
   NArgsRange m_num_args_range{1, 1};
-  bool m_accepts_optional_like_value = false;
-  bool m_is_optional : true;
-  bool m_is_required : true;
-  bool m_is_repeatable : true;
-  bool m_is_used : true; // True if the optional argument is used by user
+  // Bit field of bool values. Set default value in ctor.
+  bool m_accepts_optional_like_value : 1;
+  bool m_is_optional : 1;
+  bool m_is_required : 1;
+  bool m_is_repeatable : 1;
+  bool m_is_used : 1;
   std::string_view m_prefix_chars; // ArgumentParser has the prefix_chars
 };
 
@@ -1249,9 +1252,7 @@ public:
    * @throws std::logic_error if the option has no value
    * @throws std::bad_any_cast if the option is not of type T
    */
-  template <typename T = std::string>
-  auto get(std::string_view arg_name) const
-      -> std::conditional_t<details::IsContainer<T>, T, const T &> {
+  template <typename T = std::string> T get(std::string_view arg_name) const {
     if (!m_is_parsed) {
       throw std::logic_error("Nothing parsed, no arguments are available.");
     }

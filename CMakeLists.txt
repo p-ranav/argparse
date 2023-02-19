@@ -7,20 +7,14 @@ project(argparse
         LANGUAGES CXX
 )
 
-option(ARGPARSE_INSTALL ON)
-option(ARGPARSE_BUILD_TESTS OFF)
-option(ARGPARSE_LONG_VERSION_ARG_ONLY OFF)
+option(ARGPARSE_INSTALL "Include an install target" ON)
+option(ARGPARSE_BUILD_TESTS "Build tests" OFF)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 add_library(argparse INTERFACE)
 add_library(argparse::argparse ALIAS argparse)
-
-
-if (ARGPARSE_LONG_VERSION_ARG_ONLY)
-	target_compile_definitions(argparse INTERFACE ARGPARSE_LONG_VERSION_ARG_ONLY=true)
-endif ()
 
 target_compile_features(argparse INTERFACE cxx_std_17)
 target_include_directories(argparse INTERFACE
