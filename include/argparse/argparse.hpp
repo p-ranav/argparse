@@ -506,10 +506,10 @@ public:
       m_num_args_range = NArgsRange{0, 1};
       break;
     case nargs_pattern::any:
-      m_num_args_range = NArgsRange{0, std::numeric_limits<std::size_t>::max()};
+      m_num_args_range = NArgsRange{0, (std::numeric_limits<std::size_t>::max)()};
       break;
     case nargs_pattern::at_least_one:
-      m_num_args_range = NArgsRange{1, std::numeric_limits<std::size_t>::max()};
+      m_num_args_range = NArgsRange{1, (std::numeric_limits<std::size_t>::max)()};
       break;
     }
     return *this;
@@ -733,7 +733,7 @@ private:
     bool is_exact() const { return m_min == m_max; }
 
     bool is_right_bounded() const {
-      return m_max < std::numeric_limits<std::size_t>::max();
+      return m_max < (std::numeric_limits<std::size_t>::max)();
     }
 
     std::size_t get_min() const { return m_min; }
@@ -748,7 +748,7 @@ private:
           stream << "[nargs: " << range.m_min << "] ";
         }
       } else {
-        if (range.m_max == std::numeric_limits<std::size_t>::max()) {
+        if (range.m_max == (std::numeric_limits<std::size_t>::max)()) {
           stream << "[nargs: " << range.m_min << " or more] ";
         } else {
           stream << "[nargs=" << range.m_min << ".." << range.m_max << "] ";
@@ -1654,10 +1654,10 @@ private:
     }
     std::size_t max_size = 0;
     for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
-      max_size = std::max(max_size, argument->get_arguments_length());
+      max_size = std::max<std::size_t>(max_size, argument->get_arguments_length());
     }
     for ([[maybe_unused]] const auto &[command, unused] : m_subparser_map) {
-      max_size = std::max(max_size, command.size());
+      max_size = std::max<std::size_t>(max_size, command.size());
     }
     return max_size;
   }
