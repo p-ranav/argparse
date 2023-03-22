@@ -1052,14 +1052,18 @@ class ArgumentParser {
 public:
   explicit ArgumentParser(std::string program_name = {},
                           std::string version = "1.0",
-                          default_arguments add_args = default_arguments::all)
+                          default_arguments add_args = default_arguments::all,
+                          bool exit_on_default_arguments = true)
       : m_program_name(std::move(program_name)), m_version(std::move(version)),
+        m_exit_on_default_arguments(exit_on_default_arguments),
         m_parser_path(m_program_name) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
           .action([&](const auto & /*unused*/) {
             std::cout << help().str();
-            std::exit(0);
+            if (m_exit_on_default_arguments) {
+              std::exit(0);
+            }
           })
           .default_value(false)
           .help("shows help message and exits")
@@ -1070,7 +1074,9 @@ public:
       add_argument("-v", "--version")
           .action([&](const auto & /*unused*/) {
             std::cout << m_version << std::endl;
-            std::exit(0);
+            if (m_exit_on_default_arguments) {
+              std::exit(0);
+            }
           })
           .default_value(false)
           .help("prints version information and exits")
@@ -1676,6 +1682,7 @@ private:
   std::string m_version;
   std::string m_description;
   std::string m_epilog;
+  bool m_exit_on_default_arguments = true;
   std::string m_prefix_chars{"-"};
   std::string m_assign_chars{"="};
   bool m_is_parsed = false;
