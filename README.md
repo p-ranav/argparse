@@ -3,7 +3,6 @@
 </p>
 
 <p align="center">
-  <img src="https://travis-ci.org/p-ranav/argparse.svg?branch=master" alt="travis"/>
   <a href="https://github.com/p-ranav/argparse/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/>
   </a>
