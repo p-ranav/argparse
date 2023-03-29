@@ -68,7 +68,7 @@ argparse::ArgumentParser program("program_name");
 
 **NOTE:** There is an optional second argument to the `ArgumentParser` which is the program version. Example: `argparse::ArgumentParser program("libfoo", "1.9.0");`
 
-**NOTE:** There is an optional third argument to the `ArgumentParser` which controls default arguments. Example: `argparse::ArgumentParser program("libfoo", "1.9.0", default_arguments::none);` See [Default Arguments](#default-arguments), below.
+**NOTE:** There are optional third and fourth arguments to the `ArgumentParser` which control default arguments. Example: `argparse::ArgumentParser program("libfoo", "1.9.0", default_arguments::help, false);` See [Default Arguments](#default-arguments), below.
 
 To add a new argument, simply call ```.add_argument(...)```. You can provide a variadic list of argument names that you want to group together, e.g., ```-v``` and ```--verbose```
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   auto input = program.get<int>("square");
@@ -559,7 +559,9 @@ The grammar follows `std::from_chars`, but does not exactly duplicate it. For ex
 
 ### Default Arguments
 
-`argparse` provides predefined arguments and actions for `-h`/`--help` and `-v`/`--version`. These default actions **exit** the program after displaying a help or version message, respectively. These defaults arguments can be disabled during `ArgumentParser` creation so that you can handle these arguments in your own way. (Note that a program name and version must be included when choosing default arguments.)
+`argparse` provides predefined arguments and actions for `-h`/`--help` and `-v`/`--version`. By default, these actions will **exit** the program after displaying a help or version message, respectively. This exit does not call destructors, skipping clean-up of taken resources.
+
+These default arguments can be disabled during `ArgumentParser` creation so that you can handle these arguments in your own way. (Note that a program name and version must be included when choosing default arguments.)
 
 ```cpp
 argparse::ArgumentParser program("test", "1.0", default_arguments::none);
@@ -577,6 +579,12 @@ program.add_argument("-h", "--help")
 The above code snippet outputs a help message and continues to run. It does not support a `--version` argument.
 
 The default is `default_arguments::all` for included arguments. No default arguments will be added with `default_arguments::none`. `default_arguments::help` and `default_arguments::version` will individually add `--help` and `--version`.
+
+The default arguments can be used while disabling the default exit with these arguments. This forth argument to `ArgumentParser` (`exit_on_default_arguments`) is a bool flag with a default **true** value. The following call will retain `--help` and `--version`, but will not exit when those arguments are used.
+
+```cpp
+argparse::ArgumentParser program("test", "1.0", default_arguments::all, false)
+```
 
 ### Gathering Remaining Arguments
 
@@ -773,7 +781,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   // Use arguments
@@ -900,7 +908,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   if (program.is_used("+f")) {
@@ -948,7 +956,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   if (program.is_used("--foo")) {
@@ -1096,7 +1104,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   if (program.is_used("--foo")) {
