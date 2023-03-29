@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   auto input = program.get<int>("square");
@@ -781,7 +781,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   // Use arguments
@@ -908,7 +908,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   if (program.is_used("+f")) {
@@ -956,7 +956,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   if (program.is_used("--foo")) {
@@ -1104,7 +1104,7 @@ int main(int argc, char *argv[]) {
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
-    std::exit(1);
+    return 1;
   }
 
   if (program.is_used("--foo")) {
