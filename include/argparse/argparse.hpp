@@ -1285,7 +1285,7 @@ public:
   /* Getter that returns true if a subcommand is used.
    */
   auto is_subcommand_used(std::string_view subcommand_name) const {
-    return m_subparser_used.at(subcommand_name);
+    return m_subparser_used.find(subcommand_name) != m_subparser_used.end();
   }
 
   /* Getter that returns true if a subcommand is used.
