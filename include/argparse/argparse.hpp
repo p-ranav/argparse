@@ -649,7 +649,6 @@ public:
 
   friend std::ostream &operator<<(std::ostream &stream,
                                   const Argument &argument) {
-    auto stream_width = stream.width();
     std::stringstream name_stream;
     name_stream << "  "; // indent
     if (argument.is_positional(argument.m_names.front(),
@@ -669,29 +668,34 @@ public:
         name_stream << " " << argument.m_metavar;
       }
     }
-    auto spacing = name_stream.str().size();
+
+    // align multiline help message
+    auto stream_width = stream.width();
+    auto name_padding = std::string(name_stream.str().size(), ' ');
     auto pos = 0;
     auto prev = 0;
     auto first_line = true;
+    const char* hspace = "  "; // minimal space between name and help message
     stream << name_stream.str();
+    std::string_view help_view(argument.m_help);
     while ((pos = argument.m_help.find('\n', prev)) != std::string::npos) {
-      auto line = argument.m_help.substr(prev, pos - prev + 1);
+      auto line = help_view.substr(prev, pos - prev + 1);
       if (first_line) {
-        stream << "\t" << line;
+        stream << hspace << line;
         first_line = false;
       } else {
         stream.width(stream_width);
-        stream << std::string(spacing, ' ') << "\t" << line;
+        stream << name_padding << hspace << line;
       }
       prev += pos - prev + 1;
     }
     if (first_line) {
-      stream << "\t" << argument.m_help;
+      stream << hspace << argument.m_help;
     } else {
-      auto leftover = argument.m_help.substr(prev, argument.m_help.size() - prev);
+      auto leftover = help_view.substr(prev, argument.m_help.size() - prev);
       if (!leftover.empty()) {
         stream.width(stream_width);
-        stream << std::string(spacing, ' ') << "\t" << leftover;
+        stream << name_padding << hspace << leftover;
       }
     }
 
