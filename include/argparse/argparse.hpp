@@ -675,7 +675,7 @@ public:
     auto pos = 0;
     auto prev = 0;
     auto first_line = true;
-    const char* hspace = "  "; // minimal space between name and help message
+    auto hspace = "  "; // minimal space between name and help message
     stream << name_stream.str();
     std::string_view help_view(argument.m_help);
     while ((pos = argument.m_help.find('\n', prev)) != std::string::npos) {

@@ -1,8 +1,6 @@
 #include <argparse/argparse.hpp>
 #include <doctest.hpp>
-#include <regex>
 #include <sstream>
-#include <unordered_map>
 
 using doctest::test_suite;
 
@@ -77,55 +75,46 @@ TEST_CASE("Users can replace default -h/--help" * test_suite("help")) {
 }
 
 TEST_CASE("Multiline help message alignment") {
+  // '#' is used at the beginning of each help message line to simplify testing.
+  // It is important to ensure that this character doesn't appear elsewhere in the test case.
+  // Default arguments (e.g., -h/--help, -v/--version) are not included in this test.
   argparse::ArgumentParser program("program");
-  program.add_argument("input1")
+  program.add_argument("INPUT1")
       .help(
-        "This is the first line of help message.\n"
-        "And this is the second line of help message."
+        "#This is the first line of help message.\n"
+        "#And this is the second line of help message."
       );
   program.add_argument("program_input2")
-      .help("There is only one line.");
+      .help("#There is only one line.");
   program.add_argument("-p", "--prog_input3")
       .help(
-R"(Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-accusantium doloremque laudantium, totam rem aperiam...)"
+R"(#Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+#Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+#accusantium doloremque laudantium, totam rem aperiam...)"
       );
+  program.add_argument("--verbose").default_value(false).implicit_value(true);
 
   std::ostringstream stream;
   stream << program;
-  std::string help_text = stream.str();
+  std::istringstream iss(stream.str());
 
-  // Split the help text into lines
-  std::istringstream iss(help_text);
-  std::vector<std::string> help_lines;
+  int help_message_start = -1;
   std::string line;
   while (std::getline(iss, line)) {
-    help_lines.push_back(line);
-  }
+    // Find the position of '#', which indicates the start of the help message line
+    auto pos = line.find('#');
 
-  // A map to store the starting position of the help text for each argument
-  std::unordered_map<std::string, int> help_start_positions;
+    if (pos == std::string::npos) {
+      continue;
+    }
 
-  for (const auto& line : help_lines) {
-    // Find the argument names in the line
-    std::smatch match;
-    if (std::regex_search(line, match, std::regex(R"((input1|program_input2|--prog_input3))"))) {
-      std::string arg_name = match.str();
-
-      // Find the position of the first non-space character after the argument name
-      int position = line.find_first_not_of(' ', match.position() + arg_name.size());
-      if (position == std::string::npos) {
-        continue;
-      }
-      help_start_positions[arg_name] = position;
+    if (help_message_start == -1) {
+      help_message_start = pos;
+    } else {
+      REQUIRE(pos == help_message_start);
     }
   }
 
-  // Check if the positions are the same for all arguments
-  REQUIRE(!help_start_positions.empty());
-  int first_position = help_start_positions.begin()->second;
-  for (const auto& entry : help_start_positions) {
-    REQUIRE(entry.second == first_position);
-  }
+  // Make sure we have at least one help message
+  REQUIRE(help_message_start != -1);
 }
