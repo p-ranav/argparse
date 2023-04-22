@@ -685,11 +685,11 @@ public:
       }
       prev += pos - prev + 1;
     }
-    if (first_line)
+    if (first_line) {
       stream << "\t" << argument.m_help;
-    else {
+    } else {
       auto leftover = argument.m_help.substr(prev, argument.m_help.size() - prev);
-      if (leftover.size() > 0) {
+      if (!leftover.empty()) {
         stream.width(stream_width);
         stream << std::string(spacing, ' ') << "\t" << leftover;
       }
