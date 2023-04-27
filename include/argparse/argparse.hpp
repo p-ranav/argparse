@@ -145,6 +145,7 @@ constexpr bool standard_unsigned_integer<unsigned long long int> = true;
 
 } // namespace
 
+constexpr int radix_2 = 2;
 constexpr int radix_8 = 8;
 constexpr int radix_10 = 10;
 constexpr int radix_16 = 16;
@@ -180,9 +181,10 @@ constexpr bool starts_with(std::basic_string_view<CharT, Traits> prefix,
 }
 
 enum class chars_format {
-  scientific = 0x1,
-  fixed = 0x2,
-  hex = 0x4,
+  scientific = 0xf1,
+  fixed = 0xf2,
+  hex = 0xf4,
+  bin = 0xf8,
   general = fixed | scientific
 };
 
@@ -200,6 +202,21 @@ constexpr auto consume_hex_prefix(std::string_view s)
     return {true, s};
   }
   return {false, s};
+}
+
+struct ConsumeBinPrefixResult {
+    bool is_binary;
+    std::string_view rest;
+};
+
+constexpr auto consume_bin_prefix(std::string_view s)
+    -> ConsumeBinPrefixResult
+{
+    if (starts_with("0b"sv, s) || starts_with("0B"sv, s)) {
+        s.remove_prefix(2);
+        return { true, s };
+    }
+    return { false, s };
 }
 
 template <class T, auto Param>
@@ -237,11 +254,26 @@ template <class T> struct parse_number<T, radix_16> {
   }
 };
 
+template <class T>
+struct parse_number<T, radix_2> {
+    auto operator()(std::string_view s) -> T
+    {
+        if (auto [ok, rest] = consume_bin_prefix(s); ok) {
+            return do_from_chars<T, radix_2>(rest);
+        }
+        throw std::invalid_argument { "pattern not found" };
+    }
+};
+
 template <class T> struct parse_number<T> {
   auto operator()(std::string_view s) -> T {
     auto [ok, rest] = consume_hex_prefix(s);
     if (ok) {
       return do_from_chars<T, radix_16>(rest);
+    }
+    auto [okB, restB] = consume_bin_prefix(s);
+    if (okB) {
+        return do_from_chars<T, radix_2>(restB);
     }
     if (starts_with("0"sv, s)) {
       return do_from_chars<T, radix_8>(rest);
@@ -287,6 +319,11 @@ template <class T> struct parse_number<T, chars_format::general> {
       throw std::invalid_argument{
           "chars_format::general does not parse hexfloat"};
     }
+    if (auto r = consume_bin_prefix(s); r.is_binary) {
+        throw std::invalid_argument {
+            "chars_format::general does not parse binfloat"
+        };
+    }
 
     return do_strtod<T>(s);
   }
@@ -297,9 +334,30 @@ template <class T> struct parse_number<T, chars_format::hex> {
     if (auto r = consume_hex_prefix(s); !r.is_hexadecimal) {
       throw std::invalid_argument{"chars_format::hex parses hexfloat"};
     }
+    if (auto r = consume_bin_prefix(s); r.is_binary) {
+        throw std::invalid_argument {
+            "chars_format::hex does not parse binfloat"
+        };
+    }
 
     return do_strtod<T>(s);
   }
+};
+
+template <class T>
+struct parse_number<T, chars_format::bin> {
+    auto operator()(std::string const& s) -> T {
+        if (auto r = consume_hex_prefix(s); r.is_hexadecimal) {
+            throw std::invalid_argument { "chars_format::bin does not parse hexfloat" };
+        }
+        if (auto r = consume_bin_prefix(s); !r.is_binary) {
+            throw std::invalid_argument {
+                "chars_format::bin parses binfloat"
+            };
+        }
+
+        return do_strtod<T>(s);
+    }
 };
 
 template <class T> struct parse_number<T, chars_format::scientific> {
@@ -307,6 +365,11 @@ template <class T> struct parse_number<T, chars_format::scientific> {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal) {
       throw std::invalid_argument{
           "chars_format::scientific does not parse hexfloat"};
+    }
+    if (auto r = consume_bin_prefix(s); r.is_binary) {
+        throw std::invalid_argument {
+            "chars_format::scientific does not parse binfloat"
+        };
     }
     if (s.find_first_of("eE") == std::string::npos) {
       throw std::invalid_argument{
@@ -322,6 +385,11 @@ template <class T> struct parse_number<T, chars_format::fixed> {
     if (auto r = consume_hex_prefix(s); r.is_hexadecimal) {
       throw std::invalid_argument{
           "chars_format::fixed does not parse hexfloat"};
+    }
+    if (auto r = consume_bin_prefix(s); r.is_binary) {
+        throw std::invalid_argument {
+            "chars_format::fixed does not parse binfloat"
+        };
     }
     if (s.find_first_of("eE") != std::string::npos) {
       throw std::invalid_argument{
@@ -465,6 +533,9 @@ public:
     } else if constexpr (is_one_of(Shape, 'u') &&
                          details::standard_unsigned_integer<T>) {
       action(details::parse_number<T, details::radix_10>());
+    } else if constexpr (is_one_of(Shape, 'b') && 
+                         details::standard_unsigned_integer<T>) {
+      action(details::parse_number<T, details::radix_2>());
     } else if constexpr (is_one_of(Shape, 'o') &&
                          details::standard_unsigned_integer<T>) {
       action(details::parse_number<T, details::radix_8>());
