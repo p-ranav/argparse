@@ -244,3 +244,39 @@ TEST_CASE("Check is_subcommand_used after parse" * test_suite("subparsers")) {
     REQUIRE(program.is_subcommand_used(command_2) == false);
   }
 }
+
+static bool contains(const std::string &haystack, const std::string &needle) {
+  return haystack.find(needle) != std::string::npos;
+}
+
+TEST_CASE("Check set_suppress" * test_suite("subparsers")) {
+  argparse::ArgumentParser command("cmd");
+  command.add_argument("arg").remaining();
+
+  argparse::ArgumentParser program("test");
+  program.add_subparser(command);
+
+  SUBCASE("help message contain info if subcommand not suppressed") {
+    command.set_suppress(false);
+    REQUIRE(contains(program.help().str(), "Subcommands") == true);
+    REQUIRE(contains(program.help().str(), "cmd") == true);
+  }
+
+  SUBCASE("help message does not contain info if subcommand suppressed") {
+    command.set_suppress(true);
+    REQUIRE(contains(program.help().str(), "Subcommands") == false);
+    REQUIRE(contains(program.help().str(), "cmd") == false);
+  }
+
+  SUBCASE("help message contain info if not all subcommands suppressed") {
+    argparse::ArgumentParser command_2("command_2");
+    program.add_subparser(command_2);
+
+    command.set_suppress(true);
+    command_2.set_suppress(false);
+
+    REQUIRE(contains(program.help().str(), "Subcommands") == true);
+    REQUIRE(contains(program.help().str(), "cmd") == false);
+    REQUIRE(contains(program.help().str(), "command_2") == true);
+  }
+}
