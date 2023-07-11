@@ -673,7 +673,36 @@ public:
         name_stream << " " << argument.m_metavar;
       }
     }
-    stream << name_stream.str() << "\t" << argument.m_help;
+
+    // align multiline help message
+    auto stream_width = stream.width();
+    auto name_padding = std::string(name_stream.str().size(), ' ');
+    auto pos = 0;
+    auto prev = 0;
+    auto first_line = true;
+    auto hspace = "  "; // minimal space between name and help message
+    stream << name_stream.str();
+    std::string_view help_view(argument.m_help);
+    while ((pos = argument.m_help.find('\n', prev)) != std::string::npos) {
+      auto line = help_view.substr(prev, pos - prev + 1);
+      if (first_line) {
+        stream << hspace << line;
+        first_line = false;
+      } else {
+        stream.width(stream_width);
+        stream << name_padding << hspace << line;
+      }
+      prev += pos - prev + 1;
+    }
+    if (first_line) {
+      stream << hspace << argument.m_help;
+    } else {
+      auto leftover = help_view.substr(prev, argument.m_help.size() - prev);
+      if (!leftover.empty()) {
+        stream.width(stream_width);
+        stream << name_padding << hspace << leftover;
+      }
+    }
 
     // print nargs spec
     if (!argument.m_help.empty()) {
