@@ -683,7 +683,7 @@ public:
     auto hspace = "  "; // minimal space between name and help message
     stream << name_stream.str();
     std::string_view help_view(argument.m_help);
-    while ((pos = argument.m_help.find('\n', prev)) != std::string::npos) {
+    while ((pos = argument.m_help.find('\n', prev)) != (signed)std::string::npos) {
       auto line = help_view.substr(prev, pos - prev + 1);
       if (first_line) {
         stream << hspace << line;
