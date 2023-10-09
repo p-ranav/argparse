@@ -410,6 +410,7 @@ public:
   }
 
   Argument &default_value(const char *value) {
+    m_num_args_range = NArgsRange{0, m_num_args_range.get_max()};
     return default_value(std::string(value));
   }
 
