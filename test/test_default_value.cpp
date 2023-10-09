@@ -4,6 +4,36 @@
 
 using doctest::test_suite;
 
+TEST_CASE("Position of the argument with default value") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("-g").default_value("the_default_value");
+  program.add_argument("-s");
+
+  SUBCASE("Arg with default value not passed") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "-s", "./src"}));
+    REQUIRE(program.get("-g") == std::string("the_default_value"));
+    REQUIRE(program.get("-s") == std::string("./src"));
+  }
+
+  SUBCASE("Arg with default value passed last") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "-s", "./src", "-g"}));
+    REQUIRE(program.get("-g") == std::string("the_default_value"));
+    REQUIRE(program.get("-s") == std::string("./src"));
+  }
+
+  SUBCASE("Arg with default value passed before last") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "-g", "-s", "./src"}));
+    REQUIRE(program.get("-g") == std::string("the_default_value"));
+    REQUIRE(program.get("-s") == std::string("./src"));
+  }
+
+  SUBCASE("Arg with default value replaces the value if given") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "-g", "a_different_value", "-s", "./src"}));
+    REQUIRE(program.get("-g") == std::string("a_different_value"));
+    REQUIRE(program.get("-s") == std::string("./src"));
+  }
+}
+
 TEST_CASE("Use a 'string' default value" * test_suite("default_value")) {
   argparse::ArgumentParser program("test");
 
