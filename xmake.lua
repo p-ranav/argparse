@@ -8,84 +8,84 @@ option("enable_tests")
 option("enable_samples")
 
 add_cxxflags(
-	"-Wall",
-	"-Wno-long-long",
-	"-pedantic",
-	"-Wsign-conversion",
-	"-Wshadow",
-	"-Wconversion",
-	{ toolsets = { "clang", "gcc" } }
+    "-Wall",
+    "-Wno-long-long",
+    "-pedantic",
+    "-Wsign-conversion",
+    "-Wshadow",
+    "-Wconversion",
+    { toolsets = { "clang", "gcc" } }
 )
 add_cxxflags("cl::/W4")
 
 if is_plat("windows") then
-	add_defines("_CRT_SECURE_NO_WARNINGS")
+    add_defines("_CRT_SECURE_NO_WARNINGS")
 end
 
 target("argparse")
 do
-	if get_config("enable_module") then
-		set_languages("c++20")
-		set_kind("object")
-	else
-		set_languages("c++17")
-		set_kind("headeronly")
-	end
+    if get_config("enable_module") then
+        set_languages("c++20")
+        set_kind("object")
+    else
+        set_languages("c++17")
+        set_kind("headeronly")
+    end
 
-	add_includedirs("include", { public = true })
-	add_headerfiles("include/argparse/argparse.hpp")
-	if get_config("enable_module") then
-		add_files("module/argparse.cppm", { install = true })
-	end
+    add_includedirs("include", { public = true })
+    add_headerfiles("include/argparse/argparse.hpp")
+    if get_config("enable_module") then
+        add_files("module/argparse.cppm", { install = true })
+    end
 end
 
 if get_config("enable_tests") then
-	target("argparse_tests")
-	do
-		set_kind("binary")
-		set_languages("c++17")
-		set_basename("module_tests")
+    target("argparse_tests")
+    do
+        set_kind("binary")
+        set_languages("c++17")
+        set_basename("module_tests")
 
-		add_includedirs("test")
+        add_includedirs("test")
 
-		add_files("test/main.cpp", { defines = { "DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN" } })
-		add_files("test/**.cpp")
+        add_files("test/main.cpp", { defines = { "DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN" } })
+        add_files("test/**.cpp")
 
-		add_deps("argparse")
-	end
+        add_deps("argparse")
+    end
 
-	if get_config("enable_module") then
-		target("argparse_module_tests")
-		do
-			set_kind("binary")
-			set_languages("c++20")
-			set_basename("module_tests")
+    if get_config("enable_module") then
+        target("argparse_module_tests")
+        do
+            set_kind("binary")
+            set_languages("c++20")
+            set_basename("module_tests")
 
-			add_defines("WITH_MODULE")
+            add_defines("WITH_MODULE")
 
-			add_includedirs("test")
+            add_includedirs("test")
 
-			add_files("test/main.cpp", { defines = { "DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN" } })
-			add_files("test/**.cpp")
-			add_files("test/argparse_details.cppm")
+            add_files("test/main.cpp", { defines = { "DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN" } })
+            add_files("test/**.cpp")
+            add_files("test/argparse_details.cppm")
 
-			add_deps("argparse")
-		end
-	end
+            add_deps("argparse")
+        end
+    end
 end
 
 if get_config("enable_samples") then
-	for _, sample_file in ipairs(os.files("samples/*.cpp")) do
-			target(path.basename(sample_file))
-			do
-				set_kind("binary")
-				set_languages("c++17")
+    for _, sample_file in ipairs(os.files("samples/*.cpp")) do
+        target(path.basename(sample_file))
+        do
+            set_kind("binary")
+            set_languages("c++17")
 
-				add_files(sample_file)
+            add_files(sample_file)
 
-        set_policy("build.c++.modules", false)
+            set_policy("build.c++.modules", false)
 
-				add_deps("argparse")
-			end
-	end
+            add_deps("argparse")
+        end
+    end
 end
