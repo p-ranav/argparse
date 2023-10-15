@@ -29,6 +29,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #pragma once
+
+#ifndef ARGPARSE_MODULE_USE_STD_MODULE
 #include <algorithm>
 #include <any>
 #include <array>
@@ -53,6 +55,7 @@ SOFTWARE.
 #include <utility>
 #include <variant>
 #include <vector>
+#endif
 
 namespace argparse {
 
