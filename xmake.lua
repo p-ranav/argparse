@@ -44,7 +44,7 @@ if get_config("enable_tests") then
     do
         set_kind("binary")
         set_languages("c++17")
-        set_basename("module_tests")
+        set_basename("tests")
 
         add_includedirs("test")
 
