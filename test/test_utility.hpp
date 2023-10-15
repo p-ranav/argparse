@@ -1,6 +1,8 @@
 #ifndef ARGPARSE_TEST_UTILITY_HPP
 #define ARGPARSE_TEST_UTILITY_HPP
 
+#include <list>
+
 namespace testutility {
 // Get value at index from std::list
 template <typename T>

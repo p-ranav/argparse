@@ -1,6 +1,13 @@
+#ifdef WITH_MODULE
+import argparse;
+#else
 #include <argparse/argparse.hpp>
-#include <cmath>
+#endif
 #include <doctest.hpp>
+
+#include <cmath>
+#include <vector>
+#include <string>
 
 using doctest::test_suite;
 

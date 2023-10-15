@@ -1,4 +1,9 @@
+#ifdef WITH_MODULE
+import argparse;
+#else
 #include <argparse/argparse.hpp>
+#endif
+
 #include <doctest.hpp>
 
 using doctest::test_suite;
