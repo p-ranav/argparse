@@ -1324,7 +1324,7 @@ public:
   }
 
   /* Indexing operator. Return a reference to an Argument object
-   * Used in conjuction with Argument.operator== e.g., parser["foo"] == true
+   * Used in conjunction with Argument.operator== e.g., parser["foo"] == true
    * @throws std::logic_error in case of an invalid argument name
    */
   Argument &operator[](std::string_view arg_name) const {
