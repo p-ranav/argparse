@@ -23,13 +23,12 @@ if is_plat("windows") then
 end
 
 target("argparse", function()
+    set_languages("c++17")
+    set_kind("headeronly")
     if get_config("enable_module") then
         set_languages("c++20")
-        set_kind("object")
+        set_kind("static") -- static atm because of a XMake bug, headeronly doesn't generate package module metadata
     else
-        set_languages("c++17")
-        set_kind("headeronly")
-    end
 
     add_includedirs("include", { public = true })
     add_headerfiles("include/argparse/argparse.hpp")
