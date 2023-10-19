@@ -22,8 +22,7 @@ if is_plat("windows") then
     add_defines("_CRT_SECURE_NO_WARNINGS")
 end
 
-target("argparse")
-do
+target("argparse", function()
     if get_config("enable_module") then
         set_languages("c++20")
         set_kind("object")
@@ -37,11 +36,10 @@ do
     if get_config("enable_module") then
         add_files("module/argparse.cppm", { install = true })
     end
-end
+end)
 
 if get_config("enable_tests") then
-    target("argparse_tests")
-    do
+    target("argparse_tests", function()
         set_kind("binary")
         set_languages("c++17")
         set_basename("tests")
@@ -52,11 +50,10 @@ if get_config("enable_tests") then
         add_files("test/**.cpp")
 
         add_deps("argparse")
-    end
+    end)
 
     if get_config("enable_module") then
-        target("argparse_module_tests")
-        do
+        target("argparse_module_tests", function()
             set_kind("binary")
             set_languages("c++20")
             set_basename("module_tests")
@@ -70,14 +67,13 @@ if get_config("enable_tests") then
             add_files("test/argparse_details.cppm")
 
             add_deps("argparse")
-        end
+        end)
     end
 end
 
 if get_config("enable_samples") then
     for _, sample_file in ipairs(os.files("samples/*.cpp")) do
-        target(path.basename(sample_file))
-        do
+        target(path.basename(sample_file), function()
             set_kind("binary")
             set_languages("c++17")
 
@@ -86,6 +82,6 @@ if get_config("enable_samples") then
             set_policy("build.c++.modules", false)
 
             add_deps("argparse")
-        end
+        end)
     end
 end
