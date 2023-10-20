@@ -4,6 +4,7 @@ set_project("argparse")
 set_version("2.9.0", { build = "%Y%m%d%H%M" })
 
 option("enable_module")
+option("enable_std_import", { defines = "ARGPARSE_MODULE_USE_STD_MODULE" })
 option("enable_tests")
 option("enable_samples")
 
@@ -28,7 +29,9 @@ target("argparse", function()
     if get_config("enable_module") then
         set_languages("c++20")
         set_kind("static") -- static atm because of a XMake bug, headeronly doesn't generate package module metadata
-    else
+    end
+
+    add_options("enable_std_import")
 
     add_includedirs("include", { public = true })
     add_headerfiles("include/argparse/argparse.hpp")

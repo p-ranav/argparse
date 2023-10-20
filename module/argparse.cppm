@@ -29,15 +29,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+module;
+
+#ifndef ARGPARSE_MODULE_USE_STD_MODULE
+#include <argparse/argparse.hpp>
+#endif 
+
 export module argparse;
 
 #ifdef ARGPARSE_MODULE_USE_STD_MODULE
 import std;
-#endif
 
 extern "C++" {
 #include <argparse/argparse.hpp>
 }
+#endif
+
 
 export namespace argparse {
     using argparse::nargs_pattern;
