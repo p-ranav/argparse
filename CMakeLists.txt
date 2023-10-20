@@ -8,7 +8,7 @@ project(argparse
 )
 
 option(ARGPARSE_INSTALL "Include an install target" ON)
-option(ARGPARSE_BUILD_TESTS "Build tests" OFF)
+option(ARGPARSE_BUILD_TESTS "Build tests" ON)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

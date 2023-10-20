@@ -104,7 +104,7 @@ R"(#Lorem ipsum dolor sit amet, consectetur adipiscing elit.
   stream << program;
   std::istringstream iss(stream.str());
 
-  int help_message_start = -1;
+  auto help_message_start = std::string::npos;
   std::string line;
   while (std::getline(iss, line)) {
     // Find the position of '#', which indicates the start of the help message line
@@ -114,7 +114,7 @@ R"(#Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       continue;
     }
 
-    if (help_message_start == -1) {
+    if (help_message_start == std::string::npos) {
       help_message_start = pos;
     } else {
       REQUIRE(pos == help_message_start);

@@ -680,8 +680,8 @@ public:
     // align multiline help message
     auto stream_width = stream.width();
     auto name_padding = std::string(name_stream.str().size(), ' ');
-    auto pos = 0;
-    auto prev = 0;
+    auto pos = std::string::size_type{};
+    auto prev = std::string::size_type{};
     auto first_line = true;
     auto hspace = "  "; // minimal space between name and help message
     stream << name_stream.str();
