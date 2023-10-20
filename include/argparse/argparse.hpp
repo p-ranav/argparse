@@ -29,6 +29,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #pragma once
+
+#ifndef ARGPARSE_MODULE_USE_STD_MODULE
 #include <algorithm>
 #include <any>
 #include <array>
@@ -53,6 +55,7 @@ SOFTWARE.
 #include <utility>
 #include <variant>
 #include <vector>
+#endif
 
 namespace argparse {
 
@@ -72,7 +75,7 @@ struct HasContainerTraits<
                    decltype(std::declval<T>().size())>> : std::true_type {};
 
 template <typename T>
-static constexpr bool IsContainer = HasContainerTraits<T>::value;
+inline constexpr bool IsContainer = HasContainerTraits<T>::value;
 
 template <typename T, typename = void>
 struct HasStreamableTraits : std::false_type {};
@@ -84,7 +87,7 @@ struct HasStreamableTraits<
     : std::true_type {};
 
 template <typename T>
-static constexpr bool IsStreamable = HasStreamableTraits<T>::value;
+inline constexpr bool IsStreamable = HasStreamableTraits<T>::value;
 
 constexpr std::size_t repr_max_container_size = 5;
 

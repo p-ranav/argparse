@@ -1,6 +1,14 @@
+#ifdef WITH_MODULE
+import argparse;
+#else
 #include <argparse/argparse.hpp>
+#endif
 #include <doctest.hpp>
+
 #include <iostream>
+#include <vector>
+#include <string>
+
 using doctest::test_suite;
 
 TEST_CASE("Basic --value=value" * test_suite("equals_form")) {

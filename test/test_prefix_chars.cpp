@@ -1,4 +1,8 @@
+#ifdef WITH_MODULE
+import argparse;
+#else
 #include <argparse/argparse.hpp>
+#endif
 #include <cmath>
 #include <doctest.hpp>
 
