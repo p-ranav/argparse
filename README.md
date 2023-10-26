@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
   try {
     program.parse_args(argc, argv);
   }
-  catch (const std::runtime_error& err) {
+  catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     return 1;
@@ -137,7 +137,7 @@ program.add_argument("--verbose")
 try {
   program.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -203,7 +203,7 @@ program.add_argument("--color")
 try {
   program.parse_args(argc, argv);    // Example: ./main --color orange
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -226,7 +226,7 @@ program.add_argument("--color")
 try {
   program.parse_args(argc, argv);    // Example: ./main --color red --color green --color blue
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -274,7 +274,7 @@ program.add_argument("floats")
 try {
   program.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -307,7 +307,7 @@ program.add_argument("--verbose")
 try {
   program.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -407,7 +407,7 @@ program.add_argument("--input_files")
 try {
   program.parse_args(argc, argv);   // Example: ./main --input_files config.yml System.xml
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -436,7 +436,7 @@ program.add_argument("--query_point")
 try {
   program.parse_args(argc, argv); // Example: ./main --query_point 3.5 4.7 9.2
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -491,7 +491,7 @@ program.add_argument("-c")
 try {
   program.parse_args(argc, argv);                  // Example: ./main -abc 1.95 2.47
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -604,7 +604,7 @@ program.add_argument("files")
 try {
   program.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -651,7 +651,7 @@ program.add_argument("files")
 try {
   program.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -777,7 +777,7 @@ int main(int argc, char *argv[]) {
   try {
     program.parse_args(argc, argv);
   }
-  catch (const std::runtime_error& err) {
+  catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     return 1;
@@ -904,7 +904,7 @@ int main(int argc, char *argv[]) {
   try {
     program.parse_args(argc, argv);
   }
-  catch (const std::runtime_error& err) {
+  catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     return 1;
@@ -952,7 +952,7 @@ int main(int argc, char *argv[]) {
   try {
     program.parse_args(argc, argv);
   }
-  catch (const std::runtime_error& err) {
+  catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     return 1;
@@ -993,7 +993,7 @@ program.add_argument("config")
 try {
   program.parse_args({"./test", "config.json"});
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -1029,7 +1029,7 @@ program.add_argument("--files")
 try {
   program.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -1071,7 +1071,7 @@ program.add_argument("input")
 try {
   program.parse_args(argc, argv);
 }
-catch (const std::runtime_error& err) {
+catch (const std::exception& err) {
   std::cerr << err.what() << std::endl;
   std::cerr << program;
   std::exit(1);
@@ -1100,7 +1100,7 @@ int main(int argc, char *argv[]) {
   try {
     program.parse_args(argc, argv);
   }
-  catch (const std::runtime_error& err) {
+  catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     return 1;
