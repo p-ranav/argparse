@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 
   try {
     program.parse_args(argc, argv); // Example: ./main -abc 1.95 2.47
-  } catch (const std::runtime_error &err) {
+  } catch (const std::exception &err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     return 1;
