@@ -28,8 +28,8 @@ TEST_CASE("Get argument with .at()" * test_suite("as_container")) {
 
   SUBCASE("with unknown argument") {
     program.parse_args({"test"});
-    REQUIRE_THROWS_WITH_AS(program.at("--folder"),
-                           "No such argument: --folder", std::logic_error);
+    REQUIRE_THROWS_WITH_AS(program.at("--folder"), "No such argument: --folder",
+                           std::logic_error);
   }
 }
 
@@ -44,7 +44,8 @@ TEST_CASE("Get subparser with .at()" * test_suite("as_container")) {
   SUBCASE("and its argument") {
     program.parse_args({"test", "walk", "4km/h"});
     REQUIRE(&(program.at<argparse::ArgumentParser>("walk")) == &walk_cmd);
-    REQUIRE(&(program.at<argparse::ArgumentParser>("walk").at("speed")) == &speed);
+    REQUIRE(&(program.at<argparse::ArgumentParser>("walk").at("speed")) ==
+            &speed);
     REQUIRE(program.at<argparse::ArgumentParser>("walk").is_used("speed"));
   }
 

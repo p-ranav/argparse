@@ -6,8 +6,8 @@ import argparse.details;
 #endif
 #include <doctest.hpp>
 
-#include <set>
 #include <list>
+#include <set>
 #include <sstream>
 
 using doctest::test_suite;

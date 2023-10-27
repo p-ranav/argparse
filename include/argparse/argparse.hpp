@@ -428,7 +428,7 @@ public:
   }
 
   template <class F, class... Args>
-  auto action(F &&callable, Args &&... bound_args)
+  auto action(F &&callable, Args &&...bound_args)
       -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string const>,
                           Argument &> {
     using action_type = std::conditional_t<
@@ -509,10 +509,12 @@ public:
       m_num_args_range = NArgsRange{0, 1};
       break;
     case nargs_pattern::any:
-      m_num_args_range = NArgsRange{0, (std::numeric_limits<std::size_t>::max)()};
+      m_num_args_range =
+          NArgsRange{0, (std::numeric_limits<std::size_t>::max)()};
       break;
     case nargs_pattern::at_least_one:
-      m_num_args_range = NArgsRange{1, (std::numeric_limits<std::size_t>::max)()};
+      m_num_args_range =
+          NArgsRange{1, (std::numeric_limits<std::size_t>::max)()};
       break;
     }
     return *this;
@@ -523,6 +525,80 @@ public:
     return nargs(nargs_pattern::any);
   }
 
+  void add_choice(const std::string &choice) {
+    if (!m_choices.has_value()) {
+      /// create it
+      m_choices = std::vector<std::string>{};
+    }
+    m_choices.value().push_back(choice);
+  }
+
+  Argument &choices() {
+    if (!m_choices.has_value()) {
+      throw std::runtime_error("Zero choices provided");
+    }
+    return *this;
+  }
+
+  template <typename... T>
+  Argument &choices(const std::string &first, T &...rest) {
+    add_choice(first);
+    choices(rest...);
+
+    return *this;
+  }
+
+  template <typename... T> Argument &choices(const char *first, T &...rest) {
+    add_choice(first);
+    choices(rest...);
+
+    return *this;
+  }
+
+  void find_default_value_in_choices_or_throw() const {
+
+    const auto &choices = m_choices.value();
+
+    if (m_default_value.has_value()) {
+      if (std::find(choices.begin(), choices.end(), m_default_value_repr) ==
+          choices.end()) {
+        // provided arg not in list of allowed choices
+        // report error
+
+        std::string choices_as_csv =
+            std::accumulate(choices.begin(), choices.end(), std::string(),
+                            [](const std::string &a, const std::string &b) {
+                              return a + (a.empty() ? "" : ", ") + b;
+                            });
+
+        throw std::runtime_error(
+            std::string{"Invalid default value "} + m_default_value_repr +
+            " - allowed options: {" + choices_as_csv + "}");
+      }
+    }
+  }
+
+  template <typename Iterator>
+  void find_value_in_choices_or_throw(Iterator it) const {
+
+    const auto &choices = m_choices.value();
+
+    if (std::find(choices.begin(), choices.end(), *it) == choices.end()) {
+      // provided arg not in list of allowed choices
+      // report error
+
+      std::string choices_as_csv =
+          std::accumulate(choices.begin(), choices.end(), std::string(),
+                          [](const std::string &a, const std::string &b) {
+                            return a + (a.empty() ? "" : ", ") + b;
+                          });
+
+      throw std::runtime_error(std::string{"Invalid argument "} +
+                               details::repr(*it) + " - allowed options: {" +
+                               choices_as_csv + "}");
+    }
+  }
+
   template <typename Iterator>
   Iterator consume(Iterator start, Iterator end,
                    std::string_view used_name = {}) {
@@ -531,6 +607,14 @@ public:
     }
     m_is_used = true;
     m_used_name = used_name;
+
+    if (m_choices.has_value()) {
+      // Check each value in (start, end) and make sure
+      // it is in the list of allowed choices/options
+      for (auto it = start; it != end; ++it) {
+        find_value_in_choices_or_throw(it);
+      }
+    }
 
     const auto num_args_max = m_num_args_range.get_max();
     const auto num_args_min = m_num_args_range.get_min();
@@ -601,6 +685,12 @@ public:
           !m_default_value.has_value()) {
         throw_nargs_range_validation_error();
       }
+    }
+
+    if (m_choices.has_value()) {
+      // Make sure the default value (if provided)
+      // is in the list of choices
+      find_default_value_in_choices_or_throw();
     }
   }
 
@@ -738,8 +828,7 @@ public:
       using ValueType = typename T::value_type;
       auto lhs = get<T>();
       return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
-                        std::end(rhs),
-                        [](const auto &a, const auto &b) {
+                        std::end(rhs), [](const auto &a, const auto &b) {
                           return std::any_cast<const ValueType &>(a) == b;
                         });
     }
@@ -1064,6 +1153,7 @@ private:
   std::any m_default_value;
   std::string m_default_value_repr;
   std::any m_implicit_value;
+  std::optional<std::vector<std::string>> m_choices{std::nullopt};
   using valued_action = std::function<std::any(const std::string &)>;
   using void_action = std::function<void(const std::string &)>;
   std::variant<valued_action, void_action> m_action{
@@ -1152,16 +1242,11 @@ public:
   }
 
   explicit operator bool() const {
-    auto arg_used = std::any_of(m_argument_map.cbegin(),
-                                m_argument_map.cend(),
-                                [](auto &it) {
-                                    return it.second->m_is_used;
-                                });
-    auto subparser_used = std::any_of(m_subparser_used.cbegin(),
-                                      m_subparser_used.cend(),
-                                      [](auto &it) {
-                                          return it.second;
-                                      });
+    auto arg_used = std::any_of(m_argument_map.cbegin(), m_argument_map.cend(),
+                                [](auto &it) { return it.second->m_is_used; });
+    auto subparser_used =
+        std::any_of(m_subparser_used.cbegin(), m_subparser_used.cend(),
+                    [](auto &it) { return it.second; });
 
     return m_is_parsed && (arg_used || subparser_used);
   }
@@ -1186,7 +1271,7 @@ public:
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
   template <typename... Targs>
-  ArgumentParser &add_parents(const Targs &... f_args) {
+  ArgumentParser &add_parents(const Targs &...f_args) {
     for (const ArgumentParser &parent_parser : {std::ref(f_args)...}) {
       for (const auto &argument : parent_parser.m_positional_arguments) {
         auto it = m_positional_arguments.insert(
@@ -1215,8 +1300,7 @@ public:
   /* Getter for arguments and subparsers.
    * @throws std::logic_error in case of an invalid argument or subparser name
    */
-  template <typename T = Argument>
-  T& at(std::string_view name) {
+  template <typename T = Argument> T &at(std::string_view name) {
     if constexpr (std::is_same_v<T, Argument>) {
       return (*this)[name];
     } else {
@@ -1692,7 +1776,8 @@ private:
     }
     std::size_t max_size = 0;
     for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
-      max_size = std::max<std::size_t>(max_size, argument->get_arguments_length());
+      max_size =
+          std::max<std::size_t>(max_size, argument->get_arguments_length());
     }
     for ([[maybe_unused]] const auto &[command, unused] : m_subparser_map) {
       max_size = std::max<std::size_t>(max_size, command.size());

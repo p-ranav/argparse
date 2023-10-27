@@ -6,8 +6,8 @@ import argparse;
 #include <doctest.hpp>
 
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
 using doctest::test_suite;
 

@@ -8,8 +8,7 @@ import argparse;
 
 using doctest::test_suite;
 
-TEST_CASE("ArgumentParser in bool context" *
-          test_suite("argument_parser")) {
+TEST_CASE("ArgumentParser in bool context" * test_suite("argument_parser")) {
   argparse::ArgumentParser program("test");
   program.add_argument("cases").remaining();
 
@@ -39,7 +38,7 @@ TEST_CASE("With subparsers in bool context" * test_suite("argument_parser")) {
 }
 
 TEST_CASE("Parsers remain false with unknown arguments" *
-           test_suite("argument_parser")) {
+          test_suite("argument_parser")) {
   argparse::ArgumentParser program("test");
 
   argparse::ArgumentParser cmd_build("build");
@@ -59,7 +58,7 @@ TEST_CASE("Parsers remain false with unknown arguments" *
 }
 
 TEST_CASE("Multi-level parsers match subparser bool" *
-           test_suite("argument_parser")) {
+          test_suite("argument_parser")) {
   argparse::ArgumentParser program("test");
 
   argparse::ArgumentParser cmd_cook("cook");
