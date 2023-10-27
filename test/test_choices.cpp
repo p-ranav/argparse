@@ -68,3 +68,24 @@ TEST_CASE("Parse multiple arguments one of which is not in the fixed number of "
       "Invalid argument \"green2\" - allowed options: {red, green, blue}",
       std::runtime_error);
 }
+
+TEST_CASE(
+    "Parse multiple arguments that are in the fixed number of allowed INTEGER choices" *
+    test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("indices").nargs(2).choices(1, 2, 3, 4, 5);
+
+  program.parse_args({"test", "1", "2"});
+}
+
+TEST_CASE(
+    "Parse multiple arguments that are not in fixed number of allowed INTEGER choices" *
+    test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("indices").nargs(2).choices(1, 2, 3, 4, 5);
+
+  REQUIRE_THROWS_WITH_AS(
+      program.parse_args({"test", "6", "7"}),
+      "Invalid argument \"6\" - allowed options: {1, 2, 3, 4, 5}",
+      std::runtime_error);
+}
