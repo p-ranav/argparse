@@ -61,7 +61,7 @@ TEST_CASE("Parse subparser command" * test_suite("subparsers")) {
 TEST_CASE("Parse subparser command with optional argument" *
           test_suite("subparsers")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("--verbose").default_value(false).implicit_value(true);
+  program.add_argument("--verbose").flag();
 
   argparse::ArgumentParser command_1("add");
   command_1.add_argument("file");
@@ -93,7 +93,7 @@ TEST_CASE("Parse subparser command with parent parser" *
   argparse::ArgumentParser program("test");
 
   argparse::ArgumentParser parent("parent");
-  parent.add_argument("--verbose").default_value(false).implicit_value(true);
+  parent.add_argument("--verbose").flag();
   program.add_parents(parent);
 
   argparse::ArgumentParser command_1("add");
@@ -128,7 +128,7 @@ TEST_CASE("Parse git commands" * test_suite("subparsers")) {
   add_command.add_argument("files").remaining();
 
   argparse::ArgumentParser commit_command("commit");
-  commit_command.add_argument("-a").default_value(false).implicit_value(true);
+  commit_command.add_argument("-a").flag();
 
   commit_command.add_argument("-m");
 

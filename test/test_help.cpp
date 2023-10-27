@@ -95,7 +95,7 @@ TEST_CASE("Multiline help message alignment") {
           R"(#Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 #Sed ut perspiciatis unde omnis iste natus error sit voluptatem
 #accusantium doloremque laudantium, totam rem aperiam...)");
-  program.add_argument("--verbose").default_value(false).implicit_value(true);
+  program.add_argument("--verbose").flag();
 
   std::ostringstream stream;
   stream << program;

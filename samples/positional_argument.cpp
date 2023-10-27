@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
       .help("display the square of a given number")
       .scan<'i', int>();
 
-  program.add_argument("--verbose").default_value(false).implicit_value(true);
+  program.add_argument("--verbose").flag();
 
   try {
     program.parse_args(argc, argv);

@@ -459,6 +459,16 @@ public:
     return *this;
   }
 
+  // This is shorthand for:
+  //   program.add_argument("foo")
+  //     .default_value(false)
+  //     .implicit_value(true)
+  Argument &flag() {
+    default_value(false);
+    implicit_value(true);
+    return *this;
+  }
+
   template <class F, class... Args>
   auto action(F &&callable, Args &&...bound_args)
       -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string const>,

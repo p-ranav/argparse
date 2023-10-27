@@ -5,9 +5,9 @@
 int main(int argc, char *argv[]) {
   argparse::ArgumentParser program("test");
 
-  program.add_argument("-a").default_value(false).implicit_value(true);
+  program.add_argument("-a").flag();
 
-  program.add_argument("-b").default_value(false).implicit_value(true);
+  program.add_argument("-b").flag();
 
   program.add_argument("-c")
       .nargs(2)

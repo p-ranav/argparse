@@ -35,8 +35,8 @@ TEST_CASE("Use a default value with flag arguments" *
                         "chromatin, used ',' to split."})
       .default_value("all");
 
-  program.add_argument("-l").default_value(false).implicit_value(true);
-  program.add_argument("-o").default_value(false).implicit_value(true);
+  program.add_argument("-l").flag();
+  program.add_argument("-o").flag();
 
   program.add_argument("filename");
 

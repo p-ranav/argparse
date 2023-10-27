@@ -30,7 +30,7 @@ TEST_CASE("Argument '-' is not an optional argument" *
 TEST_CASE("Argument '-' is not an optional argument but '-l' is" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-l").default_value(false).implicit_value(true);
+  program.add_argument("-l").flag();
   program.add_argument("input");
   program.parse_args({"./test.exe", "-l", "-"});
   REQUIRE(program.get<bool>("-l") == true);
@@ -40,7 +40,7 @@ TEST_CASE("Argument '-' is not an optional argument but '-l' is" *
 TEST_CASE("Argument '-l' is an optional argument but '-' is not" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-l").default_value(false).implicit_value(true);
+  program.add_argument("-l").flag();
   program.add_argument("input");
   program.parse_args({"./test.exe", "-", "-l"});
   REQUIRE(program.get<bool>("-l") == true);
@@ -50,7 +50,7 @@ TEST_CASE("Argument '-l' is an optional argument but '-' is not" *
 TEST_CASE("Parse toggle arguments with implicit value" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("--verbose").default_value(false).implicit_value(true);
+  program.add_argument("--verbose").flag();
 
   program.parse_args({"./test.exe", "--verbose"});
   REQUIRE(program.get<bool>("--verbose") == true);
@@ -61,11 +61,11 @@ TEST_CASE("Parse toggle arguments with implicit value" *
 TEST_CASE("Parse multiple toggle arguments with implicit values" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-a").default_value(false).implicit_value(true);
+  program.add_argument("-a").flag();
 
-  program.add_argument("-u").default_value(false).implicit_value(true);
+  program.add_argument("-u").flag();
 
-  program.add_argument("-x").default_value(false).implicit_value(true);
+  program.add_argument("-x").flag();
 
   program.parse_args({"./test.exe", "-a", "-x"});
   REQUIRE(program.get<bool>("-a") == true);

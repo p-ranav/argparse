@@ -11,11 +11,11 @@ using doctest::test_suite;
 TEST_CASE("Parse compound toggle arguments with implicit values" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-a").default_value(false).implicit_value(true);
+  program.add_argument("-a").flag();
 
-  program.add_argument("-u").default_value(false).implicit_value(true);
+  program.add_argument("-u").flag();
 
-  program.add_argument("-x").default_value(false).implicit_value(true);
+  program.add_argument("-x").flag();
 
   program.parse_args({"./test.exe", "-aux"});
   REQUIRE(program.get<bool>("-a") == true);
@@ -26,9 +26,9 @@ TEST_CASE("Parse compound toggle arguments with implicit values" *
 TEST_CASE("Parse compound toggle arguments with implicit values and nargs" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-a").default_value(false).implicit_value(true);
+  program.add_argument("-a").flag();
 
-  program.add_argument("-b").default_value(false).implicit_value(true);
+  program.add_argument("-b").flag();
 
   program.add_argument("-c").nargs(2).scan<'g', float>();
 
@@ -56,9 +56,9 @@ TEST_CASE("Parse compound toggle arguments with implicit values and nargs and "
 
   program.add_argument("numbers").nargs(3).scan<'i', int>();
 
-  program.add_argument("-a").default_value(false).implicit_value(true);
+  program.add_argument("-a").flag();
 
-  program.add_argument("-b").default_value(false).implicit_value(true);
+  program.add_argument("-b").flag();
 
   program.add_argument("-c").nargs(2).scan<'g', float>();
 
@@ -73,9 +73,9 @@ TEST_CASE("Parse out-of-order compound arguments" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
-  program.add_argument("-a").default_value(false).implicit_value(true);
+  program.add_argument("-a").flag();
 
-  program.add_argument("-b").default_value(false).implicit_value(true);
+  program.add_argument("-b").flag();
 
   program.add_argument("-c").nargs(2).scan<'g', float>();
 
@@ -93,9 +93,9 @@ TEST_CASE("Parse out-of-order compound arguments. Second variation" *
           test_suite("compound_arguments")) {
   argparse::ArgumentParser program("test");
 
-  program.add_argument("-a").default_value(false).implicit_value(true);
+  program.add_argument("-a").flag();
 
-  program.add_argument("-b").default_value(false).implicit_value(true);
+  program.add_argument("-b").flag();
 
   program.add_argument("-c")
       .nargs(2)

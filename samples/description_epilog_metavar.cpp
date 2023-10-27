@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
   program.add_argument("--member")
       .help("The alias for the member to pass to.")
       .metavar("ALIAS");
-  program.add_argument("--verbose").default_value(false).implicit_value(true);
+  program.add_argument("--verbose").flag();
 
   program.add_description("Forward a thing to the next member.");
   program.add_epilog("Possible things include betingalw, chiz, and res.");
