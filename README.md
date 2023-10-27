@@ -158,6 +158,31 @@ Here's what's happening:
 * Since the argument is actually optional, no error is thrown when running the program without ```--verbose```. Note that by using ```.default_value(false)```, if the optional argument isn’t used, it's value is automatically set to false.
 * By using ```.implicit_value(true)```, the user specifies that this option is more of a flag than something that requires a value. When the user provides the --verbose option, it's value is set to true.
 
+#### Flag
+
+When defining flag arguments, you can use the shorthand `flag()` which is the same as `default_value(false).implicit_value(true)`. 
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("--verbose")
+  .help("increase output verbosity")
+  .flag();
+
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::exception& err) {
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
+}
+
+if (program["--verbose"] == true) {
+  std::cout << "Verbosity enabled" << std::endl;
+}
+```
+
 #### Requiring optional arguments
 
 There are scenarios where you would like to make an optional argument ***required***. As discussed above, optional arguments either begin with `-` or `--`. You can make these types of arguments required like so:
