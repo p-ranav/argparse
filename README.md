@@ -1060,13 +1060,7 @@ argparse::ArgumentParser program("test");
 
 program.add_argument("input")
   .default_value(std::string{"baz"})
-  .action([](const std::string& value) {
-    static const std::vector<std::string> choices = { "foo", "bar", "baz" };
-    if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
-      return value;
-    }
-    return std::string{ "baz" };
-  });
+  .choices("foo", "bar", "baz");
 
 try {
   program.parse_args(argc, argv);
@@ -1083,7 +1077,34 @@ std::cout << input << std::endl;
 
 ```console
 foo@bar:/home/dev/$ ./main fex
-baz
+Invalid argument "fex" - allowed options: {foo, bar, baz}
+```
+
+Using choices also works with integer types, e.g.,
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("input")
+  .default_value(0)
+  .choices(0, 1, 2, 3, 4, 5);
+
+try {
+  program.parse_args(argc, argv);
+}
+catch (const std::exception& err) {
+  std::cerr << err.what() << std::endl;
+  std::cerr << program;
+  std::exit(1);
+}
+
+auto input = program.get("input");
+std::cout << input << std::endl;
+```
+
+```console
+foo@bar:/home/dev/$ ./main 6
+Invalid argument "6" - allowed options: {0, 1, 2, 3, 4, 5}
 ```
 
 ## Using `option=value` syntax

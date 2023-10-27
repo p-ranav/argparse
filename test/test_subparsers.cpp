@@ -6,8 +6,8 @@ import argparse;
 #include <doctest.hpp>
 
 #include <cmath>
-#include <vector>
 #include <string>
+#include <vector>
 
 using doctest::test_suite;
 
@@ -213,8 +213,8 @@ TEST_CASE("Check is_subcommand_used after parse" * test_suite("subparsers")) {
 
   argparse::ArgumentParser command_2("clean");
   command_2.add_argument("--fullclean")
-        .default_value(false)
-        .implicit_value(true);
+      .default_value(false)
+      .implicit_value(true);
 
   argparse::ArgumentParser program("test");
   program.add_subparser(command_1);

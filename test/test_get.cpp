@@ -42,7 +42,7 @@ TEST_CASE("Implicit argument" * test_suite("ArgumentParser::get")) {
 
 TEST_CASE("Mismatched type for argument" * test_suite("ArgumentParser::get")) {
   argparse::ArgumentParser program("test");
-  program.add_argument("-s", "--stuff");  // as default type, a std::string
+  program.add_argument("-s", "--stuff"); // as default type, a std::string
   REQUIRE_NOTHROW(program.parse_args({"test", "-s", "321"}));
   REQUIRE_THROWS_AS(program.get<int>("--stuff"), std::bad_any_cast);
 }

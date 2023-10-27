@@ -350,6 +350,26 @@ std::string join(StrIt first, StrIt last, const std::string &separator) {
   return value.str();
 }
 
+template <typename T>
+struct can_invoke_to_string {
+  template <typename U>
+  static auto test(int) -> decltype(std::to_string(std::declval<U>()), std::true_type{});
+  
+  template <typename U>
+  static auto test(...) -> std::false_type;
+  
+  static constexpr bool value = decltype(test<T>(0))::value;
+};
+
+template <typename T>
+struct IsChoiceTypeSupported {
+    using CleanType = typename std::decay<T>::type;
+    static const bool value = std::is_integral<CleanType>::value ||
+        std::is_same<CleanType, std::string>::value ||
+        std::is_same<CleanType, std::string_view>::value ||
+        std::is_same<CleanType, const char*>::value;
+};
+
 } // namespace details
 
 enum class nargs_pattern { optional, any, at_least_one };
@@ -408,6 +428,14 @@ public:
 
   template <typename T> Argument &default_value(T &&value) {
     m_default_value_repr = details::repr(value);
+
+    if constexpr (std::is_convertible_v<T, std::string_view>) {
+      m_default_value_str = std::string{std::string_view{value}};
+    }
+    else if constexpr (details::can_invoke_to_string<T>::value) {
+      m_default_value_str = std::to_string(value);
+    }
+
     m_default_value = std::forward<T>(value);
     return *this;
   }
@@ -428,7 +456,7 @@ public:
   }
 
   template <class F, class... Args>
-  auto action(F &&callable, Args &&... bound_args)
+  auto action(F &&callable, Args &&...bound_args)
       -> std::enable_if_t<std::is_invocable_v<F, Args..., std::string const>,
                           Argument &> {
     using action_type = std::conditional_t<
@@ -509,10 +537,12 @@ public:
       m_num_args_range = NArgsRange{0, 1};
       break;
     case nargs_pattern::any:
-      m_num_args_range = NArgsRange{0, (std::numeric_limits<std::size_t>::max)()};
+      m_num_args_range =
+          NArgsRange{0, (std::numeric_limits<std::size_t>::max)()};
       break;
     case nargs_pattern::at_least_one:
-      m_num_args_range = NArgsRange{1, (std::numeric_limits<std::size_t>::max)()};
+      m_num_args_range =
+          NArgsRange{1, (std::numeric_limits<std::size_t>::max)()};
       break;
     }
     return *this;
@@ -523,6 +553,80 @@ public:
     return nargs(nargs_pattern::any);
   }
 
+  template <typename T>
+  void add_choice(T&& choice) {
+    static_assert(details::IsChoiceTypeSupported<T>::value, "Only string or integer type supported for choice");
+    static_assert(std::is_convertible_v<T, std::string_view> || details::can_invoke_to_string<T>::value, "Choice is not convertible to string_type");
+    if (!m_choices.has_value()) {
+      m_choices = std::vector<std::string>{};
+    }
+
+    if constexpr (std::is_convertible_v<T, std::string_view>) {
+      m_choices.value().push_back(std::string{std::string_view{std::forward<T>(choice)}});
+    }
+    else if constexpr (details::can_invoke_to_string<T>::value) {
+      m_choices.value().push_back(std::to_string(std::forward<T>(choice)));
+    }
+  }
+
+  Argument &choices() {
+    if (!m_choices.has_value()) {
+      throw std::runtime_error("Zero choices provided");
+    }
+    return *this;
+  }
+
+  template <typename T, typename... U>
+  Argument &choices(T&& first, U&&...rest) {
+    add_choice(std::forward<T>(first));
+    choices(std::forward<U>(rest)...);
+    return *this;
+  }
+
+  void find_default_value_in_choices_or_throw() const {
+
+    const auto &choices = m_choices.value();
+
+    if (m_default_value.has_value()) {
+      if (std::find(choices.begin(), choices.end(), m_default_value_str) ==
+          choices.end()) {
+        // provided arg not in list of allowed choices
+        // report error
+
+        std::string choices_as_csv =
+            std::accumulate(choices.begin(), choices.end(), std::string(),
+                            [](const std::string &a, const std::string &b) {
+                              return a + (a.empty() ? "" : ", ") + b;
+                            });
+
+        throw std::runtime_error(
+            std::string{"Invalid default value "} + m_default_value_repr +
+            " - allowed options: {" + choices_as_csv + "}");
+      }
+    }
+  }
+
+  template <typename Iterator>
+  void find_value_in_choices_or_throw(Iterator it) const {
+
+    const auto &choices = m_choices.value();
+
+    if (std::find(choices.begin(), choices.end(), *it) == choices.end()) {
+      // provided arg not in list of allowed choices
+      // report error
+
+      std::string choices_as_csv =
+          std::accumulate(choices.begin(), choices.end(), std::string(),
+                          [](const std::string &a, const std::string &b) {
+                            return a + (a.empty() ? "" : ", ") + b;
+                          });
+
+      throw std::runtime_error(std::string{"Invalid argument "} +
+                               details::repr(*it) + " - allowed options: {" +
+                               choices_as_csv + "}");
+    }
+  }
+
   template <typename Iterator>
   Iterator consume(Iterator start, Iterator end,
                    std::string_view used_name = {}) {
@@ -531,6 +635,14 @@ public:
     }
     m_is_used = true;
     m_used_name = used_name;
+
+    if (m_choices.has_value()) {
+      // Check each value in (start, end) and make sure
+      // it is in the list of allowed choices/options
+      for (auto it = start; it != end; ++it) {
+        find_value_in_choices_or_throw(it);
+      }
+    }
 
     const auto num_args_max = m_num_args_range.get_max();
     const auto num_args_min = m_num_args_range.get_min();
@@ -601,6 +713,12 @@ public:
           !m_default_value.has_value()) {
         throw_nargs_range_validation_error();
       }
+    }
+
+    if (m_choices.has_value()) {
+      // Make sure the default value (if provided)
+      // is in the list of choices
+      find_default_value_in_choices_or_throw();
     }
   }
 
@@ -738,8 +856,7 @@ public:
       using ValueType = typename T::value_type;
       auto lhs = get<T>();
       return std::equal(std::begin(lhs), std::end(lhs), std::begin(rhs),
-                        std::end(rhs),
-                        [](const auto &a, const auto &b) {
+                        std::end(rhs), [](const auto &a, const auto &b) {
                           return std::any_cast<const ValueType &>(a) == b;
                         });
     }
@@ -1063,7 +1180,9 @@ private:
   std::string m_metavar;
   std::any m_default_value;
   std::string m_default_value_repr;
+  std::optional<std::string> m_default_value_str; // used for checking default_value against choices
   std::any m_implicit_value;
+  std::optional<std::vector<std::string>> m_choices{std::nullopt};
   using valued_action = std::function<std::any(const std::string &)>;
   using void_action = std::function<void(const std::string &)>;
   std::variant<valued_action, void_action> m_action{
@@ -1152,16 +1271,11 @@ public:
   }
 
   explicit operator bool() const {
-    auto arg_used = std::any_of(m_argument_map.cbegin(),
-                                m_argument_map.cend(),
-                                [](auto &it) {
-                                    return it.second->m_is_used;
-                                });
-    auto subparser_used = std::any_of(m_subparser_used.cbegin(),
-                                      m_subparser_used.cend(),
-                                      [](auto &it) {
-                                          return it.second;
-                                      });
+    auto arg_used = std::any_of(m_argument_map.cbegin(), m_argument_map.cend(),
+                                [](auto &it) { return it.second->m_is_used; });
+    auto subparser_used =
+        std::any_of(m_subparser_used.cbegin(), m_subparser_used.cend(),
+                    [](auto &it) { return it.second; });
 
     return m_is_parsed && (arg_used || subparser_used);
   }
@@ -1186,7 +1300,7 @@ public:
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
   template <typename... Targs>
-  ArgumentParser &add_parents(const Targs &... f_args) {
+  ArgumentParser &add_parents(const Targs &...f_args) {
     for (const ArgumentParser &parent_parser : {std::ref(f_args)...}) {
       for (const auto &argument : parent_parser.m_positional_arguments) {
         auto it = m_positional_arguments.insert(
@@ -1215,8 +1329,7 @@ public:
   /* Getter for arguments and subparsers.
    * @throws std::logic_error in case of an invalid argument or subparser name
    */
-  template <typename T = Argument>
-  T& at(std::string_view name) {
+  template <typename T = Argument> T &at(std::string_view name) {
     if constexpr (std::is_same_v<T, Argument>) {
       return (*this)[name];
     } else {
@@ -1692,7 +1805,8 @@ private:
     }
     std::size_t max_size = 0;
     for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
-      max_size = std::max<std::size_t>(max_size, argument->get_arguments_length());
+      max_size =
+          std::max<std::size_t>(max_size, argument->get_arguments_length());
     }
     for ([[maybe_unused]] const auto &[command, unused] : m_subparser_map) {
       max_size = std::max<std::size_t>(max_size, command.size());
