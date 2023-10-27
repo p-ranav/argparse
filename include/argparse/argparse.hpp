@@ -361,6 +361,15 @@ struct can_invoke_to_string {
   static constexpr bool value = decltype(test<T>(0))::value;
 };
 
+template <typename T>
+struct is_choice_type_supported {
+    using CleanType = typename std::decay<T>::type;
+    static const bool value = std::is_integral<CleanType>::value ||
+        std::is_same<CleanType, std::string>::value ||
+        std::is_same<CleanType, std::string_view>::value ||
+        std::is_same<CleanType, const char*>::value;
+};
+
 } // namespace details
 
 enum class nargs_pattern { optional, any, at_least_one };
@@ -546,6 +555,7 @@ public:
 
   template <typename T>
   void add_choice(T&& choice) {
+    static_assert(details::is_choice_type_supported<T>::value, "Only string or integer type supported for choice");
     static_assert(std::is_convertible_v<T, std::string_view> || details::can_invoke_to_string<T>::value, "Choice is not convertible to string_type");
     if (!m_choices.has_value()) {
       m_choices = std::vector<std::string>{};

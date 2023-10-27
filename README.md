@@ -1080,7 +1080,7 @@ foo@bar:/home/dev/$ ./main fex
 Invalid argument "fex" - allowed options: {foo, bar, baz}
 ```
 
-Using choices also works in integer types, e.g.,
+Using choices also works with integer types, e.g.,
 
 ```cpp
 argparse::ArgumentParser program("test");
