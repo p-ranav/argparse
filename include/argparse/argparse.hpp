@@ -427,6 +427,7 @@ public:
   }
 
   template <typename T> Argument &default_value(T &&value) {
+    m_num_args_range = NArgsRange{0, m_num_args_range.get_max()};
     m_default_value_repr = details::repr(value);
 
     if constexpr (std::is_convertible_v<T, std::string_view>) {
