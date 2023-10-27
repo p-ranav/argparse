@@ -233,8 +233,14 @@ template <class T, auto Param = 0> struct parse_number {
 
 template <class T> struct parse_number<T, radix_16> {
   auto operator()(std::string_view s) -> T {
-    if (auto [ok, rest] = consume_hex_prefix(s); ok) {
-      return do_from_chars<T, radix_16>(rest);
+    if (starts_with("0x"sv, s) || starts_with("0X"sv, s)) {
+      if (auto [ok, rest] = consume_hex_prefix(s); ok) {
+        return do_from_chars<T, radix_16>(rest);
+      }
+    } else {
+      // Allow passing hex numbers without prefix
+      // Shape 'x' already has to be specified
+      return do_from_chars<T, radix_16>(s);
     }
     throw std::invalid_argument{"pattern not found"};
   }
@@ -350,24 +356,22 @@ std::string join(StrIt first, StrIt last, const std::string &separator) {
   return value.str();
 }
 
-template <typename T>
-struct can_invoke_to_string {
+template <typename T> struct can_invoke_to_string {
   template <typename U>
-  static auto test(int) -> decltype(std::to_string(std::declval<U>()), std::true_type{});
-  
-  template <typename U>
-  static auto test(...) -> std::false_type;
-  
+  static auto test(int)
+      -> decltype(std::to_string(std::declval<U>()), std::true_type{});
+
+  template <typename U> static auto test(...) -> std::false_type;
+
   static constexpr bool value = decltype(test<T>(0))::value;
 };
 
-template <typename T>
-struct IsChoiceTypeSupported {
-    using CleanType = typename std::decay<T>::type;
-    static const bool value = std::is_integral<CleanType>::value ||
-        std::is_same<CleanType, std::string>::value ||
-        std::is_same<CleanType, std::string_view>::value ||
-        std::is_same<CleanType, const char*>::value;
+template <typename T> struct IsChoiceTypeSupported {
+  using CleanType = typename std::decay<T>::type;
+  static const bool value = std::is_integral<CleanType>::value ||
+                            std::is_same<CleanType, std::string>::value ||
+                            std::is_same<CleanType, std::string_view>::value ||
+                            std::is_same<CleanType, const char *>::value;
 };
 
 } // namespace details
@@ -432,8 +436,7 @@ public:
 
     if constexpr (std::is_convertible_v<T, std::string_view>) {
       m_default_value_str = std::string{std::string_view{value}};
-    }
-    else if constexpr (details::can_invoke_to_string<T>::value) {
+    } else if constexpr (details::can_invoke_to_string<T>::value) {
       m_default_value_str = std::to_string(value);
     }
 
@@ -554,18 +557,20 @@ public:
     return nargs(nargs_pattern::any);
   }
 
-  template <typename T>
-  void add_choice(T&& choice) {
-    static_assert(details::IsChoiceTypeSupported<T>::value, "Only string or integer type supported for choice");
-    static_assert(std::is_convertible_v<T, std::string_view> || details::can_invoke_to_string<T>::value, "Choice is not convertible to string_type");
+  template <typename T> void add_choice(T &&choice) {
+    static_assert(details::IsChoiceTypeSupported<T>::value,
+                  "Only string or integer type supported for choice");
+    static_assert(std::is_convertible_v<T, std::string_view> ||
+                      details::can_invoke_to_string<T>::value,
+                  "Choice is not convertible to string_type");
     if (!m_choices.has_value()) {
       m_choices = std::vector<std::string>{};
     }
 
     if constexpr (std::is_convertible_v<T, std::string_view>) {
-      m_choices.value().push_back(std::string{std::string_view{std::forward<T>(choice)}});
-    }
-    else if constexpr (details::can_invoke_to_string<T>::value) {
+      m_choices.value().push_back(
+          std::string{std::string_view{std::forward<T>(choice)}});
+    } else if constexpr (details::can_invoke_to_string<T>::value) {
       m_choices.value().push_back(std::to_string(std::forward<T>(choice)));
     }
   }
@@ -578,7 +583,7 @@ public:
   }
 
   template <typename T, typename... U>
-  Argument &choices(T&& first, U&&...rest) {
+  Argument &choices(T &&first, U &&...rest) {
     add_choice(std::forward<T>(first));
     choices(std::forward<U>(rest)...);
     return *this;
@@ -1181,7 +1186,8 @@ private:
   std::string m_metavar;
   std::any m_default_value;
   std::string m_default_value_repr;
-  std::optional<std::string> m_default_value_str; // used for checking default_value against choices
+  std::optional<std::string>
+      m_default_value_str; // used for checking default_value against choices
   std::any m_implicit_value;
   std::optional<std::vector<std::string>> m_choices{std::nullopt};
   using valued_action = std::function<std::any(const std::string &)>;
