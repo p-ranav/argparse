@@ -26,6 +26,8 @@ function(add_sample NAME)
   ADD_EXECUTABLE(ARGPARSE_SAMPLE_${NAME} ${NAME}.cpp)
   INCLUDE_DIRECTORIES("../include" ".")
   set_target_properties(ARGPARSE_SAMPLE_${NAME} PROPERTIES OUTPUT_NAME ${NAME})
+  set_target_properties(ARGPARSE_SAMPLE_${NAME} PROPERTIES OUTPUT_NAME tests)
+  set_property(TARGET ARGPARSE_SAMPLE_${NAME} PROPERTY CXX_STANDARD 17)
 endfunction()
 
 add_sample(positional_argument)
