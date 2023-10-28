@@ -214,13 +214,13 @@ inline auto do_from_chars(std::string_view s) -> T {
     if (ptr == last) {
       return x;
     }
-    throw std::invalid_argument{"pattern does not match to the end"};
+    throw std::invalid_argument{"pattern '" + std::string(s) + "' does not match to the end"};
   }
   if (ec == std::errc::invalid_argument) {
-    throw std::invalid_argument{"pattern not found"};
+    throw std::invalid_argument{"pattern '" + std::string(s) + "' not found"};
   }
   if (ec == std::errc::result_out_of_range) {
-    throw std::range_error{"not representable"};
+    throw std::range_error{"'" + std::string(s) + "' not representable"};
   }
   return x; // unreachable
 }
@@ -235,14 +235,27 @@ template <class T> struct parse_number<T, radix_16> {
   auto operator()(std::string_view s) -> T {
     if (starts_with("0x"sv, s) || starts_with("0X"sv, s)) {
       if (auto [ok, rest] = consume_hex_prefix(s); ok) {
-        return do_from_chars<T, radix_16>(rest);
+        try {
+          return do_from_chars<T, radix_16>(rest);
+        } catch (const std::invalid_argument& err) {
+          throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+        } catch (const std::range_error& err) {
+          throw std::range_error("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+        }
       }
     } else {
       // Allow passing hex numbers without prefix
       // Shape 'x' already has to be specified
-      return do_from_chars<T, radix_16>(s);
+      try {
+        return do_from_chars<T, radix_16>(s);
+      } catch (const std::invalid_argument& err) {
+        throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+      } catch (const std::range_error& err) {
+        throw std::range_error("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+      }
     }
-    throw std::invalid_argument{"pattern not found"};
+
+    throw std::invalid_argument{"pattern '" + std::string(s) + "' not identified as hexadecimal"};
   }
 };
 
@@ -250,12 +263,32 @@ template <class T> struct parse_number<T> {
   auto operator()(std::string_view s) -> T {
     auto [ok, rest] = consume_hex_prefix(s);
     if (ok) {
-      return do_from_chars<T, radix_16>(rest);
+      try {
+        return do_from_chars<T, radix_16>(rest);
+      } catch (const std::invalid_argument& err) {
+        throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+      } catch (const std::range_error& err) {
+        throw std::range_error("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+      }
     }
+
     if (starts_with("0"sv, s)) {
-      return do_from_chars<T, radix_8>(rest);
+      try {
+        return do_from_chars<T, radix_8>(rest);
+      } catch (const std::invalid_argument& err) {
+        throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as octal: " + err.what());
+      } catch (const std::range_error& err) {
+        throw std::range_error("Failed to parse '" + std::string(s) + "' as octal: " + err.what());
+      }
     }
-    return do_from_chars<T, radix_10>(rest);
+
+    try {
+      return do_from_chars<T, radix_10>(rest);
+    } catch (const std::invalid_argument& err) {
+      throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as decimal integer: " + err.what());
+    } catch (const std::range_error& err) {
+      throw std::range_error("Failed to parse '" + std::string(s) + "' as decimal integer: " + err.what());
+    }
   }
 };
 
@@ -270,7 +303,7 @@ template <> inline const auto generic_strtod<long double> = strtold;
 
 template <class T> inline auto do_strtod(std::string const &s) -> T {
   if (isspace(static_cast<unsigned char>(s[0])) || s[0] == '+') {
-    throw std::invalid_argument{"pattern not found"};
+    throw std::invalid_argument{"pattern '" + s + "' not found"};
   }
 
   auto [first, last] = pointer_range(s);
@@ -282,10 +315,10 @@ template <class T> inline auto do_strtod(std::string const &s) -> T {
     if (ptr == last) {
       return x;
     }
-    throw std::invalid_argument{"pattern does not match to the end"};
+    throw std::invalid_argument{"pattern '" + s + "' does not match to the end"};
   }
   if (errno == ERANGE) {
-    throw std::range_error{"not representable"};
+    throw std::range_error{"'" + s + "' not representable"};
   }
   return x; // unreachable
 }
@@ -297,7 +330,13 @@ template <class T> struct parse_number<T, chars_format::general> {
           "chars_format::general does not parse hexfloat"};
     }
 
-    return do_strtod<T>(s);
+    try {
+      return do_strtod<T>(s);
+    } catch (const std::invalid_argument& err) {
+      throw std::invalid_argument("Failed to parse '" + s + "' as number: " + err.what());
+    } catch (const std::range_error& err) {
+      throw std::range_error("Failed to parse '" + s + "' as number: " + err.what());
+    }
   }
 };
 
@@ -307,7 +346,13 @@ template <class T> struct parse_number<T, chars_format::hex> {
       throw std::invalid_argument{"chars_format::hex parses hexfloat"};
     }
 
-    return do_strtod<T>(s);
+    try {
+      return do_strtod<T>(s);
+    } catch (const std::invalid_argument& err) {
+      throw std::invalid_argument("Failed to parse '" + s + "' as hexadecimal: " + err.what());
+    } catch (const std::range_error& err) {
+      throw std::range_error("Failed to parse '" + s + "' as hexadecimal: " + err.what());
+    }
   }
 };
 
@@ -322,7 +367,13 @@ template <class T> struct parse_number<T, chars_format::scientific> {
           "chars_format::scientific requires exponent part"};
     }
 
-    return do_strtod<T>(s);
+    try {
+      return do_strtod<T>(s);
+    } catch (const std::invalid_argument& err) {
+      throw std::invalid_argument("Failed to parse '" + s + "' as scientific notation: " + err.what());
+    } catch (const std::range_error& err) {
+      throw std::range_error("Failed to parse '" + s + "' as scientific notation: " + err.what());
+    }
   }
 };
 
@@ -337,7 +388,13 @@ template <class T> struct parse_number<T, chars_format::fixed> {
           "chars_format::fixed does not parse exponent part"};
     }
 
-    return do_strtod<T>(s);
+    try {
+      return do_strtod<T>(s);
+    } catch (const std::invalid_argument& err) {
+      throw std::invalid_argument("Failed to parse '" + s + "' as fixed notation: " + err.what());
+    } catch (const std::range_error& err) {
+      throw std::range_error("Failed to parse '" + s + "' as fixed notation: " + err.what());
+    }
   }
 };
 
