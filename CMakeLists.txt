@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.12.4)
 
+if(NOT DEFINED PROJECT_NAME)
+  set(ARGPARSE_IS_TOP_LEVEL ON)
+else()
+  set(ARGPARSE_IS_TOP_LEVEL OFF)
+endif()
+
 project(argparse
         VERSION 2.9.0 
         DESCRIPTION "A single header argument parser for C++17"
@@ -9,6 +15,7 @@ project(argparse
 
 option(ARGPARSE_INSTALL "Include an install target" ON)
 option(ARGPARSE_BUILD_TESTS "Build tests" ON)
+option(ARGPARSE_BUILD_SAMPLES "Build samples" OFF)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -24,12 +31,12 @@ target_include_directories(argparse INTERFACE
 if(ARGPARSE_BUILD_SAMPLES)
   add_subdirectory(samples)
 endif()
-
-if(ARGPARSE_BUILD_TESTS)
+  
+if(ARGPARSE_BUILD_TESTS AND ARGPARSE_IS_TOP_LEVEL)
   add_subdirectory(test)
 endif()
-
-if(ARGPARSE_INSTALL)
+  
+if(ARGPARSE_INSTALL AND ARGPARSE_IS_TOP_LEVEL)
   install(TARGETS argparse EXPORT argparseConfig)
   install(EXPORT argparseConfig
           NAMESPACE argparse::
