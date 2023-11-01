@@ -1179,8 +1179,6 @@ PROJECT(myproject)
 
 # fetch latest argparse
 include(FetchContent)
-set(ARGPARSE_BUILD_TESTS OFF CACHE INTERNAL "Turn off building argparse tests")
-set(ARGPARSE_BUILD_SAMPLES OFF CACHE INTERNAL "Turn off building argparse samples")
 FetchContent_Declare(
     argparse
     GIT_REPOSITORY https://github.com/p-ranav/argparse.git
