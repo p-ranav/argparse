@@ -35,6 +35,32 @@ TEST_CASE("Missing optional argument name" * test_suite("error_reporting")) {
   }
 }
 
+TEST_CASE("Missing optional argument name (some flag arguments)" * test_suite("error_reporting")) {
+  argparse::ArgumentParser parser("test");
+  parser.add_argument("-a").flag();
+  parser.add_argument("-b").flag();
+  parser.add_argument("-c");
+  parser.add_argument("-d");
+
+  SUBCASE("Good case") {
+    REQUIRE_NOTHROW(parser.parse_args({"test", "-a", "-b", "-c", "2"}));
+  }
+
+  SUBCASE("Bad case") {
+    REQUIRE_THROWS_WITH_AS(
+        parser.parse_args({"test", "-a", "-b", "2"}),
+        "Zero positional arguments expected, did you mean -c VAR",
+        std::runtime_error);
+  }
+
+  SUBCASE("Bad case 2") {
+    REQUIRE_THROWS_WITH_AS(
+        parser.parse_args({"test", "-abc", "1", "2"}),
+        "Zero positional arguments expected, did you mean -d VAR",
+        std::runtime_error);
+  }
+}
+
 TEST_CASE("Missing optional argument name (multiple names)" *
           test_suite("error_reporting")) {
   argparse::ArgumentParser parser("test");
