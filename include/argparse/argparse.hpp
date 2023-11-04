@@ -453,12 +453,13 @@ template <typename T> struct IsChoiceTypeSupported {
 };
 
 template <typename StringType>
-int get_levenshtein_distance(const StringType &s1, const StringType &s2) {
-  std::vector<std::vector<int>> dp(s1.size() + 1,
-                                   std::vector<int>(s2.size() + 1, 0));
+std::size_t get_levenshtein_distance(const StringType &s1,
+                                     const StringType &s2) {
+  std::vector<std::vector<std::size_t>> dp(
+      s1.size() + 1, std::vector<std::size_t>(s2.size() + 1, 0));
 
-  for (int i = 0; i <= s1.size(); ++i) {
-    for (int j = 0; j <= s2.size(); ++j) {
+  for (std::size_t i = 0; i <= s1.size(); ++i) {
+    for (std::size_t j = 0; j <= s2.size(); ++j) {
       if (i == 0) {
         dp[i][j] = j;
       } else if (j == 0) {
@@ -479,10 +480,10 @@ std::string_view
 get_most_similar_string(const std::map<std::string_view, ValueType> &map,
                         const std::string_view input) {
   std::string_view most_similar{};
-  int min_distance = std::numeric_limits<int>::max();
+  std::size_t min_distance = std::numeric_limits<std::size_t>::max();
 
   for (const auto &entry : map) {
-    int distance = get_levenshtein_distance(entry.first, input);
+    std::size_t distance = get_levenshtein_distance(entry.first, input);
     if (distance < min_distance) {
       min_distance = distance;
       most_similar = entry.first;
@@ -1418,6 +1419,19 @@ public:
       m_subparser_map.insert_or_assign(it->get().m_program_name, it);
       m_subparser_used.insert_or_assign(it->get().m_program_name, false);
     }
+
+    for (const auto &g : other.m_mutually_exclusive_groups) {
+      MutuallyExclusiveGroup group(*this, g.m_required);
+      for (const auto &arg : g.m_elements) {
+        // Find argument in argument map and add reference to it
+        // in new group
+        // argument_it = other.m_argument_map.find("name")
+        auto first_name = arg->m_names[0];
+        auto it = m_argument_map.find(first_name);
+        group.m_elements.push_back(&(*it->second));
+      }
+      m_mutually_exclusive_groups.push_back(std::move(group));
+    }
   }
 
   ~ArgumentParser() = default;
@@ -1453,6 +1467,43 @@ public:
 
     index_argument(argument);
     return *argument;
+  }
+
+  class MutuallyExclusiveGroup {
+    friend class ArgumentParser;
+
+  public:
+    MutuallyExclusiveGroup() = delete;
+
+    explicit MutuallyExclusiveGroup(ArgumentParser &parent,
+                                    bool required = false)
+        : m_parent(parent), m_required(required), m_elements({}) {}
+
+    MutuallyExclusiveGroup(const MutuallyExclusiveGroup &other) = delete;
+    MutuallyExclusiveGroup &
+    operator=(const MutuallyExclusiveGroup &other) = delete;
+
+    MutuallyExclusiveGroup(MutuallyExclusiveGroup &&other) noexcept
+        : m_parent(other.m_parent), m_required(other.m_required),
+          m_elements(std::move(other.m_elements)) {
+      other.m_elements.clear();
+    }
+
+    template <typename... Targs> Argument &add_argument(Targs... f_args) {
+      auto &argument = m_parent.add_argument(std::forward<Targs>(f_args)...);
+      m_elements.push_back(&argument);
+      return argument;
+    }
+
+  private:
+    ArgumentParser &m_parent;
+    bool m_required{false};
+    std::vector<Argument *> m_elements{};
+  };
+
+  MutuallyExclusiveGroup &add_mutually_exclusive_group(bool required = false) {
+    m_mutually_exclusive_groups.emplace_back(*this, required);
+    return m_mutually_exclusive_groups.back();
   }
 
   // Parameter packed add_parents method
@@ -1519,6 +1570,43 @@ public:
     // Check if all arguments are parsed
     for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
       argument->validate();
+    }
+
+    // Check each mutually exclusive group and make sure
+    // there are no constraint violations
+    for (const auto &group : m_mutually_exclusive_groups) {
+      auto mutex_argument_used{false};
+      Argument *mutex_argument_it{nullptr};
+      for (Argument *arg : group.m_elements) {
+        if (!mutex_argument_used && arg->m_is_used) {
+          mutex_argument_used = true;
+          mutex_argument_it = arg;
+        } else if (mutex_argument_used && arg->m_is_used) {
+          // Violation
+          throw std::runtime_error("Argument '" + arg->get_usage_full() +
+                                   "' not allowed with '" +
+                                   mutex_argument_it->get_usage_full() + "'");
+        }
+      }
+
+      if (!mutex_argument_used && group.m_required) {
+        // at least one argument from the group is
+        // required
+        std::string argument_names{};
+        std::size_t i = 0;
+        std::size_t size = group.m_elements.size();
+        for (Argument *arg : group.m_elements) {
+          if (i + 1 == size) {
+            // last
+            argument_names += "'" + arg->get_usage_full() + "' ";
+          } else {
+            argument_names += "'" + arg->get_usage_full() + "' or ";
+          }
+          i += 1;
+        }
+        throw std::runtime_error("One of the arguments " + argument_names +
+                                 "is required");
+      }
     }
   }
 
@@ -2006,6 +2094,7 @@ private:
   }
 
   using argument_it = std::list<Argument>::iterator;
+  using mutex_group_it = std::vector<MutuallyExclusiveGroup>::iterator;
   using argument_parser_it =
       std::list<std::reference_wrapper<ArgumentParser>>::iterator;
 
@@ -2030,6 +2119,7 @@ private:
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
   std::map<std::string_view, argument_parser_it> m_subparser_map;
   std::map<std::string_view, bool> m_subparser_used;
+  std::vector<MutuallyExclusiveGroup> m_mutually_exclusive_groups;
 };
 
 } // namespace argparse

@@ -41,6 +41,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_invalid_arguments.cpp
     test_is_used.cpp
     test_issue_37.cpp
+    test_mutually_exclusive_group.cpp
     test_negative_numbers.cpp
     test_optional_arguments.cpp
     test_parent_parsers.cpp

@@ -25,6 +25,7 @@
           *    [Deciding if the value was given by the user](#deciding-if-the-value-was-given-by-the-user)
           *    [Joining values of repeated optional arguments](#joining-values-of-repeated-optional-arguments)
           *    [Repeating an argument to increase a value](#repeating-an-argument-to-increase-a-value)
+          *    [Mutually Exclusive Group](#mutually-exclusive-group)
      *    [Negative Numbers](#negative-numbers)
      *    [Combining Positional and Optional Arguments](#combining-positional-and-optional-arguments)
      *    [Printing Help](#printing-help)
@@ -278,6 +279,38 @@ program.add_argument("-V", "--verbose")
 program.parse_args(argc, argv);    // Example: ./main -VVVV
 
 std::cout << "verbose level: " << verbosity << std::endl;    // verbose level: 4
+```
+
+#### Mutually Exclusive Group
+
+Create a mutually exclusive group using `program.add_mutually_exclusive_group(required = false)`. `argparse`` will make sure that only one of the arguments in the mutually exclusive group was present on the command line:
+
+```cpp
+auto &group = program.add_mutually_exclusive_group();
+group.add_argument("--first");
+group.add_argument("--second");
+```
+
+with the following usage will yield an error:
+
+```console
+foo@bar:/home/dev/$ ./main --first 1 --second 2
+Argument '--second VAR' not allowed with '--first VAR'
+```
+
+The `add_mutually_exclusive_group()` function also accepts a `required` argument, to indicate that at least one of the mutually exclusive arguments is required:
+
+```cpp
+auto &group = program.add_mutually_exclusive_group(true);
+group.add_argument("--first");
+group.add_argument("--second");
+```
+
+with the following usage will yield an error:
+
+```console
+foo@bar:/home/dev/$ ./main
+One of the arguments '--first VAR' or '--second VAR' is required
 ```
 
 ### Negative Numbers
