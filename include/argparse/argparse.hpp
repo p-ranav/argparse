@@ -46,7 +46,6 @@ SOFTWARE.
 #include <map>
 #include <numeric>
 #include <optional>
-#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -1429,7 +1428,7 @@ public:
         // argument_it = other.m_argument_map.find("name")
         auto first_name = arg->m_names[0];
         auto it = m_argument_map.find(first_name);
-        group.m_elements.insert(&(*it->second));
+        group.m_elements.push_back(&(*it->second));
       }
       m_mutually_exclusive_groups.push_back(std::move(group));
     }
@@ -1492,14 +1491,14 @@ public:
 
     template <typename... Targs> Argument &add_argument(Targs... f_args) {
       auto &argument = m_parent.add_argument(std::forward<Targs>(f_args)...);
-      m_elements.insert(&argument);
+      m_elements.push_back(&argument);
       return argument;
     }
 
   private:
     ArgumentParser &m_parent;
     bool m_required{false};
-    std::set<Argument *> m_elements{};
+    std::vector<Argument *> m_elements{};
   };
 
   MutuallyExclusiveGroup &add_mutually_exclusive_group(bool required = false) {
