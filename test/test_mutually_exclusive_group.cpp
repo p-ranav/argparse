@@ -52,3 +52,20 @@ TEST_CASE("Create mutually exclusive group with 3 arguments" *
       "Argument '--third VAR' not allowed with '--first VAR'",
       std::runtime_error);
 }
+
+TEST_CASE("Create two mutually exclusive groups" * test_suite("mutex_args")) {
+  argparse::ArgumentParser program("test");
+
+  auto &group_1 = program.add_mutually_exclusive_group();
+  group_1.add_argument("--first");
+  group_1.add_argument("--second");
+  group_1.add_argument("--third");
+
+  auto &group_2 = program.add_mutually_exclusive_group();
+  group_2.add_argument("-a");
+  group_2.add_argument("-b");
+
+  REQUIRE_THROWS_WITH_AS(
+      program.parse_args({"test", "--first", "1", "-a", "2", "-b", "3"}),
+      "Argument '-b VAR' not allowed with '-a VAR'", std::runtime_error);
+}
