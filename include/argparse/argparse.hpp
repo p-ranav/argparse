@@ -46,13 +46,13 @@ SOFTWARE.
 #include <map>
 #include <numeric>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
-#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -1419,6 +1419,19 @@ public:
       m_subparser_map.insert_or_assign(it->get().m_program_name, it);
       m_subparser_used.insert_or_assign(it->get().m_program_name, false);
     }
+
+    for (auto &g : other.m_mutually_exclusive_groups) {
+      MutuallyExclusiveGroup group(*this, g.m_required);
+      for (auto &arg : g.m_elements) {
+        // Find argument in argument map and add reference to it
+        // in new group
+        // argument_it = other.m_argument_map.find("name")
+        auto first_name = arg->m_names[0];
+        auto it = m_argument_map.find(first_name);
+        group.m_elements.insert(&(*it->second));
+      }
+      m_mutually_exclusive_groups.push_back(std::move(group));
+    }
   }
 
   ~ArgumentParser() = default;
@@ -1485,7 +1498,7 @@ public:
   private:
     ArgumentParser &m_parent;
     bool m_required{false};
-    std::unordered_set<Argument *> m_elements{};
+    std::set<Argument *> m_elements{};
   };
 
   MutuallyExclusiveGroup &add_mutually_exclusive_group(bool required = false) {
@@ -2087,9 +2100,7 @@ private:
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
   std::map<std::string_view, argument_parser_it> m_subparser_map;
   std::map<std::string_view, bool> m_subparser_used;
-  std::vector<MutuallyExclusiveGroup>
-      m_mutually_exclusive_groups; /// TODO: Add this to the copy/move
-                                   /// constructors
+  std::vector<MutuallyExclusiveGroup> m_mutually_exclusive_groups;
 };
 
 } // namespace argparse
