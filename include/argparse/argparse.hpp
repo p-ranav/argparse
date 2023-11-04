@@ -1588,6 +1588,25 @@ public:
                                    mutex_argument_it->get_usage_full() + "'");
         }
       }
+
+      if (!mutex_argument_used && group.m_required) {
+        // at least one argument from the group is
+        // required
+        std::string argument_names{};
+        std::size_t i = 0;
+        std::size_t size = group.m_elements.size();
+        for (Argument *arg : group.m_elements) {
+          if (i + 1 == size) {
+            // last
+            argument_names += "'" + arg->get_usage_full() + "' ";
+          } else {
+            argument_names += "'" + arg->get_usage_full() + "' or ";
+          }
+          i += 1;
+        }
+        throw std::runtime_error("One of the arguments " + argument_names +
+                                 "is required");
+      }
     }
   }
 
