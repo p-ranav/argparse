@@ -454,12 +454,13 @@ template <typename T> struct IsChoiceTypeSupported {
 };
 
 template <typename StringType>
-int get_levenshtein_distance(const StringType &s1, const StringType &s2) {
-  std::vector<std::vector<int>> dp(s1.size() + 1,
-                                   std::vector<int>(s2.size() + 1, 0));
+std::size_t get_levenshtein_distance(const StringType &s1,
+                                     const StringType &s2) {
+  std::vector<std::vector<std::size_t>> dp(
+      s1.size() + 1, std::vector<std::size_t>(s2.size() + 1, 0));
 
-  for (int i = 0; i <= s1.size(); ++i) {
-    for (int j = 0; j <= s2.size(); ++j) {
+  for (std::size_t i = 0; i <= s1.size(); ++i) {
+    for (std::size_t j = 0; j <= s2.size(); ++j) {
       if (i == 0) {
         dp[i][j] = j;
       } else if (j == 0) {
@@ -1420,9 +1421,9 @@ public:
       m_subparser_used.insert_or_assign(it->get().m_program_name, false);
     }
 
-    for (auto &g : other.m_mutually_exclusive_groups) {
+    for (const auto &g : other.m_mutually_exclusive_groups) {
       MutuallyExclusiveGroup group(*this, g.m_required);
-      for (auto &arg : g.m_elements) {
+      for (const auto &arg : g.m_elements) {
         // Find argument in argument map and add reference to it
         // in new group
         // argument_it = other.m_argument_map.find("name")
