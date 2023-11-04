@@ -1844,7 +1844,9 @@ private:
 
           if (m_positional_arguments.empty()) {
 
-            /// Check sub-parsers first
+            // Ask the user if they argument they provided was a typo
+            // for some sub-parser, 
+            // e.g., user provided `git totes` instead of `git notes`
             if (!m_subparser_map.empty()) {
               throw std::runtime_error(
                   "Failed to parse '" + current_argument + "', did you mean '" +
@@ -1853,36 +1855,17 @@ private:
                   "'");
             }
 
+            // Ask the user if they meant to use a specific optional argument
             if (!m_optional_arguments.empty()) {
-              bool not_help_or_version{true};
               for (const auto &opt : m_optional_arguments) {
-
-                // Find first optional argument that is
-                // neither help nor version
-                for (auto &name : opt.m_names) {
-                  auto pos = name.find("help");
-                  if (pos != std::string::npos) {
-                    not_help_or_version = false;
-                    break;
-                  }
-
-                  pos = name.find("version");
-                  if (pos != std::string::npos) {
-                    not_help_or_version = false;
-                    break;
-                  }
-                }
-
-                if (not_help_or_version) {
+                if (!opt.m_implicit_value.has_value()) {
+                  // not a flag, requires a value
                   if (!opt.m_is_used) {
                     throw std::runtime_error(
                         "Zero positional arguments expected, did you mean " +
                         opt.get_usage_full());
                   }
                 }
-
-                // continue searching
-                not_help_or_version = true;
               }
 
               throw std::runtime_error("Zero positional arguments expected");
