@@ -816,18 +816,18 @@ public:
     }
   }
 
-  std::string get_names_csv() const {
+  std::string get_names_csv(char separator = ',') const {
     return std::accumulate(
         m_names.begin(), m_names.end(), std::string{""},
-        [](const std::string &result, const std::string &name) {
-          return result.empty() ? name : result + ',' + name;
+        [&](const std::string &result, const std::string &name) {
+          return result.empty() ? name : result + separator + name;
         });
   }
 
   std::string get_usage_full() const {
     std::stringstream usage;
 
-    usage << get_names_csv();
+    usage << get_names_csv('/');
     const std::string metavar = !m_metavar.empty() ? m_metavar : "VAR";
     if (m_num_args_range.get_max() > 0) {
       usage << " " << metavar;
