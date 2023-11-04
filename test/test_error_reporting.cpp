@@ -35,7 +35,8 @@ TEST_CASE("Missing optional argument name" * test_suite("error_reporting")) {
   }
 }
 
-TEST_CASE("Missing optional argument name (some flag arguments)" * test_suite("error_reporting")) {
+TEST_CASE("Missing optional argument name (some flag arguments)" *
+          test_suite("error_reporting")) {
   argparse::ArgumentParser parser("test");
   parser.add_argument("-a").flag();
   parser.add_argument("-b").flag();

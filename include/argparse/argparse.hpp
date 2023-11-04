@@ -1361,14 +1361,15 @@ public:
   explicit ArgumentParser(std::string program_name = {},
                           std::string version = "1.0",
                           default_arguments add_args = default_arguments::all,
-                          bool exit_on_default_arguments = true)
+                          bool exit_on_default_arguments = true,
+                          std::ostream &os = std::cout)
       : m_program_name(std::move(program_name)), m_version(std::move(version)),
         m_exit_on_default_arguments(exit_on_default_arguments),
         m_parser_path(m_program_name) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
           .action([&](const auto & /*unused*/) {
-            std::cout << help().str();
+            os << help().str();
             if (m_exit_on_default_arguments) {
               std::exit(0);
             }
@@ -1381,7 +1382,7 @@ public:
     if ((add_args & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
           .action([&](const auto & /*unused*/) {
-            std::cout << m_version << std::endl;
+            os << m_version << std::endl;
             if (m_exit_on_default_arguments) {
               std::exit(0);
             }
@@ -1845,7 +1846,7 @@ private:
           if (m_positional_arguments.empty()) {
 
             // Ask the user if they argument they provided was a typo
-            // for some sub-parser, 
+            // for some sub-parser,
             // e.g., user provided `git totes` instead of `git notes`
             if (!m_subparser_map.empty()) {
               throw std::runtime_error(
