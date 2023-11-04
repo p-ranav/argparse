@@ -481,10 +481,10 @@ std::string_view
 get_most_similar_string(const std::map<std::string_view, ValueType> &map,
                         const std::string_view input) {
   std::string_view most_similar{};
-  int min_distance = std::numeric_limits<int>::max();
+  std::size_t min_distance = std::numeric_limits<std::size_t>::max();
 
   for (const auto &entry : map) {
-    int distance = get_levenshtein_distance(entry.first, input);
+    std::size_t distance = get_levenshtein_distance(entry.first, input);
     if (distance < min_distance) {
       min_distance = distance;
       most_similar = entry.first;
