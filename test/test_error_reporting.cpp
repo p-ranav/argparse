@@ -67,3 +67,31 @@ TEST_CASE("Missing optional argument name with other positional arguments" *
         std::runtime_error);
   }
 }
+
+TEST_CASE("Detect unknown subcommand" * test_suite("error_reporting")) {
+  argparse::ArgumentParser program("git");
+  argparse::ArgumentParser log_command("log");
+  argparse::ArgumentParser notes_command("notes");
+  argparse::ArgumentParser add_command("add");
+  program.add_subparser(log_command);
+  program.add_subparser(notes_command);
+  program.add_subparser(add_command);
+
+  SUBCASE("Typo for 'notes'") {
+    REQUIRE_THROWS_WITH_AS(program.parse_args({"git", "tote"}),
+                           "Failed to parse 'tote', did you mean 'notes'",
+                           std::runtime_error);
+  }
+
+  SUBCASE("Typo for 'add'") {
+    REQUIRE_THROWS_WITH_AS(program.parse_args({"git", "bad"}),
+                           "Failed to parse 'bad', did you mean 'add'",
+                           std::runtime_error);
+  }
+
+  SUBCASE("Typo for 'log'") {
+    REQUIRE_THROWS_WITH_AS(program.parse_args({"git", "logic"}),
+                           "Failed to parse 'logic', did you mean 'log'",
+                           std::runtime_error);
+  }
+}

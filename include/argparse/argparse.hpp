@@ -452,6 +452,46 @@ template <typename T> struct IsChoiceTypeSupported {
                             std::is_same<CleanType, const char *>::value;
 };
 
+template <typename StringType>
+int get_levenshtein_distance(const StringType &s1, const StringType &s2) {
+  std::vector<std::vector<int>> dp(s1.size() + 1,
+                                   std::vector<int>(s2.size() + 1, 0));
+
+  for (int i = 0; i <= s1.size(); ++i) {
+    for (int j = 0; j <= s2.size(); ++j) {
+      if (i == 0) {
+        dp[i][j] = j;
+      } else if (j == 0) {
+        dp[i][j] = i;
+      } else if (s1[i - 1] == s2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + std::min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
+      }
+    }
+  }
+
+  return dp[s1.size()][s2.size()];
+}
+
+template <typename ValueType>
+std::string_view
+get_most_similar_string(const std::map<std::string_view, ValueType> &map,
+                        const std::string_view input) {
+  std::string_view most_similar{};
+  int min_distance = std::numeric_limits<int>::max();
+
+  for (const auto &entry : map) {
+    int distance = get_levenshtein_distance(entry.first, input);
+    if (distance < min_distance) {
+      min_distance = distance;
+      most_similar = entry.first;
+    }
+  }
+
+  return most_similar;
+}
+
 } // namespace details
 
 enum class nargs_pattern { optional, any, at_least_one };
@@ -1803,6 +1843,15 @@ private:
           }
 
           if (m_positional_arguments.empty()) {
+
+            /// Check sub-parsers first
+            if (!m_subparser_map.empty()) {
+              throw std::runtime_error(
+                  "Failed to parse '" + current_argument + "', did you mean '" +
+                  std::string{details::get_most_similar_string(
+                      m_subparser_map, current_argument)} +
+                  "'");
+            }
 
             if (!m_optional_arguments.empty()) {
               bool not_help_or_version{true};
