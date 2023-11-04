@@ -202,3 +202,30 @@ TEST_CASE("Parse arguments of different types" *
   REQUIRE(program["-string-view"] == true);
   REQUIRE(program["-builtin"s] == true);
 }
+
+TEST_CASE("Parse quoted negative numbers as values to optional arguments" *
+          test_suite("optional_arguments")) {
+  using namespace std::literals;
+
+  argparse::ArgumentParser program("test");
+
+  program.add_argument( "--user-origin")
+          .default_value( std::string() )
+          .help( "User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default mm)" );
+
+  SUBCASE("Double quotes, positive number") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "--user-origin=\"56.100000x27.000000mm\""}));
+  }
+
+  SUBCASE("Single quotes, positive number") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "--user-origin='56.100000x27.000000mm'"}));
+  }
+
+  SUBCASE("Double quotes, negative number") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "--user-origin=\"-56.100000x27.000000mm\""}));
+  }
+
+  SUBCASE("Single quotes, negative number") {
+    REQUIRE_NOTHROW(program.parse_args({"test", "--user-origin='-56.100000x27.000000mm'"}));
+  }
+}
