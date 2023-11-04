@@ -298,6 +298,21 @@ foo@bar:/home/dev/$ ./main --first 1 --second 2
 Argument '--second VAR' not allowed with '--first VAR'
 ```
 
+The `add_mutually_exclusive_group()` function also accepts a `required` argument, to indicate that at least one of the mutually exclusive arguments is required:
+
+```cpp
+auto &group = program.add_mutually_exclusive_group(true);
+group.add_argument("--first");
+group.add_argument("--second");
+```
+
+with the following usage will yield an error:
+
+```console
+foo@bar:/home/dev/$ ./main
+One of the arguments '--first VAR' or '--second VAR' is required
+```
+
 ### Negative Numbers
 
 Optional arguments start with ```-```. Can ```argparse``` handle negative numbers? The answer is yes!
