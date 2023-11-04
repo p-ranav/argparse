@@ -23,14 +23,14 @@ TEST_CASE("Missing optional argument name" * test_suite("error_reporting")) {
   SUBCASE("Bad case") {
     REQUIRE_THROWS_WITH_AS(
         parser.parse_args({"test", "-a", "1", "2"}),
-        "Zero positional arguments expected, did you mean '[-b VAR]'",
+        "Zero positional arguments expected, did you mean -b VAR",
         std::runtime_error);
   }
 
   SUBCASE("Bad case 2") {
     REQUIRE_THROWS_WITH_AS(
         parser.parse_args({"test", "1", "2"}),
-        "Zero positional arguments expected, did you mean '[-a VAR]'",
+        "Zero positional arguments expected, did you mean -a VAR",
         std::runtime_error);
   }
 }

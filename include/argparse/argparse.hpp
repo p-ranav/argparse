@@ -827,9 +827,6 @@ public:
   std::string get_usage_full() const {
     std::stringstream usage;
 
-    if (!m_is_required) {
-      usage << "[";
-    }
     usage << get_names_csv();
     const std::string metavar = !m_metavar.empty() ? m_metavar : "VAR";
     if (m_num_args_range.get_max() > 0) {
@@ -837,9 +834,6 @@ public:
       if (m_num_args_range.get_max() > 1) {
         usage << "...";
       }
-    }
-    if (!m_is_required) {
-      usage << "]";
     }
     return usage.str();
   }
@@ -1833,8 +1827,8 @@ private:
                 if (not_help_or_version) {
                   if (!opt.m_is_used) {
                     throw std::runtime_error(
-                        "Zero positional arguments expected, did you mean '" +
-                        opt.get_usage_full() + "'");
+                        "Zero positional arguments expected, did you mean " +
+                        opt.get_usage_full());
                   }
                 }
 
