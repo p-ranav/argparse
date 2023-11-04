@@ -52,6 +52,7 @@ SOFTWARE.
 #include <string_view>
 #include <tuple>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -1455,6 +1456,43 @@ public:
     return *argument;
   }
 
+  class MutuallyExclusiveGroup {
+    friend class ArgumentParser;
+
+  public:
+    MutuallyExclusiveGroup() = delete;
+
+    explicit MutuallyExclusiveGroup(ArgumentParser &parent,
+                                    bool required = false)
+        : m_parent(parent), m_required(required), m_elements({}) {}
+
+    MutuallyExclusiveGroup(const MutuallyExclusiveGroup &other) = delete;
+    MutuallyExclusiveGroup &
+    operator=(const MutuallyExclusiveGroup &other) = delete;
+
+    MutuallyExclusiveGroup(MutuallyExclusiveGroup &&other) noexcept
+        : m_parent(other.m_parent), m_required(other.m_required),
+          m_elements(std::move(other.m_elements)) {
+      other.m_elements.clear();
+    }
+
+    template <typename... Targs> Argument &add_argument(Targs... f_args) {
+      auto &argument = m_parent.add_argument(std::forward<Targs>(f_args)...);
+      m_elements.insert(&argument);
+      return argument;
+    }
+
+  private:
+    ArgumentParser &m_parent;
+    bool m_required{false};
+    std::unordered_set<Argument *> m_elements{};
+  };
+
+  MutuallyExclusiveGroup &add_mutually_exclusive_group(bool required = false) {
+    m_mutually_exclusive_groups.emplace_back(*this, required);
+    return m_mutually_exclusive_groups.back();
+  }
+
   // Parameter packed add_parents method
   // Accepts a variadic number of ArgumentParser objects
   template <typename... Targs>
@@ -1519,6 +1557,24 @@ public:
     // Check if all arguments are parsed
     for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
       argument->validate();
+    }
+
+    // Check each mutually exclusive group and make sure
+    // there are no constraint violations
+    for (const auto &group : m_mutually_exclusive_groups) {
+      auto mutex_argument_used{false};
+      Argument *mutex_argument_it{nullptr};
+      for (Argument *arg : group.m_elements) {
+        if (!mutex_argument_used && arg->m_is_used) {
+          mutex_argument_used = true;
+          mutex_argument_it = arg;
+        } else if (mutex_argument_used && arg->m_is_used) {
+          // Violation
+          throw std::runtime_error("Argument '" + arg->get_usage_full() +
+                                   "' not allowed with '" +
+                                   mutex_argument_it->get_usage_full() + "'");
+        }
+      }
     }
   }
 
@@ -2006,6 +2062,7 @@ private:
   }
 
   using argument_it = std::list<Argument>::iterator;
+  using mutex_group_it = std::vector<MutuallyExclusiveGroup>::iterator;
   using argument_parser_it =
       std::list<std::reference_wrapper<ArgumentParser>>::iterator;
 
@@ -2030,6 +2087,9 @@ private:
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
   std::map<std::string_view, argument_parser_it> m_subparser_map;
   std::map<std::string_view, bool> m_subparser_used;
+  std::vector<MutuallyExclusiveGroup>
+      m_mutually_exclusive_groups; /// TODO: Add this to the copy/move
+                                   /// constructors
 };
 
 } // namespace argparse
