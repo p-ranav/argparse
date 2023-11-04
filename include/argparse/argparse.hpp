@@ -214,7 +214,8 @@ inline auto do_from_chars(std::string_view s) -> T {
     if (ptr == last) {
       return x;
     }
-    throw std::invalid_argument{"pattern '" + std::string(s) + "' does not match to the end"};
+    throw std::invalid_argument{"pattern '" + std::string(s) +
+                                "' does not match to the end"};
   }
   if (ec == std::errc::invalid_argument) {
     throw std::invalid_argument{"pattern '" + std::string(s) + "' not found"};
@@ -237,10 +238,12 @@ template <class T> struct parse_number<T, radix_16> {
       if (auto [ok, rest] = consume_hex_prefix(s); ok) {
         try {
           return do_from_chars<T, radix_16>(rest);
-        } catch (const std::invalid_argument& err) {
-          throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
-        } catch (const std::range_error& err) {
-          throw std::range_error("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+        } catch (const std::invalid_argument &err) {
+          throw std::invalid_argument("Failed to parse '" + std::string(s) +
+                                      "' as hexadecimal: " + err.what());
+        } catch (const std::range_error &err) {
+          throw std::range_error("Failed to parse '" + std::string(s) +
+                                 "' as hexadecimal: " + err.what());
         }
       }
     } else {
@@ -248,14 +251,17 @@ template <class T> struct parse_number<T, radix_16> {
       // Shape 'x' already has to be specified
       try {
         return do_from_chars<T, radix_16>(s);
-      } catch (const std::invalid_argument& err) {
-        throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
-      } catch (const std::range_error& err) {
-        throw std::range_error("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+      } catch (const std::invalid_argument &err) {
+        throw std::invalid_argument("Failed to parse '" + std::string(s) +
+                                    "' as hexadecimal: " + err.what());
+      } catch (const std::range_error &err) {
+        throw std::range_error("Failed to parse '" + std::string(s) +
+                               "' as hexadecimal: " + err.what());
       }
     }
 
-    throw std::invalid_argument{"pattern '" + std::string(s) + "' not identified as hexadecimal"};
+    throw std::invalid_argument{"pattern '" + std::string(s) +
+                                "' not identified as hexadecimal"};
   }
 };
 
@@ -265,29 +271,35 @@ template <class T> struct parse_number<T> {
     if (ok) {
       try {
         return do_from_chars<T, radix_16>(rest);
-      } catch (const std::invalid_argument& err) {
-        throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
-      } catch (const std::range_error& err) {
-        throw std::range_error("Failed to parse '" + std::string(s) + "' as hexadecimal: " + err.what());
+      } catch (const std::invalid_argument &err) {
+        throw std::invalid_argument("Failed to parse '" + std::string(s) +
+                                    "' as hexadecimal: " + err.what());
+      } catch (const std::range_error &err) {
+        throw std::range_error("Failed to parse '" + std::string(s) +
+                               "' as hexadecimal: " + err.what());
       }
     }
 
     if (starts_with("0"sv, s)) {
       try {
         return do_from_chars<T, radix_8>(rest);
-      } catch (const std::invalid_argument& err) {
-        throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as octal: " + err.what());
-      } catch (const std::range_error& err) {
-        throw std::range_error("Failed to parse '" + std::string(s) + "' as octal: " + err.what());
+      } catch (const std::invalid_argument &err) {
+        throw std::invalid_argument("Failed to parse '" + std::string(s) +
+                                    "' as octal: " + err.what());
+      } catch (const std::range_error &err) {
+        throw std::range_error("Failed to parse '" + std::string(s) +
+                               "' as octal: " + err.what());
       }
     }
 
     try {
       return do_from_chars<T, radix_10>(rest);
-    } catch (const std::invalid_argument& err) {
-      throw std::invalid_argument("Failed to parse '" + std::string(s) + "' as decimal integer: " + err.what());
-    } catch (const std::range_error& err) {
-      throw std::range_error("Failed to parse '" + std::string(s) + "' as decimal integer: " + err.what());
+    } catch (const std::invalid_argument &err) {
+      throw std::invalid_argument("Failed to parse '" + std::string(s) +
+                                  "' as decimal integer: " + err.what());
+    } catch (const std::range_error &err) {
+      throw std::range_error("Failed to parse '" + std::string(s) +
+                             "' as decimal integer: " + err.what());
     }
   }
 };
@@ -315,7 +327,8 @@ template <class T> inline auto do_strtod(std::string const &s) -> T {
     if (ptr == last) {
       return x;
     }
-    throw std::invalid_argument{"pattern '" + s + "' does not match to the end"};
+    throw std::invalid_argument{"pattern '" + s +
+                                "' does not match to the end"};
   }
   if (errno == ERANGE) {
     throw std::range_error{"'" + s + "' not representable"};
@@ -332,10 +345,12 @@ template <class T> struct parse_number<T, chars_format::general> {
 
     try {
       return do_strtod<T>(s);
-    } catch (const std::invalid_argument& err) {
-      throw std::invalid_argument("Failed to parse '" + s + "' as number: " + err.what());
-    } catch (const std::range_error& err) {
-      throw std::range_error("Failed to parse '" + s + "' as number: " + err.what());
+    } catch (const std::invalid_argument &err) {
+      throw std::invalid_argument("Failed to parse '" + s +
+                                  "' as number: " + err.what());
+    } catch (const std::range_error &err) {
+      throw std::range_error("Failed to parse '" + s +
+                             "' as number: " + err.what());
     }
   }
 };
@@ -348,10 +363,12 @@ template <class T> struct parse_number<T, chars_format::hex> {
 
     try {
       return do_strtod<T>(s);
-    } catch (const std::invalid_argument& err) {
-      throw std::invalid_argument("Failed to parse '" + s + "' as hexadecimal: " + err.what());
-    } catch (const std::range_error& err) {
-      throw std::range_error("Failed to parse '" + s + "' as hexadecimal: " + err.what());
+    } catch (const std::invalid_argument &err) {
+      throw std::invalid_argument("Failed to parse '" + s +
+                                  "' as hexadecimal: " + err.what());
+    } catch (const std::range_error &err) {
+      throw std::range_error("Failed to parse '" + s +
+                             "' as hexadecimal: " + err.what());
     }
   }
 };
@@ -369,10 +386,12 @@ template <class T> struct parse_number<T, chars_format::scientific> {
 
     try {
       return do_strtod<T>(s);
-    } catch (const std::invalid_argument& err) {
-      throw std::invalid_argument("Failed to parse '" + s + "' as scientific notation: " + err.what());
-    } catch (const std::range_error& err) {
-      throw std::range_error("Failed to parse '" + s + "' as scientific notation: " + err.what());
+    } catch (const std::invalid_argument &err) {
+      throw std::invalid_argument("Failed to parse '" + s +
+                                  "' as scientific notation: " + err.what());
+    } catch (const std::range_error &err) {
+      throw std::range_error("Failed to parse '" + s +
+                             "' as scientific notation: " + err.what());
     }
   }
 };
@@ -390,10 +409,12 @@ template <class T> struct parse_number<T, chars_format::fixed> {
 
     try {
       return do_strtod<T>(s);
-    } catch (const std::invalid_argument& err) {
-      throw std::invalid_argument("Failed to parse '" + s + "' as fixed notation: " + err.what());
-    } catch (const std::range_error& err) {
-      throw std::range_error("Failed to parse '" + s + "' as fixed notation: " + err.what());
+    } catch (const std::invalid_argument &err) {
+      throw std::invalid_argument("Failed to parse '" + s +
+                                  "' as fixed notation: " + err.what());
+    } catch (const std::range_error &err) {
+      throw std::range_error("Failed to parse '" + s +
+                             "' as fixed notation: " + err.what());
     }
   }
 };
@@ -793,6 +814,34 @@ public:
       // is in the list of choices
       find_default_value_in_choices_or_throw();
     }
+  }
+
+  std::string get_names_csv() const {
+    return std::accumulate(
+        m_names.begin(), m_names.end(), std::string{""},
+        [](const std::string &result, const std::string &name) {
+          return result.empty() ? name : result + ',' + name;
+        });
+  }
+
+  std::string get_usage_full() const {
+    std::stringstream usage;
+
+    if (!m_is_required) {
+      usage << "[";
+    }
+    usage << get_names_csv();
+    const std::string metavar = !m_metavar.empty() ? m_metavar : "VAR";
+    if (m_num_args_range.get_max() > 0) {
+      usage << " " << metavar;
+      if (m_num_args_range.get_max() > 1) {
+        usage << "...";
+      }
+    }
+    if (!m_is_required) {
+      usage << "]";
+    }
+    return usage.str();
   }
 
   std::string get_inline_usage() const {
@@ -1759,8 +1808,49 @@ private:
                 unprocessed_arguments);
           }
 
-          throw std::runtime_error(
-              "Maximum number of positional arguments exceeded");
+          if (m_positional_arguments.empty()) {
+
+            if (!m_optional_arguments.empty()) {
+              bool not_help_or_version{true};
+              for (const auto &opt : m_optional_arguments) {
+
+                // Find first optional argument that is
+                // neither help nor version
+                for (auto &name : opt.m_names) {
+                  auto pos = name.find("help");
+                  if (pos != std::string::npos) {
+                    not_help_or_version = false;
+                    break;
+                  }
+
+                  pos = name.find("version");
+                  if (pos != std::string::npos) {
+                    not_help_or_version = false;
+                    break;
+                  }
+                }
+
+                if (not_help_or_version) {
+                  if (!opt.m_is_used) {
+                    throw std::runtime_error(
+                        "Zero positional arguments expected, did you mean '" +
+                        opt.get_usage_full() + "'");
+                  }
+                }
+
+                // continue searching
+                not_help_or_version = true;
+              }
+
+              throw std::runtime_error("Zero positional arguments expected");
+            } else {
+              throw std::runtime_error("Zero positional arguments expected");
+            }
+          } else {
+            throw std::runtime_error("Maximum number of positional arguments "
+                                     "exceeded, failed to parse '" +
+                                     current_argument + "'");
+          }
         }
         auto argument = positional_argument_it++;
         it = argument->consume(it, end);

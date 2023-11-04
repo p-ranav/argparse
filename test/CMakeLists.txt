@@ -35,6 +35,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_const_correct.cpp
     test_default_args.cpp
     test_default_value.cpp
+    test_error_reporting.cpp
     test_get.cpp
     test_help.cpp
     test_invalid_arguments.cpp
