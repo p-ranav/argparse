@@ -1941,7 +1941,7 @@ private:
                   "Failed to parse '" + current_argument + "', did you mean '" +
                   std::string{details::get_most_similar_string(
                       m_subparser_map, current_argument)} +
-                  "'");
+                  "'?");
             }
 
             // Ask the user if they meant to use a specific optional argument
@@ -1951,8 +1951,8 @@ private:
                   // not a flag, requires a value
                   if (!opt.m_is_used) {
                     throw std::runtime_error(
-                        "Zero positional arguments expected, did you mean " +
-                        opt.get_usage_full());
+                        "Zero positional arguments expected, did you mean '" +
+                        opt.get_usage_full() + "'?");
                   }
                 }
               }

@@ -23,14 +23,14 @@ TEST_CASE("Missing optional argument name" * test_suite("error_reporting")) {
   SUBCASE("Bad case") {
     REQUIRE_THROWS_WITH_AS(
         parser.parse_args({"test", "-a", "1", "2"}),
-        "Zero positional arguments expected, did you mean -b VAR",
+        "Zero positional arguments expected, did you mean '-b VAR'?",
         std::runtime_error);
   }
 
   SUBCASE("Bad case 2") {
     REQUIRE_THROWS_WITH_AS(
         parser.parse_args({"test", "1", "2"}),
-        "Zero positional arguments expected, did you mean -a VAR",
+        "Zero positional arguments expected, did you mean '-a VAR'?",
         std::runtime_error);
   }
 }
@@ -50,14 +50,14 @@ TEST_CASE("Missing optional argument name (some flag arguments)" *
   SUBCASE("Bad case") {
     REQUIRE_THROWS_WITH_AS(
         parser.parse_args({"test", "-a", "-b", "2"}),
-        "Zero positional arguments expected, did you mean -c VAR",
+        "Zero positional arguments expected, did you mean '-c VAR'?",
         std::runtime_error);
   }
 
   SUBCASE("Bad case 2") {
     REQUIRE_THROWS_WITH_AS(
         parser.parse_args({"test", "-abc", "1", "2"}),
-        "Zero positional arguments expected, did you mean -d VAR",
+        "Zero positional arguments expected, did you mean '-d VAR'?",
         std::runtime_error);
   }
 }
@@ -71,7 +71,7 @@ TEST_CASE("Missing optional argument name (multiple names)" *
   SUBCASE("Bad case 2") {
     REQUIRE_THROWS_WITH_AS(parser.parse_args({"test", "1", "2"}),
                            "Zero positional arguments expected, did you mean "
-                           "-a/--number-of-apples VAR",
+                           "'-a/--number-of-apples VAR'?",
                            std::runtime_error);
   }
 }
@@ -106,19 +106,19 @@ TEST_CASE("Detect unknown subcommand" * test_suite("error_reporting")) {
 
   SUBCASE("Typo for 'notes'") {
     REQUIRE_THROWS_WITH_AS(program.parse_args({"git", "tote"}),
-                           "Failed to parse 'tote', did you mean 'notes'",
+                           "Failed to parse 'tote', did you mean 'notes'?",
                            std::runtime_error);
   }
 
   SUBCASE("Typo for 'add'") {
     REQUIRE_THROWS_WITH_AS(program.parse_args({"git", "bad"}),
-                           "Failed to parse 'bad', did you mean 'add'",
+                           "Failed to parse 'bad', did you mean 'add'?",
                            std::runtime_error);
   }
 
   SUBCASE("Typo for 'log'") {
     REQUIRE_THROWS_WITH_AS(program.parse_args({"git", "logic"}),
-                           "Failed to parse 'logic', did you mean 'log'",
+                           "Failed to parse 'logic', did you mean 'log'?",
                            std::runtime_error);
   }
 }
