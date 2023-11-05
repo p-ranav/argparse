@@ -906,7 +906,6 @@ public:
   }
 
   std::size_t get_arguments_length() const {
-
     std::size_t names_size = std::accumulate(
         std::begin(m_names), std::end(m_names), std::size_t(0),
         [](const auto &sum, const auto &s) { return sum + s.size(); });
@@ -1362,15 +1361,14 @@ public:
   explicit ArgumentParser(std::string program_name = {},
                           std::string version = "1.0",
                           default_arguments add_args = default_arguments::all,
-                          bool exit_on_default_arguments = true,
-                          std::ostream &os = std::cout)
+                          bool exit_on_default_arguments = true)
       : m_program_name(std::move(program_name)), m_version(std::move(version)),
         m_exit_on_default_arguments(exit_on_default_arguments),
         m_parser_path(m_program_name) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
-          .action([&](const auto & /*unused*/) {
-            os << help().str();
+          .action([this](const auto & /*unused*/) {
+            std::cout << help().str();
             if (m_exit_on_default_arguments) {
               std::exit(0);
             }
@@ -1379,11 +1377,12 @@ public:
           .help("shows help message and exits")
           .implicit_value(true)
           .nargs(0);
+      m_default_help_argument_added = true;
     }
     if ((add_args & default_arguments::version) == default_arguments::version) {
       add_argument("-v", "--version")
-          .action([&](const auto & /*unused*/) {
-            os << m_version << std::endl;
+          .action([this](const auto & /*unused*/) {
+            std::cout << m_version << std::endl;
             if (m_exit_on_default_arguments) {
               std::exit(0);
             }
@@ -1392,6 +1391,7 @@ public:
           .help("prints version information and exits")
           .implicit_value(true)
           .nargs(0);
+      m_default_version_argument_added = true;
     }
   }
 
@@ -1400,6 +1400,9 @@ public:
 
   ArgumentParser(const ArgumentParser &other)
       : m_program_name(other.m_program_name), m_version(other.m_version),
+        m_default_help_argument_added(other.m_default_help_argument_added),
+        m_default_version_argument_added(
+            other.m_default_version_argument_added),
         m_description(other.m_description), m_epilog(other.m_epilog),
         m_exit_on_default_arguments(other.m_exit_on_default_arguments),
         m_prefix_chars(other.m_prefix_chars),
@@ -1415,6 +1418,32 @@ public:
          it != std::end(m_optional_arguments); ++it) {
       index_argument(it);
     }
+
+    // Redefine help action
+    if (m_default_help_argument_added) {
+      auto help_argument = m_argument_map["--help"];
+      help_argument->action([this](const auto & /*unused*/) {
+        std::cout << help().str();
+        if (m_exit_on_default_arguments) {
+          std::exit(0);
+        }
+      });
+    }
+
+    if (m_default_version_argument_added) {
+      add_argument("-v", "--version")
+          .action([this](const auto & /*unused*/) {
+            std::cout << m_version << std::endl;
+            if (m_exit_on_default_arguments) {
+              std::exit(0);
+            }
+          })
+          .default_value(false)
+          .help("prints version information and exits")
+          .implicit_value(true)
+          .nargs(0);
+    }
+
     for (auto it = std::begin(m_subparsers); it != std::end(m_subparsers);
          ++it) {
       m_subparser_map.insert_or_assign(it->get().m_program_name, it);
@@ -2107,6 +2136,8 @@ private:
 
   std::string m_program_name;
   std::string m_version;
+  bool m_default_help_argument_added{false};
+  bool m_default_version_argument_added{false};
   std::string m_description;
   std::string m_epilog;
   bool m_exit_on_default_arguments = true;
