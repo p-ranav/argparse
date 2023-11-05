@@ -446,7 +446,7 @@ Optional arguments:
   -h, --help    	shows help message and exits
   -v, --version 	prints version information and exits
   --member ALIAS	The alias for the member to pass to.
-  --verbose     	
+  --verbose
 
 Possible things include betingalw, chiz, and res.
 ```
@@ -898,6 +898,39 @@ Subcommands:
 When a help message is requested from a subparser, only the help for that particular parser will be printed. The help message will not include parent parser or sibling parser messages.
 
 Additionally, every parser has the `.is_subcommand_used("<command_name>")` and `.is_subcommand_used(subparser)` member functions to check if a subcommand was used. 
+
+Sometimes there may be a need to hide part of the subcommands from the user
+by suppressing information about them in an help message. To do this,
+```ArgumentParser``` contains the method ```.set_suppress(bool suppress)```:
+
+```cpp
+argparse::ArgumentParser program("test");
+
+argparse::ArgumentParser hidden_cmd("hidden");
+hidden_cmd.add_argument("files").remaining();
+hidden_cmd.set_suppress(true);
+
+program.add_subparser(hidden_cmd);
+```
+
+```console
+foo@bar:/home/dev/$ ./main -h
+Usage: test [--help] [--version] {}
+
+Optional arguments:
+  -h, --help    shows help message and exits
+  -v, --version prints version information and exits
+
+foo@bar:/home/dev/$ ./main hidden -h
+Usage: hidden [--help] [--version] files
+
+Positional arguments:
+  files         [nargs: 0 or more]
+
+Optional arguments:
+  -h, --help    shows help message and exits
+  -v, --version prints version information and exits
+```
 
 ### Getting Argument and Subparser Instances
 

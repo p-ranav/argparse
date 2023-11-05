@@ -1405,7 +1405,8 @@ public:
         m_assign_chars(other.m_assign_chars), m_is_parsed(other.m_is_parsed),
         m_positional_arguments(other.m_positional_arguments),
         m_optional_arguments(other.m_optional_arguments),
-        m_parser_path(other.m_parser_path), m_subparsers(other.m_subparsers) {
+        m_parser_path(other.m_parser_path), m_subparsers(other.m_subparsers),
+        m_suppress(other.m_suppress) {
     for (auto it = std::begin(m_positional_arguments);
          it != std::end(m_positional_arguments); ++it) {
       index_argument(it);
@@ -1747,12 +1748,22 @@ public:
       stream << argument;
     }
 
-    if (!parser.m_subparser_map.empty()) {
+    bool has_visible_subcommands = std::any_of(
+      parser.m_subparser_map.begin(),
+      parser.m_subparser_map.end(),
+      [] (auto &p) { return !p.second->get().m_suppress; }
+    );
+
+    if (has_visible_subcommands) {
       stream << (parser.m_positional_arguments.empty()
                      ? (parser.m_optional_arguments.empty() ? "" : "\n")
                      : "\n")
              << "Subcommands:\n";
       for (const auto &[command, subparser] : parser.m_subparser_map) {
+        if (subparser->get().m_suppress) {
+          continue;
+        }
+
         stream << std::setw(2) << " ";
         stream << std::setw(static_cast<int>(longest_arg_length - 2))
                << command;
@@ -1797,7 +1808,11 @@ public:
     if (!m_subparser_map.empty()) {
       stream << " {";
       std::size_t i{0};
-      for (const auto &[command, unused] : m_subparser_map) {
+      for (const auto &[command, subparser] : m_subparser_map) {
+        if (subparser->get().m_suppress) {
+          continue;
+        }
+
         if (i == 0) {
           stream << command;
         } else {
@@ -1825,6 +1840,10 @@ public:
     auto it = m_subparsers.emplace(std::cend(m_subparsers), parser);
     m_subparser_map.insert_or_assign(parser.m_program_name, it);
     m_subparser_used.insert_or_assign(parser.m_program_name, false);
+  }
+
+  void set_suppress(bool suppress) {
+    m_suppress = suppress;
   }
 
 private:
@@ -2120,6 +2139,7 @@ private:
   std::map<std::string_view, argument_parser_it> m_subparser_map;
   std::map<std::string_view, bool> m_subparser_used;
   std::vector<MutuallyExclusiveGroup> m_mutually_exclusive_groups;
+  bool m_suppress = false;
 };
 
 } // namespace argparse
