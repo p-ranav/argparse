@@ -609,7 +609,7 @@ The grammar follows `std::from_chars`, but does not exactly duplicate it. For ex
 | 'g' or 'G' | general form (either fixed or scientific) |
 |            |                                           |
 | 'd'        | decimal                                   |
-| 'i'        | `std::from_chars` grammar with base == 0  |
+| 'i'        | `std::from_chars` grammar with base == 10 |
 | 'o'        | octal (unsigned)                          |
 | 'u'        | decimal (unsigned)                        |
 | 'x' or 'X' | hexadecimal (unsigned)                    |
