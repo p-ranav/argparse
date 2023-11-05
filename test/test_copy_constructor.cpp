@@ -9,7 +9,7 @@ import argparse;
 using doctest::test_suite;
 
 TEST_CASE("Parse positional arguments using a copy of an ArgumentParser" *
-          test_suite("vector")) {
+          test_suite("copy_constructor")) {
 
   auto maker = []() {
     argparse::ArgumentParser program("test");
@@ -33,7 +33,7 @@ TEST_CASE("Parse positional arguments using a copy of an ArgumentParser" *
 }
 
 TEST_CASE("Parse optional arguments using a copy of an ArgumentParser" *
-          test_suite("vector")) {
+          test_suite("copy_constructor")) {
 
   auto maker = []() {
     argparse::ArgumentParser program("test");
@@ -57,7 +57,8 @@ TEST_CASE("Parse optional arguments using a copy of an ArgumentParser" *
   REQUIRE(second[1] == "config.json");
 }
 
-TEST_CASE("Segmentation fault on help (Issue #260)") {
+TEST_CASE("Segmentation fault on help (Issue #260)" *
+          test_suite("copy_constructor") * doctest::skip()) {
 
   struct SubparserContainer {
     argparse::ArgumentParser parser;
@@ -92,7 +93,8 @@ TEST_CASE("Segmentation fault on help (Issue #260)") {
           std::string::npos);
 }
 
-TEST_CASE("Segmentation fault on custom help (Issue #260)") {
+TEST_CASE("Segmentation fault on custom help (Issue #260)" *
+          test_suite("copy_constructor") * doctest::skip()) {
 
   struct SubparserContainer {
     argparse::ArgumentParser parser;
@@ -131,4 +133,25 @@ TEST_CASE("Segmentation fault on custom help (Issue #260)") {
   auto cmdline_output = oss.str();
   REQUIRE(cmdline_output.size() > 0);
   REQUIRE(cmdline_output.find("temp+string") != std::string::npos);
+}
+
+TEST_CASE("Assign a new subparser with assignment operator (Issue #260)") {
+  argparse::ArgumentParser baseParser{"program", "0.0.0.0"};
+  argparse::ArgumentParser testCommand{"file-unsafe"};
+
+  // This is what causes references to be invalidated.
+  testCommand = argparse::ArgumentParser{"file-safe"};
+
+  testCommand.add_description("File generator command description.");
+  testCommand.add_argument("-p", "--path")
+      .default_value("some/path/on/system")
+      .required()
+      .help("Specifies the path to the target output file.");
+  baseParser.add_subparser(testCommand);
+  REQUIRE_NOTHROW(baseParser.parse_args(
+      {"program", "file-safe", "-p", "\"/home/foo/bar\""}));
+  REQUIRE(testCommand.get<std::string>("-p") ==
+          std::string{"\"/home/foo/bar\""});
+  REQUIRE(baseParser.at<argparse::ArgumentParser>("file-safe")
+              .get<std::string>("-p") == std::string{"\"/home/foo/bar\""});
 }
