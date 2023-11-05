@@ -1401,6 +1401,7 @@ public:
   ArgumentParser(const ArgumentParser &other)
       : m_program_name(other.m_program_name), m_version(other.m_version),
         m_description(other.m_description), m_epilog(other.m_epilog),
+        m_exit_on_default_arguments(other.m_exit_on_default_arguments),
         m_prefix_chars(other.m_prefix_chars),
         m_assign_chars(other.m_assign_chars), m_is_parsed(other.m_is_parsed),
         m_positional_arguments(other.m_positional_arguments),

@@ -33,6 +33,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_compound_arguments.cpp
     test_container_arguments.cpp
     test_const_correct.cpp
+    test_copy_constructor.cpp
     test_default_args.cpp
     test_default_value.cpp
     test_error_reporting.cpp
