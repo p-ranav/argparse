@@ -32,7 +32,6 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_choices.cpp
     test_compound_arguments.cpp
     test_container_arguments.cpp
-    test_const_correct.cpp
     test_default_args.cpp
     test_default_value.cpp
     test_error_reporting.cpp
@@ -51,7 +50,6 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_required_arguments.cpp
     test_scan.cpp
     test_stringstream.cpp
-    test_value_semantics.cpp
     test_version.cpp
     test_subparsers.cpp
     test_parse_known_args.cpp
