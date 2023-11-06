@@ -46,6 +46,8 @@
      *    [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
      *    [Restricting the set of values for an argument](#restricting-the-set-of-values-for-an-argument)
      *    [Using `option=value` syntax](#using-optionvalue-syntax)
+*    [Developer Notes](#developer-notes)
+     *    [Copying and Moving](#copying-and-moving)
 *    [CMake Integration](#cmake-integration)
 *    [Building, Installing, and Testing](#building-installing-and-testing)
 *    [Supported Toolchains](#supported-toolchains)
@@ -1198,7 +1200,7 @@ foo@bar:/home/dev/$ ./main 6
 Invalid argument "6" - allowed options: {0, 1, 2, 3, 4, 5}
 ```
 
-## Using `option=value` syntax
+### Using `option=value` syntax
 
 ```cpp
 #include "argparse.hpp"
@@ -1233,6 +1235,12 @@ foo@bar:/home/dev/$ ./test --bar=BAR --foo
 --foo: true
 --bar: BAR
 ```
+
+## Developer Notes
+
+### Copying and Moving
+
+`argparse::ArgumentParser` is intended to be used in a single function - setup everything and parse arguments in one place. Attempting to move or copy invalidates internal references (issue #260). Thus, starting with v3.0, `argparse::ArgumentParser` copy and move constructors are marked as `delete`.
 
 ## CMake Integration 
 

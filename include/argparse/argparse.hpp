@@ -1395,53 +1395,18 @@ public:
     }
   }
 
-  ArgumentParser(ArgumentParser &&) noexcept = default;
-  ArgumentParser &operator=(ArgumentParser &&) = default;
-
-  ArgumentParser(const ArgumentParser &other)
-      : m_program_name(other.m_program_name), m_version(other.m_version),
-        m_description(other.m_description), m_epilog(other.m_epilog),
-        m_prefix_chars(other.m_prefix_chars),
-        m_assign_chars(other.m_assign_chars), m_is_parsed(other.m_is_parsed),
-        m_positional_arguments(other.m_positional_arguments),
-        m_optional_arguments(other.m_optional_arguments),
-        m_parser_path(other.m_parser_path), m_subparsers(other.m_subparsers),
-        m_suppress(other.m_suppress) {
-    for (auto it = std::begin(m_positional_arguments);
-         it != std::end(m_positional_arguments); ++it) {
-      index_argument(it);
-    }
-    for (auto it = std::begin(m_optional_arguments);
-         it != std::end(m_optional_arguments); ++it) {
-      index_argument(it);
-    }
-    for (auto it = std::begin(m_subparsers); it != std::end(m_subparsers);
-         ++it) {
-      m_subparser_map.insert_or_assign(it->get().m_program_name, it);
-      m_subparser_used.insert_or_assign(it->get().m_program_name, false);
-    }
-
-    for (const auto &g : other.m_mutually_exclusive_groups) {
-      MutuallyExclusiveGroup group(*this, g.m_required);
-      for (const auto &arg : g.m_elements) {
-        // Find argument in argument map and add reference to it
-        // in new group
-        // argument_it = other.m_argument_map.find("name")
-        auto first_name = arg->m_names[0];
-        auto it = m_argument_map.find(first_name);
-        group.m_elements.push_back(&(*it->second));
-      }
-      m_mutually_exclusive_groups.push_back(std::move(group));
-    }
-  }
-
   ~ArgumentParser() = default;
 
-  ArgumentParser &operator=(const ArgumentParser &other) {
-    auto tmp = other;
-    std::swap(*this, tmp);
-    return *this;
-  }
+  // ArgumentParser is meant to be used in a single function.
+  // Setup everything and parse arguments in one place.
+  //
+  // ArgumentParser internally uses std::string_views,
+  // references, iterators, etc.
+  // Many of these elements become invalidated after a copy or move.
+  ArgumentParser(const ArgumentParser &other) = delete;
+  ArgumentParser &operator=(const ArgumentParser &other) = delete;
+  ArgumentParser(ArgumentParser &&) noexcept = delete;
+  ArgumentParser &operator=(ArgumentParser &&) = delete;
 
   explicit operator bool() const {
     auto arg_used = std::any_of(m_argument_map.cbegin(), m_argument_map.cend(),
@@ -1749,10 +1714,8 @@ public:
     }
 
     bool has_visible_subcommands = std::any_of(
-      parser.m_subparser_map.begin(),
-      parser.m_subparser_map.end(),
-      [] (auto &p) { return !p.second->get().m_suppress; }
-    );
+        parser.m_subparser_map.begin(), parser.m_subparser_map.end(),
+        [](auto &p) { return !p.second->get().m_suppress; });
 
     if (has_visible_subcommands) {
       stream << (parser.m_positional_arguments.empty()
@@ -1842,9 +1805,7 @@ public:
     m_subparser_used.insert_or_assign(parser.m_program_name, false);
   }
 
-  void set_suppress(bool suppress) {
-    m_suppress = suppress;
-  }
+  void set_suppress(bool suppress) { m_suppress = suppress; }
 
 private:
   bool is_valid_prefix_char(char c) const {
