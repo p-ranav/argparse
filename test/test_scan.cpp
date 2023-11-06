@@ -209,6 +209,49 @@ TEST_CASE_TEMPLATE("Parse integer argument of any format" * test_suite("scan"),
   }
 }
 
+TEST_CASE_TEMPLATE("Parse a binary argument" * test_suite("scan"), T, uint8_t,
+                   uint16_t, uint32_t, uint64_t) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("-n").scan<'b', T>();
+
+  SUBCASE("with binary digit") {
+    program.parse_args({"test", "-n", "0b101"});
+    REQUIRE(program.get<T>("-n") == 0b101);
+  }
+
+  SUBCASE("minus sign produces an optional argument") {
+    REQUIRE_THROWS_AS(program.parse_args({"test", "-n", "-0b101"}),
+                      std::runtime_error);
+  }
+
+  SUBCASE("plus sign is not allowed") {
+    REQUIRE_THROWS_AS(program.parse_args({"test", "-n", "+0b101"}),
+                      std::invalid_argument);
+  }
+
+  SUBCASE("does not fit") {
+    REQUIRE_THROWS_AS(
+        program.parse_args(
+            {"test", "-n",
+             "0b111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "11111111111111111111111111111111111111111111111111111111111111111"
+             "1111111111111111111111111111111111111111111111111111111111111111"
+             "1"}),
+        std::range_error);
+  }
+}
+
 #define FLOAT_G(t, literal)                                                    \
   ([] {                                                                        \
     if constexpr (std::is_same_v<t, float>)                                    \
