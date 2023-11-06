@@ -1,7 +1,7 @@
 set_xmakever("2.8.2")
 set_project("argparse")
 
-set_version("2.9.0", { build = "%Y%m%d%H%M" })
+set_version("3.0.0", { build = "%Y%m%d%H%M" })
 
 option("enable_module")
 option("enable_std_import", { defines = "ARGPARSE_MODULE_USE_STD_MODULE" })
