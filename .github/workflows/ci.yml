@@ -12,6 +12,8 @@ jobs:
 
     strategy:
 
+      fail-fast: false
+
       matrix:
 
         toolchain:
@@ -63,25 +65,25 @@ jobs:
     steps:
 
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure
-      working-directory: test
-      run: cmake -S . -B build ${{ matrix.cmake_opts }}
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_opts }} $GITHUB_WORKSPACE
       env:
         CC: ${{ matrix.c_compiler }}
         CXX: ${{ matrix.cxx_compiler }}
 
     - name: Build for ${{ matrix.os }} with ${{ matrix.compiler }}
-      working-directory: test
-      run: cmake --build build
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config Release
 
     - name: Test
-      if: ${{ ! startsWith(matrix.os, 'windows') }}
-      working-directory: test/build
-      run: ./tests
-
-    - name: Test (Windows)
-      if: ${{ startsWith(matrix.os, 'windows') }}
-      working-directory: test/build
-      run: ./Debug/tests.exe
+      working-directory: ${{runner.workspace}}/build
+      run: ctest -C Release -V
+      env:
+        CTEST_OUTPUT_ON_FAILURE: True

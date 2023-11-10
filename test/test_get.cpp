@@ -3,7 +3,7 @@ import argparse;
 #else
 #include <argparse/argparse.hpp>
 #endif
-#include <doctest.hpp>
+#include "doctest.hpp"
 
 #include <any>
 

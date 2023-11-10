@@ -4,7 +4,7 @@ import argparse;
 #include <argparse/argparse.hpp>
 #endif
 #include <cmath>
-#include <doctest.hpp>
+#include "doctest.hpp"
 
 using doctest::test_suite;
 

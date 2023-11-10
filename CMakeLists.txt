@@ -31,11 +31,12 @@ target_include_directories(argparse INTERFACE
 if(ARGPARSE_BUILD_SAMPLES)
   add_subdirectory(samples)
 endif()
-  
+
 if(ARGPARSE_BUILD_TESTS)
+  enable_testing()
   add_subdirectory(test)
 endif()
-  
+
 if(ARGPARSE_INSTALL)
   install(TARGETS argparse EXPORT argparseConfig)
   install(EXPORT argparseConfig

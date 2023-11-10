@@ -7,7 +7,7 @@ $ mkdir build
 $ cd build
 $ cmake ../.
 $ make
-$ ./tests
+$ ./argparse_tests
 ```
 
 ## Windows
@@ -21,5 +21,5 @@ $ cmake ../. -G "Visual Studio 15 2017"
 ```
 
 2. Open ARGPARSE.sln
-3. Build tests in RELEASE | x64
-4. Run tests.exe
+3. Build argparse_tests in RELEASE | x64
+4. Run argparse_tests.exe
