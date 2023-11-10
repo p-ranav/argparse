@@ -1,33 +1,6 @@
 
-if(MSVC)
-  # Force to always compile with W4
-  if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-  endif()
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  # Update if necessary
-  set(ARGPARSE_PEDANTIC_COMPILE_FLAGS -Wall -Wno-long-long -Wpedantic -Wsign-conversion -Wshadow -Wconversion -Werror -Wextra)
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # Update if necessary
-  set(ARGPARSE_PEDANTIC_COMPILE_FLAGS -Wall -Wno-long-long -Wpedantic -Wsign-conversion -Wshadow -Wconversion -Werror -Wextra)
-endif()
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-
-# Disable deprecation for windows
-if (WIN32)
-  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-endif()
-
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
-
-# ARGPARSE executable
+# ARGPARSE test executable
 file(GLOB ARGPARSE_TEST_SOURCES
     main.cpp
     test_actions.cpp
@@ -67,5 +40,8 @@ if(ARGPARSE_PEDANTIC_COMPILE_FLAGS)
   target_compile_options(argparse_tests PRIVATE ${ARGPARSE_PEDANTIC_COMPILE_FLAGS})
 endif()
 target_link_libraries(argparse_tests PRIVATE argparse::argparse)
+
+# Disable deprecation for windows
+target_compile_definitions(argparse_tests PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 add_test(NAME argparse_tests COMMAND argparse_tests)

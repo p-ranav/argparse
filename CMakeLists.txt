@@ -28,6 +28,26 @@ target_include_directories(argparse INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>)
 
+
+# Pedantic compiler options
+# Update if necessary
+if(MSVC)
+  set(ARGPARSE_PEDANTIC_COMPILE_FLAGS "/W4")
+  #list(APPEND ARGPARSE_PEDANTIC_COMPILE_FLAGS "/WX")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  set(ARGPARSE_PEDANTIC_COMPILE_FLAGS -Wall -Wno-long-long -pedantic -Wsign-conversion -Wshadow -Wconversion -Werror -Wextra)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(ARGPARSE_PEDANTIC_COMPILE_FLAGS -Wall -Wno-long-long -pedantic -Wsign-conversion -Wshadow -Wconversion -Werror -Wextra)
+endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+
 if(ARGPARSE_BUILD_SAMPLES)
   add_subdirectory(samples)
 endif()
