@@ -80,7 +80,7 @@ jobs:
 
     - name: Build for ${{ matrix.os }} with ${{ matrix.compiler }}
       working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config Release
+      run: cmake --build . --config Release --verbose
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
