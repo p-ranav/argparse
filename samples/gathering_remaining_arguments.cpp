@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     std::cout << files.size() << " files provided" << std::endl;
     for (auto &file : files)
       std::cout << file << std::endl;
-  } catch (std::logic_error &e) {
+  } catch (const std::logic_error &) {
     std::cout << "No files provided" << std::endl;
   }
 }
