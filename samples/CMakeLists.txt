@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.6)
-project(argparse_samples)
 
 if(MSVC)
   # Force to always compile with W4
@@ -16,6 +14,9 @@ endif()
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
 # Disable deprecation for windows
 if (WIN32)
@@ -23,10 +24,9 @@ if (WIN32)
 endif()
 
 function(add_sample NAME)
-  ADD_EXECUTABLE(ARGPARSE_SAMPLE_${NAME} ${NAME}.cpp)
-  INCLUDE_DIRECTORIES("../include" ".")
-  set_target_properties(ARGPARSE_SAMPLE_${NAME} PROPERTIES OUTPUT_NAME ${NAME})
-  set_property(TARGET ARGPARSE_SAMPLE_${NAME} PROPERTY CXX_STANDARD 17)
+  add_executable(argparse_sample_${NAME} ${NAME}.cpp)
+  target_link_libraries(argparse_sample_${NAME} PRIVATE argparse::argparse)
+  set_target_properties(argparse_sample_${NAME} PROPERTIES OUTPUT_NAME ${NAME})
 endfunction()
 
 add_sample(positional_argument)
