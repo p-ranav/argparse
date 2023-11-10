@@ -5,10 +5,6 @@ function(add_sample NAME)
   if(ARGPARSE_PEDANTIC_COMPILE_FLAGS)
     target_compile_options(argparse_sample_${NAME} PRIVATE ${ARGPARSE_PEDANTIC_COMPILE_FLAGS})
   endif()
-
-  # Disable deprecation for windows
-  target_compile_definitions(argparse_sample_${NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
-
   set_target_properties(argparse_sample_${NAME} PROPERTIES OUTPUT_NAME ${NAME})
 endfunction()
 

@@ -40,8 +40,4 @@ if(ARGPARSE_PEDANTIC_COMPILE_FLAGS)
   target_compile_options(argparse_tests PRIVATE ${ARGPARSE_PEDANTIC_COMPILE_FLAGS})
 endif()
 target_link_libraries(argparse_tests PRIVATE argparse::argparse)
-
-# Disable deprecation for windows
-target_compile_definitions(argparse_tests PRIVATE _CRT_SECURE_NO_WARNINGS)
-
 add_test(NAME argparse_tests COMMAND argparse_tests)
