@@ -24,6 +24,36 @@ TEST_CASE("Parse argument that is in the fixed number of allowed choices" *
 }
 
 TEST_CASE("Parse argument that is in the fixed number of allowed choices, with "
+          "other positional argument" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--input")
+      .default_value(std::string{"baz"})
+      .choices("foo", "bar", "baz");
+  program.add_argument("--value").scan<'i', int>().default_value(0);
+
+  REQUIRE_NOTHROW(
+      program.parse_args({"test", "--input", "foo", "--value", "1"}));
+  REQUIRE(program.get("--input") == "foo");
+  REQUIRE(program.get<int>("--value") == 1);
+}
+
+TEST_CASE("Parse argument that is in the fixed number of allowed choices, with "
+          "other positional argument (reversed)" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--input")
+      .default_value(std::string{"baz"})
+      .choices("foo", "bar", "baz");
+  program.add_argument("--value").scan<'i', int>().default_value(0);
+
+  REQUIRE_NOTHROW(
+      program.parse_args({"test", "--value", "1", "--input", "foo"}));
+  REQUIRE(program.get("--input") == "foo");
+  REQUIRE(program.get<int>("--value") == 1);
+}
+
+TEST_CASE("Parse argument that is in the fixed number of allowed choices, with "
           "invalid default" *
           test_suite("choices")) {
   argparse::ArgumentParser program("test");
