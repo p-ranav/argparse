@@ -7,7 +7,7 @@ else()
 endif()
 
 project(argparse
-        VERSION 3.0.0 
+        VERSION 3.0.0
         DESCRIPTION "A single header argument parser for C++17"
         HOMEPAGE_URL "https://github.com/p-ranav/argparse"
         LANGUAGES CXX
@@ -31,11 +31,12 @@ target_include_directories(argparse INTERFACE
 if(ARGPARSE_BUILD_SAMPLES)
   add_subdirectory(samples)
 endif()
-  
+
 if(ARGPARSE_BUILD_TESTS AND ARGPARSE_IS_TOP_LEVEL)
+  enable_testing()
   add_subdirectory(test)
 endif()
-  
+
 if(ARGPARSE_INSTALL AND ARGPARSE_IS_TOP_LEVEL)
   install(TARGETS argparse EXPORT argparseConfig)
   install(EXPORT argparseConfig
