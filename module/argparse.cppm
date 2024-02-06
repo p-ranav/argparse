@@ -39,7 +39,7 @@ export module argparse;
 
 #ifdef ARGPARSE_MODULE_USE_STD_MODULE
 import std;
-import std.cppm;
+import std.compat;
 
 extern "C++" {
 #include <argparse/argparse.hpp>
