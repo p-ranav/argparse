@@ -30,11 +30,12 @@ SOFTWARE.
 */
 #pragma once
 
+#include <cerrno>
+
 #ifndef ARGPARSE_MODULE_USE_STD_MODULE
 #include <algorithm>
 #include <any>
 #include <array>
-#include <cerrno>
 #include <charconv>
 #include <cstdlib>
 #include <functional>
