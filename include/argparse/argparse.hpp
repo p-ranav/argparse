@@ -1734,12 +1734,12 @@ public:
    * @throws std::logic_error in case of an invalid argument name
    */
   Argument &operator[](std::string_view arg_name) const {
-    auto it = m_argument_map.find(arg_name);
+    std::string name(arg_name);
+    auto it = m_argument_map.find(name);
     if (it != m_argument_map.end()) {
       return *(it->second);
     }
     if (!is_valid_prefix_char(arg_name.front())) {
-      std::string name(arg_name);
       const auto legal_prefix_char = get_any_valid_prefix_char();
       const auto prefix = std::string(1, legal_prefix_char);
 
@@ -2172,7 +2172,7 @@ private:
   bool m_is_parsed = false;
   std::list<Argument> m_positional_arguments;
   std::list<Argument> m_optional_arguments;
-  std::map<std::string_view, argument_it> m_argument_map;
+  std::map<std::string, argument_it> m_argument_map;
   std::string m_parser_path;
   std::list<std::reference_wrapper<ArgumentParser>> m_subparsers;
   std::map<std::string_view, argument_parser_it> m_subparser_map;
