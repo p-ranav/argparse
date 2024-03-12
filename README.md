@@ -26,6 +26,7 @@
           *    [Joining values of repeated optional arguments](#joining-values-of-repeated-optional-arguments)
           *    [Repeating an argument to increase a value](#repeating-an-argument-to-increase-a-value)
           *    [Mutually Exclusive Group](#mutually-exclusive-group)
+     *    [Storing values into variables](#store-into)
      *    [Negative Numbers](#negative-numbers)
      *    [Combining Positional and Optional Arguments](#combining-positional-and-optional-arguments)
      *    [Printing Help](#printing-help)
@@ -314,6 +315,36 @@ with the following usage will yield an error:
 ```console
 foo@bar:/home/dev/$ ./main
 One of the arguments '--first VAR' or '--second VAR' is required
+```
+
+### Storing values into variables
+
+It is possible to bind arguments to a variable storing their value, as an
+alternative to explicitly calling ``program.get<T>(arg_name)`` or ``program[arg_name]``
+
+This is currently implementeted for variables of type ``bool`` (this also
+implicitly calls ``flag()``), ``int``, ``double``, ``std::string`` and
+``std::vector<std::string>``. If the argument is not specified in the command
+line, the default value (if set) is set into the variable.
+
+```cpp
+bool flagvar = false;
+program.add_argument("--flagvar").store_into(flagvar);
+
+int intvar = 0;
+program.add_argument("--intvar").store_into(intvar);
+
+double doublevar = 0;
+program.add_argument("--doublevar").store_into(doublevar);
+
+std::string strvar;
+program.add_argument("--strvar").store_into(strvar);
+
+std::vector<std::string> strvar_repeated;
+program.add_argument("--strvar-repeated").append().store_into(strvar_repeated);
+
+std::vector<std::string> strvar_multi_valued;
+program.add_argument("--strvar-multi-valued").nargs(2).store_into(strvar_multi_valued);
 ```
 
 ### Negative Numbers
