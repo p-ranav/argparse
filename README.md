@@ -38,6 +38,7 @@
      *    [Parent Parsers](#parent-parsers)
      *    [Subcommands](#subcommands)
      *    [Parse Known Args](#parse-known-args)
+     *    [Hidden alias](#hidden-alias)
      *    [ArgumentParser in bool Context](#argumentparser-in-bool-context)
      *    [Custom Prefix Characters](#custom-prefix-characters)
      *    [Custom Assignment Characters](#custom-assignment-characters)
@@ -968,6 +969,20 @@ int main(int argc, char *argv[]) {
   assert(program.get<std::string>("bar") == std::string{"BAR"});
   assert((unknown_args == std::vector<std::string>{"--badger", "spam"}));
 }
+```
+
+### Hidden alias
+
+It is sometimes desirable to offer an alias for an argument, but without it
+appearing it in the usage. For example, to phase out a deprecated wording of
+an argument while not breaking backwards compatible. This can be done with
+the ``ArgumentParser::add_hidden_alias_for()` method.
+
+```cpp
+argparse::ArgumentParser program("test");
+
+auto &arg = program.add_argument("--suppress").flag();
+program.add_hidden_alias_for(arg, "--supress"); // old misspelled alias
 ```
 
 ### ArgumentParser in bool Context

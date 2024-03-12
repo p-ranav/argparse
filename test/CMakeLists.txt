@@ -55,6 +55,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_parse_known_args.cpp
     test_equals_form.cpp
     test_prefix_chars.cpp
+    test_hidden_alias.cpp
 )
 set_source_files_properties(main.cpp
     PROPERTIES
