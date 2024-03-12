@@ -58,6 +58,18 @@ SOFTWARE.
 #include <vector>
 #endif
 
+#ifndef ARGPARSE_CUSTOM_STRTOF
+#define ARGPARSE_CUSTOM_STRTOF strtof
+#endif
+
+#ifndef ARGPARSE_CUSTOM_STRTOD
+#define ARGPARSE_CUSTOM_STRTOD strtod
+#endif
+
+#ifndef ARGPARSE_CUSTOM_STRTOLD
+#define ARGPARSE_CUSTOM_STRTOLD strtold
+#endif
+
 namespace argparse {
 
 namespace details { // namespace for helper methods
@@ -347,9 +359,10 @@ template <class T> struct parse_number<T> {
 namespace {
 
 template <class T> inline const auto generic_strtod = nullptr;
-template <> inline const auto generic_strtod<float> = strtof;
-template <> inline const auto generic_strtod<double> = strtod;
-template <> inline const auto generic_strtod<long double> = strtold;
+template <> inline const auto generic_strtod<float> = ARGPARSE_CUSTOM_STRTOF;
+template <> inline const auto generic_strtod<double> = ARGPARSE_CUSTOM_STRTOD;
+template <>
+inline const auto generic_strtod<long double> = ARGPARSE_CUSTOM_STRTOLD;
 
 } // namespace
 
