@@ -897,11 +897,16 @@ public:
     }
   }
 
+  /* The dry_run parameter can be set to true to avoid running the actions,
+   * and setting m_is_used. This may be used by a pre-processing step to do
+   * a first iteration over arguments.
+   */
   template <typename Iterator>
   Iterator consume(Iterator start, Iterator end,
-                   std::string_view used_name = {}) {
+                   std::string_view used_name = {}, bool dry_run = false) {
     if (!m_is_repeatable && m_is_used) {
-      throw std::runtime_error("Duplicate argument");
+      throw std::runtime_error(
+          std::string("Duplicate argument ").append(used_name));
     }
     m_used_name = used_name;
 
@@ -923,9 +928,11 @@ public:
     const auto num_args_min = m_num_args_range.get_min();
     std::size_t dist = 0;
     if (num_args_max == 0) {
-      m_values.emplace_back(m_implicit_value);
-      std::visit([](const auto &f) { f({}); }, m_action);
-      m_is_used = true;
+      if (!dry_run) {
+        m_values.emplace_back(m_implicit_value);
+        std::visit([](const auto &f) { f({}); }, m_action);
+        m_is_used = true;
+      }
       return start;
     }
     if ((dist = static_cast<std::size_t>(std::distance(start, end))) >=
@@ -962,12 +969,16 @@ public:
         Iterator first, last;
         Argument &self;
       };
-      std::visit(ActionApply{start, end, *this}, m_action);
-      m_is_used = true;
+      if (!dry_run) {
+        std::visit(ActionApply{start, end, *this}, m_action);
+        m_is_used = true;
+      }
       return end;
     }
     if (m_default_value.has_value()) {
-      m_is_used = true;
+      if (!dry_run) {
+        m_is_used = true;
+      }
       return start;
     }
     throw std::runtime_error("Too few arguments for '" +
@@ -1160,6 +1171,31 @@ public:
                           return std::any_cast<const ValueType &>(a) == b;
                         });
     }
+  }
+
+  /*
+   * positional:
+   *    _empty_
+   *    '-'
+   *    '-' decimal-literal
+   *    !'-' anything
+   */
+  static bool is_positional(std::string_view name,
+                            std::string_view prefix_chars) {
+    auto first = lookahead(name);
+
+    if (first == eof) {
+      return true;
+    }
+    if (prefix_chars.find(static_cast<char>(first)) !=
+                          std::string_view::npos) {
+      name.remove_prefix(1);
+      if (name.empty()) {
+        return true;
+      }
+      return is_decimal_literal(name);
+    }
+    return true;
   }
 
 private:
@@ -1395,30 +1431,6 @@ private:
   static bool is_optional(std::string_view name,
                           std::string_view prefix_chars) {
     return !is_positional(name, prefix_chars);
-  }
-
-  /*
-   * positional:
-   *    _empty_
-   *    '-'
-   *    '-' decimal-literal
-   *    !'-' anything
-   */
-  static bool is_positional(std::string_view name,
-                            std::string_view prefix_chars) {
-    auto first = lookahead(name);
-
-    if (first == eof) {
-      return true;
-    } else if (prefix_chars.find(static_cast<char>(first)) !=
-               std::string_view::npos) {
-      name.remove_prefix(1);
-      if (name.empty()) {
-        return true;
-      }
-      return is_decimal_literal(name);
-    }
-    return true;
   }
 
   /*
@@ -1966,7 +1978,7 @@ public:
 
   void set_suppress(bool suppress) { m_suppress = suppress; }
 
-private:
+protected:
   bool is_valid_prefix_char(char c) const {
     return m_prefix_chars.find(c) != std::string::npos;
   }
