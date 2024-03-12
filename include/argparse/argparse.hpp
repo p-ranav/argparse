@@ -1578,6 +1578,21 @@ public:
     return *this;
   }
 
+  // Add a un-documented/hidden alias for an argument.
+  // Ideally we'd want this to be a method of Argument, but Argument
+  // does not own its owing ArgumentParser.
+  ArgumentParser &add_hidden_alias_for(Argument &arg, std::string_view alias) {
+    for (auto it = m_optional_arguments.begin();
+         it != m_optional_arguments.end(); ++it) {
+      if (&(*it) == &arg) {
+        m_argument_map.insert_or_assign(std::string(alias), it);
+        return *this;
+      }
+    }
+    throw std::logic_error(
+        "Argument is not an optional argument of this parser");
+  }
+
   /* Getter for arguments and subparsers.
    * @throws std::logic_error in case of an invalid argument or subparser name
    */
