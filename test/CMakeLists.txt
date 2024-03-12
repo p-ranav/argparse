@@ -49,6 +49,7 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_repr.cpp
     test_required_arguments.cpp
     test_scan.cpp
+    test_store_into.cpp
     test_stringstream.cpp
     test_version.cpp
     test_subparsers.cpp
