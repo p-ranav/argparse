@@ -1186,8 +1186,9 @@ public:
 
     if (first == eof) {
       return true;
-    } else if (prefix_chars.find(static_cast<char>(first)) !=
-               std::string_view::npos) {
+    }
+    if (prefix_chars.find(static_cast<char>(first)) !=
+                          std::string_view::npos) {
       name.remove_prefix(1);
       if (name.empty()) {
         return true;
