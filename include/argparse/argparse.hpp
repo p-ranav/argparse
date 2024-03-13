@@ -2024,7 +2024,7 @@ public:
         const std::string arg_inline_usage = argument.get_inline_usage();
         const MutuallyExclusiveGroup *arg_mutex =
             get_belonging_mutex(&argument);
-        if (cur_mutex && !arg_mutex) {
+        if ((cur_mutex != nullptr) && !arg_mutex) {
           curline += ']';
           if (this->m_usage_break_on_mutex) {
             stream << curline << std::endl;
