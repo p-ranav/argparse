@@ -122,3 +122,122 @@ TEST_CASE("Multiline help message alignment") {
   // Make sure we have at least one help message
   REQUIRE(help_message_start != -1);
 }
+
+TEST_CASE("Exclusive arguments, only") {
+    argparse::ArgumentParser program("program");
+    auto &group = program.add_mutually_exclusive_group();
+    group.add_argument("-a").flag();
+    group.add_argument("-b").flag();
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] [[-a]|[-b]]");
+}
+
+TEST_CASE("Exclusive arguments, several groups") {
+    argparse::ArgumentParser program("program");
+    auto &group = program.add_mutually_exclusive_group();
+    group.add_argument("-a").flag();
+    group.add_argument("-b").flag();
+    auto &group2 = program.add_mutually_exclusive_group();
+    group2.add_argument("-c").flag();
+    group2.add_argument("-d").flag();
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] [[-a]|[-b]] [[-c]|[-d]]");
+}
+
+TEST_CASE("Exclusive arguments, several groups, in between arg") {
+    argparse::ArgumentParser program("program");
+    auto &group = program.add_mutually_exclusive_group();
+    group.add_argument("-a").flag();
+    group.add_argument("-b").flag();
+    program.add_argument("-X").flag();
+    auto &group2 = program.add_mutually_exclusive_group();
+    group2.add_argument("-c").flag();
+    group2.add_argument("-d").flag();
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] [[-a]|[-b]] [-X] [[-c]|[-d]]");
+}
+
+TEST_CASE("Argument repeatable") {
+    argparse::ArgumentParser program("program");
+    program.add_argument("-a").flag().append();
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] [-a]...");
+
+    std::ostringstream s;
+    s << program;
+    // std::cout << "DEBUG:" << s.str() << std::endl;
+    REQUIRE(s.str().find("  -a             [may be repeated]") != std::string::npos);
+}
+
+TEST_CASE("Argument with nargs(2) and metavar <x> <y>") {
+    argparse::ArgumentParser program("program");
+    program.add_argument("-foo").metavar("<x> <y>").nargs(2);
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] [-foo <x> <y>]");
+}
+
+TEST_CASE("add_group help") {
+    argparse::ArgumentParser program("program");
+    program.add_argument("-a").flag().help("help_a");
+    program.add_group("Advanced options");
+    program.add_argument("-b").flag().help("help_b");
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] [-a] [-b]");
+
+    std::ostringstream s;
+    s << program;
+    // std::cout << "DEBUG:" << s.str() << std::endl;
+    REQUIRE(s.str().find(
+        "  -a             help_a \n"
+        "\n"
+        "Advanced options (detailed usage):\n"
+        "  -b             help_b") != std::string::npos);
+}
+
+TEST_CASE("multiline usage, several groups") {
+    argparse::ArgumentParser program("program");
+    program.set_usage_max_line_width(80);
+    program.add_argument("-a").flag().help("help_a");
+    program.add_group("Advanced options");
+    program.add_argument("-b").flag().help("help_b");
+    // std::cout << "DEBUG:" << program.usage() << std::endl;
+    REQUIRE(program.usage() ==
+        "Usage: program [--help] [--version] [-a]\n"
+        "\n"
+        "Advanced options:\n"
+        "               [-b]");
+}
+
+TEST_CASE("multiline usage, no break on mutex") {
+    argparse::ArgumentParser program("program");
+    program.set_usage_max_line_width(80);
+    program.set_usage_break_on_mutex();
+    program.add_argument("--quite-long-option-name").flag();
+    auto &group = program.add_mutually_exclusive_group();
+    group.add_argument("-a").flag();
+    group.add_argument("-b").flag();
+    program.add_argument("-c").flag();
+    program.add_argument("--another-one").flag();
+    program.add_argument("-d").flag();
+    program.add_argument("--yet-another-long-one").flag();
+    program.add_argument("--will-go-on-new-line").flag();
+    // std::cout << "DEBUG:" << program.usage() << std::endl;
+    REQUIRE(program.usage() ==
+        "Usage: program [--help] [--version] [--quite-long-option-name]\n"
+        "               [[-a]|[-b]]\n"
+        "               [-c] [--another-one] [-d] [--yet-another-long-one]\n"
+        "               [--will-go-on-new-line]");
+}
+
+TEST_CASE("multiline usage, break on mutex") {
+    argparse::ArgumentParser program("program");
+    program.set_usage_max_line_width(80);
+    program.add_argument("--quite-long-option-name").flag();
+    auto &group = program.add_mutually_exclusive_group();
+    group.add_argument("-a").flag();
+    group.add_argument("-b").flag();
+    program.add_argument("-c").flag();
+    program.add_argument("--another-one").flag();
+    program.add_argument("-d").flag();
+    program.add_argument("--yet-another-long-one").flag();
+    program.add_argument("--will-go-on-new-line").flag();
+    // std::cout << "DEBUG:" << program.usage() << std::endl;
+    REQUIRE(program.usage() ==
+        "Usage: program [--help] [--version] [--quite-long-option-name] [[-a]|[-b]] [-c]\n"
+        "               [--another-one] [-d] [--yet-another-long-one]\n"
+        "               [--will-go-on-new-line]");
+}

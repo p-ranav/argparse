@@ -1049,12 +1049,16 @@ public:
     const std::string metavar = !m_metavar.empty() ? m_metavar : "VAR";
     if (m_num_args_range.get_max() > 0) {
       usage << " " << metavar;
-      if (m_num_args_range.get_max() > 1) {
+      if (m_num_args_range.get_max() > 1 &&
+          m_metavar.find("> <") == std::string::npos) {
         usage << "...";
       }
     }
     if (!m_is_required) {
       usage << "]";
+    }
+    if (m_is_repeatable) {
+      usage << "...";
     }
     return usage.str();
   }
@@ -1104,6 +1108,11 @@ public:
           argument.m_num_args_range == NArgsRange{1, 1}) {
         name_stream << " " << argument.m_metavar;
       }
+      else if (!argument.m_metavar.empty() &&
+               argument.m_num_args_range.get_min() == argument.m_num_args_range.get_max() &&
+               argument.m_metavar.find("> <") != std::string::npos) {
+        name_stream << " " << argument.m_metavar;
+      }
     }
 
     // align multiline help message
@@ -1142,11 +1151,20 @@ public:
     }
     stream << argument.m_num_args_range;
 
+    bool add_space = false;
     if (argument.m_default_value.has_value() &&
         argument.m_num_args_range != NArgsRange{0, 0}) {
       stream << "[default: " << argument.m_default_value_repr << "]";
+      add_space = true;
     } else if (argument.m_is_required) {
       stream << "[required]";
+      add_space = true;
+    }
+    if (argument.m_is_repeatable) {
+      if (add_space) {
+        stream << " ";
+      }
+      stream << "[may be repeated]";
     }
     stream << "\n";
     return stream;
@@ -1486,6 +1504,10 @@ private:
     return result;
   }
 
+  void set_usage_newline_counter(int i) { m_usage_newline_counter = i; }
+
+  void set_group_idx(std::size_t i) { m_group_idx = i; }
+
   std::vector<std::string> m_names;
   std::string_view m_used_name;
   std::string m_help;
@@ -1510,6 +1532,8 @@ private:
   bool m_is_repeatable : 1;
   bool m_is_used : 1;
   std::string_view m_prefix_chars; // ArgumentParser has the prefix_chars
+  int m_usage_newline_counter = 0;
+  std::size_t m_group_idx = 0;
 };
 
 class ArgumentParser {
@@ -1585,6 +1609,8 @@ public:
       m_positional_arguments.splice(std::cend(m_positional_arguments),
                                     m_optional_arguments, argument);
     }
+    argument->set_usage_newline_counter(m_usage_newline_counter);
+    argument->set_group_idx(m_group_names.size());
 
     index_argument(argument);
     return *argument;
@@ -1613,6 +1639,8 @@ public:
     template <typename... Targs> Argument &add_argument(Targs... f_args) {
       auto &argument = m_parent.add_argument(std::forward<Targs>(f_args)...);
       m_elements.push_back(&argument);
+      argument.set_usage_newline_counter(m_parent.m_usage_newline_counter);
+      argument.set_group_idx(m_parent.m_group_names.size());
       return argument;
     }
 
@@ -1643,6 +1671,23 @@ public:
         index_argument(it);
       }
     }
+    return *this;
+  }
+
+  // Ask for the next optional arguments to be displayed on a separate
+  // line in usage() output. Only effective if set_usage_max_line_width() is
+  // also used.
+  ArgumentParser &add_usage_newline() {
+    ++m_usage_newline_counter;
+    return *this;
+  }
+
+  // Ask for the next optional arguments to be displayed in a separate section
+  // in usage() and help (<< *this) output.
+  // For usage(), this is only effective if set_usage_max_line_width() is
+  // also used.
+  ArgumentParser &add_group(std::string group_name) {
+    m_group_names.emplace_back(std::move(group_name));
     return *this;
   }
 
@@ -1880,8 +1925,20 @@ public:
     }
 
     for (const auto &argument : parser.m_optional_arguments) {
-      stream.width(static_cast<std::streamsize>(longest_arg_length));
-      stream << argument;
+      if (argument.m_group_idx == 0) {
+        stream.width(static_cast<std::streamsize>(longest_arg_length));
+        stream << argument;
+      }
+    }
+
+    for (size_t i_group = 0; i_group < parser.m_group_names.size(); ++i_group) {
+      stream << "\n" << parser.m_group_names[i_group] << " (detailed usage):\n";
+      for (const auto &argument : parser.m_optional_arguments) {
+        if (argument.m_group_idx == i_group + 1) {
+          stream.width(static_cast<std::streamsize>(longest_arg_length));
+          stream << argument;
+        }
+      }
     }
 
     bool has_visible_subcommands = std::any_of(
@@ -1920,24 +1977,141 @@ public:
     return out;
   }
 
+  // Sets the maximum width for a line of the Usage message
+  ArgumentParser &set_usage_max_line_width(size_t w) {
+    this->m_usage_max_line_width = w;
+    return *this;
+  }
+
+  // Asks to display arguments of mutually exclusive group on separate lines in
+  // the Usage message
+  ArgumentParser &set_usage_break_on_mutex() {
+    this->m_usage_break_on_mutex = true;
+    return *this;
+  }
+
   // Format usage part of help only
   auto usage() const -> std::string {
     std::stringstream stream;
 
-    stream << "Usage: " << this->m_program_name;
+    std::string curline("Usage: ");
+    curline += this->m_program_name;
+    const bool multiline_usage =
+        this->m_usage_max_line_width < std::numeric_limits<std::size_t>::max();
+    const size_t indent_size = curline.size();
 
-    // Add any options inline here
-    for (const auto &argument : this->m_optional_arguments) {
-      stream << " " << argument.get_inline_usage();
+    const auto deal_with_options_of_group = [&](std::size_t group_idx) {
+      bool found_options = false;
+      // Add any options inline here
+      const MutuallyExclusiveGroup *cur_mutex = nullptr;
+      int usage_newline_counter = -1;
+      for (const auto &argument : this->m_optional_arguments) {
+        if (multiline_usage) {
+          if (argument.m_group_idx != group_idx) {
+            continue;
+          }
+          if (usage_newline_counter != argument.m_usage_newline_counter) {
+            if (usage_newline_counter >= 0) {
+              if (curline.size() > indent_size) {
+                stream << curline << std::endl;
+                curline = std::string(indent_size, ' ');
+              }
+            }
+            usage_newline_counter = argument.m_usage_newline_counter;
+          }
+        }
+        found_options = true;
+        const std::string arg_inline_usage = argument.get_inline_usage();
+        const MutuallyExclusiveGroup *arg_mutex =
+            get_belonging_mutex(&argument);
+        if (cur_mutex && !arg_mutex) {
+          curline += ']';
+          if (this->m_usage_break_on_mutex) {
+            stream << curline << std::endl;
+            curline = std::string(indent_size, ' ');
+          }
+        } else if (!cur_mutex && arg_mutex) {
+          if ((this->m_usage_break_on_mutex && curline.size() > indent_size) ||
+              curline.size() + 3 + arg_inline_usage.size() >
+                  this->m_usage_max_line_width) {
+            stream << curline << std::endl;
+            curline = std::string(indent_size, ' ');
+          }
+          curline += " [";
+        } else if (cur_mutex && arg_mutex) {
+          if (cur_mutex != arg_mutex) {
+            curline += ']';
+            if (this->m_usage_break_on_mutex ||
+                curline.size() + 3 + arg_inline_usage.size() >
+                    this->m_usage_max_line_width) {
+              stream << curline << std::endl;
+              curline = std::string(indent_size, ' ');
+            }
+            curline += " [";
+          } else {
+            curline += '|';
+          }
+        }
+        cur_mutex = arg_mutex;
+        if (curline.size() + 1 + arg_inline_usage.size() >
+            this->m_usage_max_line_width) {
+          stream << curline << std::endl;
+          curline = std::string(indent_size, ' ');
+          curline += " ";
+        } else if (!cur_mutex) {
+          curline += " ";
+        }
+        curline += arg_inline_usage;
+      }
+      if (cur_mutex) {
+        curline += ']';
+      }
+      return found_options;
+    };
+
+    const bool found_options = deal_with_options_of_group(0);
+
+    if (found_options && multiline_usage &&
+        !this->m_positional_arguments.empty()) {
+      stream << curline << std::endl;
+      curline = std::string(indent_size, ' ');
     }
     // Put positional arguments after the optionals
     for (const auto &argument : this->m_positional_arguments) {
-      if (!argument.m_metavar.empty()) {
-        stream << " " << argument.m_metavar;
+      const std::string pos_arg = !argument.m_metavar.empty()
+                                      ? argument.m_metavar
+                                      : argument.m_names.front();
+      if (curline.size() + 1 + pos_arg.size() > this->m_usage_max_line_width) {
+        stream << curline << std::endl;
+        curline = std::string(indent_size, ' ');
+      }
+      curline += " ";
+      if (argument.m_num_args_range.get_min() == 0 &&
+          !argument.m_num_args_range.is_right_bounded()) {
+        curline += "[";
+        curline += pos_arg;
+        curline += "]...";
+      } else if (argument.m_num_args_range.get_min() == 1 &&
+                 !argument.m_num_args_range.is_right_bounded()) {
+        curline += pos_arg;
+        curline += "...";
       } else {
-        stream << " " << argument.m_names.front();
+        curline += pos_arg;
       }
     }
+
+    if (multiline_usage) {
+      // Display options of other groups
+      for (std::size_t i = 0; i < m_group_names.size(); ++i) {
+        stream << curline << std::endl << std::endl;
+        stream << m_group_names[i] << ":" << std::endl;
+        curline = std::string(indent_size, ' ');
+        deal_with_options_of_group(i + 1);
+      }
+    }
+
+    stream << curline;
+
     // Put subcommands after positional arguments
     if (!m_subparser_map.empty()) {
       stream << " {";
@@ -1979,6 +2153,16 @@ public:
   void set_suppress(bool suppress) { m_suppress = suppress; }
 
 protected:
+  const MutuallyExclusiveGroup *get_belonging_mutex(const Argument *arg) const {
+    for (const auto &mutex : m_mutually_exclusive_groups) {
+      if (std::find(mutex.m_elements.begin(), mutex.m_elements.end(), arg) !=
+          mutex.m_elements.end()) {
+        return &mutex;
+      }
+    }
+    return nullptr;
+  }
+
   bool is_valid_prefix_char(char c) const {
     return m_prefix_chars.find(c) != std::string::npos;
   }
@@ -2268,6 +2452,10 @@ protected:
   std::map<std::string, bool> m_subparser_used;
   std::vector<MutuallyExclusiveGroup> m_mutually_exclusive_groups;
   bool m_suppress = false;
+  std::size_t m_usage_max_line_width = std::numeric_limits<std::size_t>::max();
+  bool m_usage_break_on_mutex = false;
+  int m_usage_newline_counter = 0;
+  std::vector<std::string> m_group_names;
 };
 
 } // namespace argparse
