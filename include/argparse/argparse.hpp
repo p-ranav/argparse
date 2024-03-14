@@ -655,7 +655,8 @@ public:
 
   Argument &implicit_value(std::any value) {
     m_implicit_value = std::move(value);
-    m_num_args_range = NArgsRange{0, 0};
+    m_num_args_range = NArgsRange{0, 1};
+    m_is_boolean = true;
     return *this;
   }
 
@@ -666,6 +667,15 @@ public:
   Argument &flag() {
     default_value(false);
     implicit_value(true);
+    action([this](const auto &str) {
+      std::vector<std::string_view> boolean_set = {"true", "on", "1", "false",
+                                                   "off",  "0",  ""};
+      if (std::find(boolean_set.begin(), boolean_set.end(), str) ==
+          boolean_set.end()) {
+        throw_invalid_boolean_value_error();
+      }
+      return (str == "true" || str == "on" || str == "1" || str == "");
+    });
     return *this;
   }
 
@@ -949,6 +959,12 @@ public:
         if (dist < num_args_min) {
           throw std::runtime_error("Too few arguments");
         }
+
+        if (dist == 0 && m_is_boolean) {
+          m_values.emplace_back(m_implicit_value);
+          std::visit([](const auto &f) { f({}); }, m_action);
+          return start;
+        }
       }
 
       struct ActionApply {
@@ -974,6 +990,11 @@ public:
         m_is_used = true;
       }
       return end;
+    }
+    if (m_is_boolean) {
+      m_values.emplace_back(m_implicit_value);
+      std::visit([](const auto &f) { f({}); }, m_action);
+      return start;
     }
     if (m_default_value.has_value()) {
       if (!dry_run) {
@@ -1153,7 +1174,8 @@ public:
 
     bool add_space = false;
     if (argument.m_default_value.has_value() &&
-        argument.m_num_args_range != NArgsRange{0, 0}) {
+        argument.m_num_args_range != NArgsRange{0, 0} &&
+        !argument.m_is_boolean) {
       stream << "[default: " << argument.m_default_value_repr << "]";
       add_space = true;
     } else if (argument.m_is_required) {
@@ -1250,7 +1272,7 @@ private:
         if (range.m_min != 0 && range.m_min != 1) {
           stream << "[nargs: " << range.m_min << "] ";
         }
-      } else {
+      } else if (range.m_min != 0 || range.m_max != 1) { // skip  boolean
         if (range.m_max == (std::numeric_limits<std::size_t>::max)()) {
           stream << "[nargs: " << range.m_min << " or more] ";
         } else {
@@ -1266,6 +1288,12 @@ private:
 
     bool operator!=(const NArgsRange &rhs) const { return !(*this == rhs); }
   };
+
+  void throw_invalid_boolean_value_error() const {
+    std::stringstream stream;
+    stream << m_names.front() << ": invalid boolean value.";
+    throw std::runtime_error(stream.str());
+  }
 
   void throw_nargs_range_validation_error() const {
     std::stringstream stream;
@@ -1531,6 +1559,7 @@ private:
   bool m_is_required : 1;
   bool m_is_repeatable : 1;
   bool m_is_used : 1;
+  bool m_is_boolean : 1;
   std::string_view m_prefix_chars; // ArgumentParser has the prefix_chars
   int m_usage_newline_counter = 0;
   std::size_t m_group_idx = 0;
