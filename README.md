@@ -48,6 +48,7 @@
      *    [Positional Arguments with Compound Toggle Arguments](#positional-arguments-with-compound-toggle-arguments)
      *    [Restricting the set of values for an argument](#restricting-the-set-of-values-for-an-argument)
      *    [Using `option=value` syntax](#using-optionvalue-syntax)
+     *    [Advanced usage formatting](#advanced-usage-formatting)
 *    [Developer Notes](#developer-notes)
      *    [Copying and Moving](#copying-and-moving)
 *    [CMake Integration](#cmake-integration)
@@ -1280,6 +1281,68 @@ int main(int argc, char *argv[]) {
 foo@bar:/home/dev/$ ./test --bar=BAR --foo
 --foo: true
 --bar: BAR
+```
+
+### Advanced usage formatting
+
+By default usage is reported on a single line.
+
+The ``ArgumentParser::set_usage_max_line_width(width)`` method can be used
+to display the usage() on multiple lines, by defining the maximum line width.
+
+It can be combined with a call to ``ArgumentParser::set_usage_break_on_mutex()``
+to ask grouped mutually exclusive arguments to be displayed on a separate line.
+
+``ArgumentParser::add_usage_newline()`` can also be used to force the next
+argument to be displayed on a new line in the usage output.
+
+The following snippet
+
+```cpp
+    argparse::ArgumentParser program("program");
+    program.set_usage_max_line_width(80);
+    program.set_usage_break_on_mutex();
+    program.add_argument("--quite-long-option-name").flag();
+    auto &group = program.add_mutually_exclusive_group();
+    group.add_argument("-a").flag();
+    group.add_argument("-b").flag();
+    program.add_argument("-c").flag();
+    program.add_argument("--another-one").flag();
+    program.add_argument("-d").flag();
+    program.add_argument("--yet-another-long-one").flag();
+    program.add_argument("--will-go-on-new-line").flag();
+    program.add_usage_newline();
+    program.add_argument("--new-line").flag();
+    std::cout << program.usage() << std::endl;
+```
+
+will display:
+```console
+Usage: program [--help] [--version] [--quite-long-option-name]
+               [[-a]|[-b]]
+               [-c] [--another-one] [-d] [--yet-another-long-one]
+               [--will-go-on-new-line]
+               [--new-line]
+```
+
+Furthermore arguments can be separated into several groups by calling
+``ArgumentParser::add_group(group_name)``. Only optional arguments should
+be specified after the first call to add_group().
+
+```cpp
+    argparse::ArgumentParser program("program");
+    program.set_usage_max_line_width(80);
+    program.add_argument("-a").flag().help("help_a");
+    program.add_group("Advanced options");
+    program.add_argument("-b").flag().help("help_b");
+```
+
+will display:
+```console
+Usage: program [--help] [--version] [-a]
+
+Advanced options:
+               [-b]
 ```
 
 ## Developer Notes
