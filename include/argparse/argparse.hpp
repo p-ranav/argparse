@@ -1545,6 +1545,7 @@ public:
                           std::ostream &os = std::cout)
       : m_program_name(std::move(program_name)), m_version(std::move(version)),
         m_exit_on_default_arguments(exit_on_default_arguments),
+        m_default_arguments(add_args),
         m_parser_path(m_program_name) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
@@ -2431,6 +2432,14 @@ protected:
 
   void index_argument(argument_it it) {
     for (const auto &name : std::as_const(it->m_names)) {
+      if (!((name == "-h" || name == "--help") &&
+            (m_default_arguments & default_arguments::help) == default_arguments::help) &&
+          !((name == "-v" || name == "--version") &&
+            (m_default_arguments & default_arguments::version) == default_arguments::version) &&
+          m_argument_map.find(name) != m_argument_map.end()) {
+        throw std::runtime_error("Argument with name " + name +
+                                 " already registered");
+      }
       m_argument_map.insert_or_assign(name, it);
     }
   }
@@ -2440,6 +2449,7 @@ protected:
   std::string m_description;
   std::string m_epilog;
   bool m_exit_on_default_arguments = true;
+  default_arguments m_default_arguments;
   std::string m_prefix_chars{"-"};
   std::string m_assign_chars{"="};
   bool m_is_parsed = false;
