@@ -122,3 +122,15 @@ TEST_CASE("Detect unknown subcommand" * test_suite("error_reporting")) {
                            std::runtime_error);
   }
 }
+
+TEST_CASE("Duplicate argument" * test_suite("error_reporting")) {
+  argparse::ArgumentParser program("program");
+  program.add_argument("-a");
+  program.add_argument("-h"); // redefining default arguments is allowed
+  program.add_argument("--help"); // redefining default arguments is allowed
+  program.add_argument("-v"); // redefining default arguments is allowed
+  program.add_argument("--version"); // redefining default arguments is allowed
+  REQUIRE_THROWS_WITH_AS(program.add_argument("-a"),
+                         "Argument with name -a already registered",
+                         std::runtime_error);
+}
