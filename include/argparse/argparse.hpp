@@ -606,7 +606,7 @@ class Argument {
       : m_accepts_optional_like_value(false),
         m_is_optional((is_optional(a[I], prefix_chars) || ...)),
         m_is_required(false), m_is_repeatable(false), m_is_used(false),
-        m_prefix_chars(prefix_chars) {
+        m_is_hidden(false), m_prefix_chars(prefix_chars) {
     ((void)m_names.emplace_back(a[I]), ...);
     std::sort(
         m_names.begin(), m_names.end(), [](const auto &lhs, const auto &rhs) {
@@ -742,6 +742,12 @@ public:
 
   auto &append() {
     m_is_repeatable = true;
+    return *this;
+  }
+
+  // Cause the argument to be invisible in usage and help
+  auto &hidden() {
+    m_is_hidden = true;
     return *this;
   }
 
@@ -1531,6 +1537,7 @@ private:
   bool m_is_required : 1;
   bool m_is_repeatable : 1;
   bool m_is_used : 1;
+  bool m_is_hidden : 1;            // if set, does not appear in usage or help
   std::string_view m_prefix_chars; // ArgumentParser has the prefix_chars
   int m_usage_newline_counter = 0;
   std::size_t m_group_idx = 0;
@@ -1910,22 +1917,30 @@ public:
       stream << parser.m_description << "\n\n";
     }
 
-    if (!parser.m_positional_arguments.empty()) {
+    const bool has_visible_positional_args = std::find_if(
+      parser.m_positional_arguments.begin(),
+      parser.m_positional_arguments.end(),
+      [](const auto &argument) {
+      return !argument.m_is_hidden; }) !=
+      parser.m_positional_arguments.end();
+    if (has_visible_positional_args) {
       stream << "Positional arguments:\n";
     }
 
     for (const auto &argument : parser.m_positional_arguments) {
-      stream.width(static_cast<std::streamsize>(longest_arg_length));
-      stream << argument;
+      if (!argument.m_is_hidden) {
+        stream.width(static_cast<std::streamsize>(longest_arg_length));
+        stream << argument;
+      }
     }
 
     if (!parser.m_optional_arguments.empty()) {
-      stream << (parser.m_positional_arguments.empty() ? "" : "\n")
+      stream << (!has_visible_positional_args ? "" : "\n")
              << "Optional arguments:\n";
     }
 
     for (const auto &argument : parser.m_optional_arguments) {
-      if (argument.m_group_idx == 0) {
+      if (argument.m_group_idx == 0 && !argument.m_is_hidden) {
         stream.width(static_cast<std::streamsize>(longest_arg_length));
         stream << argument;
       }
@@ -1934,7 +1949,7 @@ public:
     for (size_t i_group = 0; i_group < parser.m_group_names.size(); ++i_group) {
       stream << "\n" << parser.m_group_names[i_group] << " (detailed usage):\n";
       for (const auto &argument : parser.m_optional_arguments) {
-        if (argument.m_group_idx == i_group + 1) {
+        if (argument.m_group_idx == i_group + 1 && !argument.m_is_hidden) {
           stream.width(static_cast<std::streamsize>(longest_arg_length));
           stream << argument;
         }
@@ -2006,6 +2021,9 @@ public:
       const MutuallyExclusiveGroup *cur_mutex = nullptr;
       int usage_newline_counter = -1;
       for (const auto &argument : this->m_optional_arguments) {
+        if (argument.m_is_hidden) {
+          continue;
+        }
         if (multiline_usage) {
           if (argument.m_group_idx != group_idx) {
             continue;
@@ -2078,6 +2096,9 @@ public:
     }
     // Put positional arguments after the optionals
     for (const auto &argument : this->m_positional_arguments) {
+      if (argument.m_is_hidden) {
+        continue;
+      }
       const std::string pos_arg = !argument.m_metavar.empty()
                                       ? argument.m_metavar
                                       : argument.m_names.front();

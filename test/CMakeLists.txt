@@ -37,6 +37,8 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_error_reporting.cpp
     test_get.cpp
     test_help.cpp
+    test_hidden_alias.cpp
+    test_hidden_argument.cpp
     test_invalid_arguments.cpp
     test_is_used.cpp
     test_issue_37.cpp
@@ -56,7 +58,6 @@ file(GLOB ARGPARSE_TEST_SOURCES
     test_parse_known_args.cpp
     test_equals_form.cpp
     test_prefix_chars.cpp
-    test_hidden_alias.cpp
 )
 set_source_files_properties(main.cpp
     PROPERTIES

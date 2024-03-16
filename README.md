@@ -39,7 +39,7 @@
      *    [Parent Parsers](#parent-parsers)
      *    [Subcommands](#subcommands)
      *    [Parse Known Args](#parse-known-args)
-     *    [Hidden alias](#hidden-alias)
+     *    [Hidden argument and alias](#hidden-argument-alias)
      *    [ArgumentParser in bool Context](#argumentparser-in-bool-context)
      *    [Custom Prefix Characters](#custom-prefix-characters)
      *    [Custom Assignment Characters](#custom-assignment-characters)
@@ -1003,7 +1003,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-### Hidden alias
+### Hidden argument and alias
 
 It is sometimes desirable to offer an alias for an argument, but without it
 appearing it in the usage. For example, to phase out a deprecated wording of
@@ -1016,6 +1016,18 @@ argparse::ArgumentParser program("test");
 auto &arg = program.add_argument("--suppress").flag();
 program.add_hidden_alias_for(arg, "--supress"); // old misspelled alias
 ```
+
+The ``Argument::hidden()`` method can also be used to prevent a (generally
+optional) argument from appearing in the usage or help.
+
+```cpp
+argparse::ArgumentParser program("test");
+
+program.add_argument("--non-documented").flag().hidden();
+```
+
+This can also be used on positional arguments, but in that later case it only
+makes sense in practice for the last ones.
 
 ### ArgumentParser in bool Context
 
