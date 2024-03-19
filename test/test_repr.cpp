@@ -4,7 +4,7 @@ import argparse.details;
 #else
 #include <argparse/argparse.hpp>
 #endif
-#include <doctest.hpp>
+#include "doctest.hpp"
 
 #include <list>
 #include <set>
