@@ -254,3 +254,12 @@ TEST_CASE("multiline usage, single arg that is larger than the max width") {
         "Usage: program [--help] [--version]\n"
         "               [--lots-of-choices <veeeeeeeeeeeeeeeeeeeeeeeeeeery_long|veeeeeeeeeeeeeeeeeeeery_long2>]");
 }
+
+TEST_CASE("Usage output with subparser") {
+    argparse::ArgumentParser program("program");
+    argparse::ArgumentParser sub("sub");
+    program.add_subparser(sub);
+    // std::cout << "DEBUG:" << program.usage() << std::endl;
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] {sub}");
+    REQUIRE(sub.usage() == "Usage: program sub [--help] [--version]");
+}
