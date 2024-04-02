@@ -264,3 +264,40 @@ TEST_CASE("Square a number" * test_suite("positional_arguments")) {
   program.parse_args({"./main", "15"});
   REQUIRE(program.get<double>("square") == 225);
 }
+
+TEST_CASE("At_least_one_followed_by_exactly_one" * test_suite("positional_arguments")) {
+  GIVEN("a program that accepts a positional argument with at_least_one cardinality followed by another positional argument with 1:1") {
+    argparse::ArgumentParser program;
+
+    std::vector<std::string> at_least_one;
+    program.add_argument("at_least_one")
+      .nargs(argparse::nargs_pattern::at_least_one)
+      .store_into(at_least_one);
+
+    std::string exactly_one;
+    program.add_argument("exactly_one")
+      .store_into(exactly_one);
+
+    WHEN("provided one, two") {
+      THEN("parse_args works") {
+          program.parse_args({"./main", "one", "two"});
+          REQUIRE(at_least_one == std::vector<std::string>{"one"});
+          REQUIRE(exactly_one == "two");
+      }
+    }
+
+    WHEN("provided one, two, three") {
+      THEN("parse_args works") {
+          program.parse_args({"./main", "one", "two", "three"});
+          REQUIRE(at_least_one == std::vector<std::string>{"one", "two"});
+          REQUIRE(exactly_one == "three");
+      }
+    }
+
+    WHEN("provided one, two") {
+      THEN("parse_args throws") {
+          REQUIRE_THROWS(program.parse_args({"./main", "one"}));
+      }
+    }
+  }
+}
