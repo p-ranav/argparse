@@ -159,3 +159,46 @@ TEST_CASE("Test store_into(vector of string), default value, multi valued, speci
   program.parse_args({"./test.exe", "--strvector-opt", "foo", "bar"});
   REQUIRE(res == std::vector<std::string>{"foo", "bar"});
 }
+
+TEST_CASE("Test store_into(vector of int), no default value, non specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  std::vector<int> res;
+  program.add_argument("--intvector-opt").append().store_into(res);
+
+  program.parse_args({"./test.exe"});
+  REQUIRE(res == std::vector<int>{});
+}
+
+TEST_CASE("Test store_into(vector of int), default value, non specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  std::vector<int> res;
+  program.add_argument("--intvector-opt").append().default_value(
+      std::vector<int>{1, 2}).store_into(res);
+
+  program.parse_args({"./test.exe"});
+  REQUIRE(res == std::vector<int>{1, 2});
+}
+
+TEST_CASE("Test store_into(vector of int), default value, specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  std::vector<int> res;
+  program.add_argument("--intvector-opt").append().default_value(
+      std::vector<int>{1, 2}).store_into(res);
+
+  program.parse_args({"./test.exe", "--intvector-opt", "3", "--intvector-opt", "4"});
+  REQUIRE(res == std::vector<int>{3, 4});
+}
+
+TEST_CASE("Test store_into(vector of int), default value, multi valued, specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  std::vector<int> res;
+  program.add_argument("--intvector-opt").nargs(2).default_value(
+      std::vector<int>{1, 2}).store_into(res);
+
+  program.parse_args({"./test.exe", "--intvector-opt", "3", "4"});
+  REQUIRE(res == std::vector<int>{3, 4});
+}
