@@ -324,8 +324,9 @@ It is possible to bind arguments to a variable storing their value, as an
 alternative to explicitly calling ``program.get<T>(arg_name)`` or ``program[arg_name]``
 
 This is currently implementeted for variables of type ``bool`` (this also
-implicitly calls ``flag()``), ``int``, ``double``, ``std::string`` and
-``std::vector<std::string>``. If the argument is not specified in the command
+implicitly calls ``flag()``), ``int``, ``double``, ``std::string``,
+``std::vector<std::string>`` and ``std::vector<int>``.
+If the argument is not specified in the command
 line, the default value (if set) is set into the variable.
 
 ```cpp
@@ -346,6 +347,12 @@ program.add_argument("--strvar-repeated").append().store_into(strvar_repeated);
 
 std::vector<std::string> strvar_multi_valued;
 program.add_argument("--strvar-multi-valued").nargs(2).store_into(strvar_multi_valued);
+
+std::vector<int> intvar_repeated;
+program.add_argument("--intvar-repeated").append().store_into(intvar_repeated);
+
+std::vector<int> intvar_multi_valued;
+program.add_argument("--intvar-multi-valued").nargs(2).store_into(intvar_multi_valued);
 ```
 
 ### Negative Numbers
