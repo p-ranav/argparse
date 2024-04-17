@@ -698,9 +698,10 @@ public:
     return *this;
   }
 
-  auto &store_into(int &var) {
+  template <typename T, typename std::enable_if<std::is_integral<T>::value>::type * = nullptr>
+  auto &store_into(T &var) {
     if (m_default_value.has_value()) {
-      var = std::any_cast<int>(m_default_value);
+      var = std::any_cast<T>(m_default_value);
     }
     action([&var](const auto &s) {
       var = details::parse_number<int, details::radix_10>()(s);
