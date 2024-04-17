@@ -704,7 +704,7 @@ public:
       var = std::any_cast<T>(m_default_value);
     }
     action([&var](const auto &s) {
-      var = details::parse_number<int, details::radix_10>()(s);
+      var = details::parse_number<T, details::radix_10>()(s);
     });
     return *this;
   }
