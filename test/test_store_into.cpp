@@ -85,7 +85,7 @@ TEST_CASE("Test store_into(uint8_t), default value, non specified" *
 TEST_CASE("Test store_into(uint8_t), default value, specified" *
           test_suite("store_into")) {
   argparse::ArgumentParser program("test");
-  uint8_t res = -1;
+  uint8_t res = 55;
   program.add_argument("--int-opt").default_value((uint8_t)3).store_into(res);
 
   program.parse_args({"./test.exe", "--int-opt", "5"});
