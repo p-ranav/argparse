@@ -3,6 +3,7 @@ import argparse;
 #else
 #include <argparse/argparse.hpp>
 #endif
+#include <cstdint>
 #include <doctest.hpp>
 
 using doctest::test_suite;
