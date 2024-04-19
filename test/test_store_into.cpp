@@ -3,6 +3,7 @@ import argparse;
 #else
 #include <argparse/argparse.hpp>
 #endif
+#include <cstdint>
 #include <doctest.hpp>
 
 using doctest::test_suite;
@@ -26,6 +27,8 @@ TEST_CASE("Test store_into(bool), flag specified" *
   program.parse_args({"./test.exe", "--flag"});
   REQUIRE(flag == true);
 }
+
+// int cases
 
 TEST_CASE("Test store_into(int), no default value, non specified" *
           test_suite("store_into")) {
@@ -56,6 +59,40 @@ TEST_CASE("Test store_into(int), default value, specified" *
   program.parse_args({"./test.exe", "--int-opt", "5"});
   REQUIRE(res == 5);
 }
+
+// integral cases
+
+TEST_CASE("Test store_into(uint8_t), no default value, non specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint8_t res = 55;
+  program.add_argument("--int-opt").store_into(res);
+
+  program.parse_args({"./test.exe"});
+  REQUIRE(res == 55);
+}
+
+TEST_CASE("Test store_into(uint8_t), default value, non specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint8_t res = 55;
+  program.add_argument("--int-opt").default_value((uint8_t)3).store_into(res);
+
+  program.parse_args({"./test.exe"});
+  REQUIRE(res == 3);
+}
+
+TEST_CASE("Test store_into(uint8_t), default value, specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint8_t res = 55;
+  program.add_argument("--int-opt").default_value((uint8_t)3).store_into(res);
+
+  program.parse_args({"./test.exe", "--int-opt", "5"});
+  REQUIRE(res == 5);
+}
+
+// Double cases
 
 TEST_CASE("Test store_into(double), no default value, non specified" *
           test_suite("store_into")) {
