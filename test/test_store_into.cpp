@@ -239,3 +239,50 @@ TEST_CASE("Test store_into(vector of int), default value, multi valued, specifie
   program.parse_args({"./test.exe", "--intvector-opt", "3", "4"});
   REQUIRE(res == std::vector<int>{3, 4});
 }
+
+TEST_CASE("Test store_into(set of int), default value, multi valued, specified" *
+          test_suite("store_into")) {
+
+  {
+    argparse::ArgumentParser program("test");
+    std::set<int> res;
+    program.add_argument("--intset-opt").nargs(2).default_value(
+                                                        std::set<int>{1, 2}).store_into(res);
+
+    program.parse_args({"./test.exe", "--intset-opt", "3", "4"});
+    REQUIRE(res == std::set<int>{3, 4});
+  }
+
+  {
+    argparse::ArgumentParser program("test");
+    std::set<int> res;
+    program.add_argument("--intset-opt").nargs(2).default_value(
+                                                     std::set<int>{1, 2}).store_into(res);
+    program.parse_args({"./test.exe"});
+    REQUIRE(res == std::set<int>{1, 2});
+  }
+}
+
+TEST_CASE("Test store_into(set of string), default value, multi valued, specified" *
+          test_suite("store_into")) {
+
+  {
+    argparse::ArgumentParser program("test");
+    std::set<std::string> res;
+    program.add_argument("--stringset-opt").nargs(2).default_value(
+                                                        std::set<std::string>{"1", "2"}).store_into(res);
+
+    program.parse_args({"./test.exe", "--stringset-opt", "3", "4"});
+    REQUIRE(res == std::set<std::string>{"3", "4"});
+  }
+
+  {
+    argparse::ArgumentParser program("test");
+    std::set<std::string> res;
+    program.add_argument("--stringset-opt").nargs(2).default_value(
+                                                        std::set<std::string>{"1", "2"}).store_into(res);
+    program.parse_args({"./test.exe"});
+    REQUIRE(res == std::set<std::string>{"1", "2"});
+  }
+}
+
