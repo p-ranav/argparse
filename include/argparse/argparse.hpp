@@ -1186,6 +1186,19 @@ public:
         stream << " ";
       }
       stream << "[may be repeated]";
+      add_space = true;
+    }
+    if (argument.m_choices.has_value()) {
+      if (add_space) {
+        stream << " ";
+      }
+      const auto &choices = argument.m_choices.value();
+      std::string choices_as_csv =
+          std::accumulate(choices.begin(), choices.end(), std::string(),
+                          [](const std::string &a, const std::string &b) {
+                            return a + (a.empty() ? "" : ", ") + b;
+                          });
+      stream << "[allowed: " << choices_as_csv << "]";
     }
     stream << "\n";
     return stream;

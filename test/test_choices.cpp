@@ -155,3 +155,16 @@ TEST_CASE("Parse multiple arguments that are not in fixed number of allowed "
       "Invalid argument \"6\" - allowed options: {1, 2, 3, 4, 5}",
       std::runtime_error);
 }
+
+TEST_CASE("Show allowed choices in help test") {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--color").choices("red", "green", "blue");
+  program.add_argument("--index").choices(1, 2, 3);
+
+  auto help_output = program.help().str();
+
+  REQUIRE(help_output.find(std::string{"[allowed: red, green, blue]"}) !=
+          std::string::npos);
+  REQUIRE(help_output.find(std::string{"[allowed: 1, 2, 3]"}) !=
+          std::string::npos);
+}
