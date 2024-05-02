@@ -1485,6 +1485,14 @@ private:
       }
     }
     if (m_default_value.has_value()) {
+      if (m_default_value_str.has_value()) {
+        if (!m_implicit_value.has_value()) {
+          if (std::holds_alternative<valued_action>(m_action)) {
+            return std::any_cast<T>(
+                std::get<valued_action>(m_action)(*m_default_value_str));
+          }
+        }
+      }
       return std::any_cast<T>(m_default_value);
     }
     if constexpr (details::IsContainer<T>) {
