@@ -1,0 +1,23 @@
+cc_library(
+    name = "doctest",
+    srcs = [
+        "main.cpp",
+    ],
+    hdrs = ["doctest.hpp"],
+    includes = ["."],
+    local_defines = [
+        "DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN",
+    ],
+)
+
+cc_test(
+    name = "test",
+    srcs = glob(["test_*.cpp"]) + [
+        "test_utility.hpp",
+    ],
+    includes = ["."],
+    deps = [
+        ":doctest",
+        "//:argparse",
+    ],
+)

@@ -1,0 +1,31 @@
+load(":add_sample.bzl", "add_sample")
+
+add_sample(name = "positional_argument")
+
+add_sample(name = "optional_flag_argument")
+
+add_sample(name = "required_optional_argument")
+
+add_sample(name = "is_used")
+
+add_sample(name = "joining_repeated_optional_arguments")
+
+add_sample(name = "repeating_argument_to_increase_value")
+
+add_sample(name = "negative_numbers")
+
+add_sample(name = "description_epilog_metavar")
+
+add_sample(name = "list_of_arguments")
+
+add_sample(name = "compound_arguments")
+
+add_sample(name = "gathering_remaining_arguments")
+
+add_sample(name = "subcommands")
+
+add_sample(name = "parse_known_args")
+
+add_sample(name = "custom_prefix_characters")
+
+add_sample(name = "custom_assignment_characters")

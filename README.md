@@ -1391,6 +1391,19 @@ add_executable(myproject main.cpp)
 target_link_libraries(myproject argparse)
 ```
 
+## Bazel Integration
+
+Add an `http_archive` in WORKSPACE.bazel, for example
+
+```starlark
+http_archive(
+    name = "argparse",
+    sha256 = "674e724c2702f0bfef1619161815257a407e1babce30d908327729fba6ce4124",
+    strip_prefix = "argparse-3.0",
+    url = "https://github.com/p-ranav/argparse/archive/refs/tags/v3.0.zip",
+)
+```
+
 ## Building, Installing, and Testing
 
 ```bash
