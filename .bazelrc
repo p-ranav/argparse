@@ -1,0 +1,8 @@
+build --enable_platform_specific_config
+
+build:linux --cxxopt=-std=c++17
+
+build:windows --copt=/utf-8
+build:windows --copt=/Zc:preprocessor
+build:windows --cxxopt=/std:c++17
+build:windows --cxxopt=/Zc:__cplusplus
