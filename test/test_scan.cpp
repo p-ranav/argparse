@@ -426,3 +426,50 @@ TEST_CASE_TEMPLATE("Parse floating-point argument of fixed format" *
                       std::invalid_argument);
   }
 }
+
+TEST_CASE("Test that scan also works with a custom action" *
+          test_suite("scan")) {
+
+  GIVEN("an argument with scan followed by a custom action") {
+    argparse::ArgumentParser program("test");
+    int res;
+    program.add_argument("--int").scan<'i', int>().action([&](const auto &s) {res = std::stoi(s);});
+
+    WHEN("the argument is parsed") {
+
+      SUBCASE("with a valid value") {
+        program.parse_args({"./test.exe", "--int", "3"});
+        THEN("the value is stored") {
+          REQUIRE(res == 3);
+        }
+      }
+
+      SUBCASE("with an invalid value") {
+        REQUIRE_THROWS_AS(program.parse_args({"./test.exe", "--int", "XXX"}),
+                          std::invalid_argument);
+      }
+    }
+  }
+
+  GIVEN("an argument with a custom action followed by scan") {
+    argparse::ArgumentParser program("test");
+    int res;
+    program.add_argument("--int").action([&](const auto &s) {res = std::stoi(s);}).scan<'i', int>();
+
+    WHEN("the argument is parsed") {
+
+      SUBCASE("with a valid value") {
+        program.parse_args({"./test.exe", "--int", "3"});
+        THEN("the value is stored") {
+          REQUIRE(res == 3);
+        }
+      }
+
+      SUBCASE("with an invalid value") {
+        REQUIRE_THROWS_AS(program.parse_args({"./test.exe", "--int", "XXX"}),
+                          std::invalid_argument);
+      }
+    }
+  }
+
+}
