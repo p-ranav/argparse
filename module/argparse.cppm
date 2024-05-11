@@ -42,7 +42,10 @@ import std;
 import std.compat;
 
 extern "C++" {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winclude-angled-in-module-purview"
 #include <argparse/argparse.hpp>
+#pragma clang diagnostic pop
 }
 #endif
 
