@@ -1831,9 +1831,9 @@ public:
         for (Argument *arg : group.m_elements) {
           if (i + 1 == size) {
             // last
-            argument_names += "'" + arg->get_usage_full() + "' ";
+            argument_names += std::string("'") + arg->get_usage_full() + std::string("' ");
           } else {
-            argument_names += "'" + arg->get_usage_full() + "' or ";
+            argument_names += std::string("'") + arg->get_usage_full() + std::string("' or ");
           }
           i += 1;
         }
