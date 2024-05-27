@@ -17,6 +17,15 @@ TEST_CASE("Missing argument" * test_suite("parse_args")) {
                          std::runtime_error);
 }
 
+TEST_CASE("Missing argument, not last" * test_suite("parse_args")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--config").nargs(1);
+  program.add_argument("--foo");
+  REQUIRE_THROWS_WITH_AS(program.parse_args({"test", "--config", "--foo"}),
+                         "Too few arguments for '--config'.",
+                         std::runtime_error);
+}
+
 TEST_CASE("Parse a string argument with value" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");
   program.add_argument("--config");
