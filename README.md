@@ -799,8 +799,8 @@ A parser may use arguments that could be used by other parsers.
 These shared arguments can be added to a parser which is then used as a "parent" for parsers which also need those arguments. One or more parent parsers may be added to a parser with `.add_parents`. The positional and optional arguments in each parent is added to the child parser.
 
 ```cpp
-argparse::ArgumentParser surface_parser("surface", 1.0, argparse::default_arguments::none);
-parent_parser.add_argument("--area")
+argparse::ArgumentParser surface_parser("surface", "1.0", argparse::default_arguments::none);
+surface_parser.add_argument("--area")
   .default_value(0)
   .scan<'i', int>();
 
