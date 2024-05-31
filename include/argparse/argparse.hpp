@@ -1540,8 +1540,9 @@ private:
     }
     if constexpr (details::IsContainer<T>) {
       return any_cast_container<T>(m_values);
+    } else {
+      return std::any_cast<T>(m_values.front());
     }
-    return std::any_cast<T>(m_values.front());
   }
 
   template <typename T>

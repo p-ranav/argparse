@@ -264,6 +264,9 @@ __pycache__/
 # CMake build directory
 build
 
+# CMake Testing directory
+Testing
+
 # Cppcheck build directory
 analysis-cppcheck-build-dir
 
