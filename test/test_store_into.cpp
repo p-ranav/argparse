@@ -286,3 +286,11 @@ TEST_CASE("Test store_into(set of string), default value, multi valued, specifie
   }
 }
 
+TEST_CASE("Test store_into other types with integer default" * test_suite("store_into"))
+{
+  argparse::ArgumentParser program("test");
+  double res = -1;
+  REQUIRE_NOTHROW(program.add_argument("--double-opt").default_value(3).store_into(res));
+  uint8_t u = 25;
+  REQUIRE_NOTHROW(program.add_argument("--uint8_t-opt").default_value(3).store_into(u));
+}
