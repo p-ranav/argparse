@@ -902,7 +902,7 @@ Subcommands:
   submodule     Initialize, update or inspect submodules
 
 foo@bar:/home/dev/$ ./git add --help
-Usage: add [-h] files
+Usage: git add [-h] files
 
 Add file contents to the index
 
@@ -914,7 +914,7 @@ Optional arguments:
   -v, --version	prints version information and exits
 
 foo@bar:/home/dev/$ ./git commit --help
-Usage: commit [-h] [--all] [--message VAR]
+Usage: git commit [-h] [--all] [--message VAR]
 
 Record changes to the repository
 
@@ -925,7 +925,7 @@ Optional arguments:
   -m, --message	Use the given <msg> as the commit message.
 
 foo@bar:/home/dev/$ ./git submodule --help
-Usage: submodule [-h] {update}
+Usage: git submodule [-h] {update}
 
 Initialize, update or inspect submodules
 
@@ -964,7 +964,7 @@ Optional arguments:
   -v, --version prints version information and exits
 
 foo@bar:/home/dev/$ ./main hidden -h
-Usage: hidden [--help] [--version] files
+Usage: test hidden [--help] [--version] files
 
 Positional arguments:
   files         [nargs: 0 or more]
