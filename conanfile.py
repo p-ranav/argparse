@@ -2,7 +2,7 @@ from conans import ConanFile
 
 class ArgparseConan(ConanFile):
     name = "argparse"
-    version = "3.0"
+    version = "3.1"
     exports_sources = "include/argparse.hpp"
     no_copy_source = True
 

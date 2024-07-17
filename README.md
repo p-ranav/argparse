@@ -6,7 +6,7 @@
   <a href="https://github.com/p-ranav/argparse/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license"/>
   </a>
-  <img src="https://img.shields.io/badge/version-3.0-blue.svg?cacheSeconds=2592000" alt="version"/>
+  <img src="https://img.shields.io/badge/version-3.1-blue.svg?cacheSeconds=2592000" alt="version"/>
 </p>
 
 ## Highlights
@@ -1399,8 +1399,8 @@ Add an `http_archive` in WORKSPACE.bazel, for example
 http_archive(
     name = "argparse",
     sha256 = "674e724c2702f0bfef1619161815257a407e1babce30d908327729fba6ce4124",
-    strip_prefix = "argparse-3.0",
-    url = "https://github.com/p-ranav/argparse/archive/refs/tags/v3.0.zip",
+    strip_prefix = "argparse-3.1",
+    url = "https://github.com/p-ranav/argparse/archive/refs/tags/v3.1.zip",
 )
 ```
 
