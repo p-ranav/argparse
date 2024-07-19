@@ -55,7 +55,7 @@ if(ARGPARSE_INSTALL)
   endif()
 
   write_basic_package_version_file("${CMAKE_CONFIG_VERSION_FILE_NAME}"
-      COMPATIBILITY ExactVersion
+      COMPATIBILITY SameMajorVersion
       ${OPTIONAL_ARCH_INDEPENDENT}
   )
 
