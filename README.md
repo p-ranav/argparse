@@ -38,6 +38,7 @@
      *    [Gathering Remaining Arguments](#gathering-remaining-arguments)
      *    [Parent Parsers](#parent-parsers)
      *    [Subcommands](#subcommands)
+     *    [Getting Argument and Subparser Instances](#getting-argument-and-subparser-instances)
      *    [Parse Known Args](#parse-known-args)
      *    [Hidden argument and alias](#hidden-argument-alias)
      *    [ArgumentParser in bool Context](#argumentparser-in-bool-context)
