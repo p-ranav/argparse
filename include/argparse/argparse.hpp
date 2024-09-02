@@ -550,7 +550,7 @@ std::size_t get_levenshtein_distance(const StringType &s1,
       } else if (s1[i - 1] == s2[j - 1]) {
         dp[i][j] = dp[i - 1][j - 1];
       } else {
-        dp[i][j] = 1 + std::min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
+        dp[i][j] = 1 + std::min<std::size_t>({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
       }
     }
   }
@@ -562,7 +562,7 @@ template <typename ValueType>
 std::string get_most_similar_string(const std::map<std::string, ValueType> &map,
                                     const std::string &input) {
   std::string most_similar{};
-  std::size_t min_distance = std::numeric_limits<std::size_t>::max();
+  std::size_t min_distance = (std::numeric_limits<std::size_t>::max)();
 
   for (const auto &entry : map) {
     std::size_t distance = get_levenshtein_distance(entry.first, input);
@@ -2057,7 +2057,7 @@ public:
     std::string curline("Usage: ");
     curline += this->m_program_name;
     const bool multiline_usage =
-        this->m_usage_max_line_width < std::numeric_limits<std::size_t>::max();
+        this->m_usage_max_line_width < (std::numeric_limits<std::size_t>::max)();
     const size_t indent_size = curline.size();
 
     const auto deal_with_options_of_group = [&](std::size_t group_idx) {
@@ -2534,7 +2534,7 @@ protected:
   std::map<std::string, bool> m_subparser_used;
   std::vector<MutuallyExclusiveGroup> m_mutually_exclusive_groups;
   bool m_suppress = false;
-  std::size_t m_usage_max_line_width = std::numeric_limits<std::size_t>::max();
+  std::size_t m_usage_max_line_width = (std::numeric_limits<std::size_t>::max)();
   bool m_usage_break_on_mutex = false;
   int m_usage_newline_counter = 0;
   std::vector<std::string> m_group_names;
