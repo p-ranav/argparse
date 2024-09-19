@@ -691,7 +691,9 @@ public:
   }
 
   auto &store_into(bool &var) {
-    flag();
+    if ((!m_default_value.has_value()) && (!m_implicit_value.has_value())) {
+      flag();
+    }
     if (m_default_value.has_value()) {
       var = std::any_cast<bool>(m_default_value);
     }
