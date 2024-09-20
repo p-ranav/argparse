@@ -155,3 +155,51 @@ TEST_CASE("Parse multiple arguments that are not in fixed number of allowed "
       "Invalid argument \"6\" - allowed options: {1, 2, 3, 4, 5}",
       std::runtime_error);
 }
+
+TEST_CASE("Parse multiple arguments that are in range of allowed "
+          "INTEGER choices (Min Range case)" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("indices").nargs(1, 3).choices(1, 2, 3, 4, 5);
+
+  REQUIRE_NOTHROW(program.parse_args({"test", "1"}));
+  REQUIRE(program.get<std::vector<std::string>>("indices") ==
+          std::vector<std::string>{"1"});
+}
+
+TEST_CASE("Parse multiple arguments that are in range of allowed choices (In "
+          "Range case)" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--foo");
+  program.add_argument("--bar").nargs(1, 3).choices("a", "b", "c");
+
+  REQUIRE_NOTHROW(
+      program.parse_args({"test", "--bar", "a", "b", "--foo", "x"}));
+  REQUIRE(program.get<std::vector<std::string>>("--bar") ==
+          std::vector<std::string>{"a", "b"});
+  REQUIRE(program.get<std::string>("--foo") == "x");
+}
+
+TEST_CASE("Parse multiple arguments that are in range of allowed "
+          "INTEGER choices (Max Range case)" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("indices").nargs(2, 3).choices(1, 2, 3, 4, 5);
+
+  REQUIRE_NOTHROW(program.parse_args({"test", "3", "4", "5"}));
+  REQUIRE(program.get<std::vector<std::string>>("indices") ==
+          std::vector<std::string>{"3", "4", "5"});
+}
+
+TEST_CASE("Parse multiple arguments that are not in range of allowed choices" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--foo");
+  program.add_argument("--bar").nargs(1, 3).choices("a", "b", "c");
+
+  REQUIRE_THROWS_WITH_AS(
+      program.parse_args({"test", "--bar", "d", "--foo", "x"}),
+      "Invalid argument \"d\" - allowed options: {a, b, c}",
+      std::runtime_error);
+}
