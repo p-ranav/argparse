@@ -280,3 +280,29 @@ TEST_CASE("Check set_suppress" * test_suite("subparsers")) {
     REQUIRE(contains(program.help().str(), "command_2") == true);
   }
 }
+
+
+TEST_CASE("Help of subparsers" * test_suite("subparsers")) {
+  argparse::ArgumentParser program("test");
+
+  argparse::ArgumentParser command_1("add", "1.0", argparse::default_arguments::version);
+
+  std::stringstream buffer;
+  command_1.add_argument("--help")
+      .action([&](const auto &) { buffer << command_1; })
+      .default_value(false)
+      .implicit_value(true)
+      .nargs(0);
+
+  program.add_subparser(command_1);
+
+  REQUIRE(command_1.usage() == "Usage: test add [--version] [--help]");
+
+  REQUIRE(buffer.str().empty());
+  program.parse_args({"test", "add", "--help"});
+  REQUIRE(buffer.str() == "Usage: test add [--version] [--help]\n"
+                          "\n"
+                          "Optional arguments:\n"
+                          "  -v, --version  prints version information and exits \n"
+                          "  --help         \n");
+}
