@@ -175,3 +175,28 @@ TEST_CASE("Users can run actions on parameterless optional arguments" *
     }
   }
 }
+
+TEST_CASE("Users can add multiple actions and they are all run" *
+          test_suite("actions")) {
+  argparse::ArgumentParser program("test");
+
+  GIVEN("a flag argument with two counting actions") {
+    int count = 0;
+    program.add_argument("-V", "--verbose")
+        .action([&](const auto &) { ++count; })
+        .action([&](const auto &) { ++count; })
+        .append()
+        .default_value(false)
+        .implicit_value(true)
+        .nargs(0);
+
+    WHEN("the flag is parsed") {
+      program.parse_args({"test", "-V"});
+
+      THEN("the count increments twice") {
+        REQUIRE(program.get<bool>("-V"));
+        REQUIRE(count == 2);
+      }
+    }
+  }
+}

@@ -286,3 +286,38 @@ TEST_CASE("Test store_into(set of string), default value, multi valued, specifie
   }
 }
 
+TEST_CASE("Test store_into(int) still works with a custom action" *
+          test_suite("store_into")) {
+
+  GIVEN("an argument with store_into followed by a custom action ") {
+    argparse::ArgumentParser program("test");
+    int res;
+    std::string string_res;
+    program.add_argument("--int").store_into(res).action([&](const auto &s) {string_res.append(s);});
+
+    WHEN("the argument is parsed") {
+    program.parse_args({"./test.exe", "--int", "3"});
+      THEN("the value is stored and the action was executed") {
+        REQUIRE(res == 3);
+        REQUIRE(string_res == "3");
+      }
+    }
+  }
+
+  GIVEN("an argument with a custom action followed by store_into")
+  {
+    argparse::ArgumentParser program("test");
+    int res;
+    std::string string_res;
+    program.add_argument("--int").action([&](const auto &s) {string_res.append(s);}).store_into(res);
+
+    WHEN("the argument is parsed") {
+    program.parse_args({"./test.exe", "--int", "3"});
+      THEN("the value is stored and the action was executed") {
+        REQUIRE(res == 3);
+        REQUIRE(string_res == "3");
+      }
+    }
+  }
+}
+
