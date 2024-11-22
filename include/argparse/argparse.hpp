@@ -57,6 +57,7 @@ SOFTWARE.
 #include <utility>
 #include <variant>
 #include <vector>
+#include <filesystem>
 #endif
 
 #ifndef ARGPARSE_CUSTOM_STRTOF
@@ -725,6 +726,14 @@ public:
   auto &store_into(std::string &var) {
     if (m_default_value.has_value()) {
       var = std::any_cast<std::string>(m_default_value);
+    }
+    action([&var](const std::string &s) { var = s; });
+    return *this;
+  }
+
+  auto &store_into(std::filesystem::path &var) {
+    if (m_default_value.has_value()) {
+      var = std::any_cast<std::filesystem::path>(m_default_value);
     }
     action([&var](const std::string &s) { var = s; });
     return *this;
