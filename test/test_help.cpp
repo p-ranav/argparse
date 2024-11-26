@@ -244,3 +244,12 @@ TEST_CASE("multiline usage, break on mutex") {
         "               [--will-go-on-new-line]\n"
         "               [--on-a-dedicated-line]");
 }
+
+TEST_CASE("Usage output with subparser") {
+    argparse::ArgumentParser program("program");
+    argparse::ArgumentParser sub("sub");
+    program.add_subparser(sub);
+    // std::cout << "DEBUG:" << program.usage() << std::endl;
+    REQUIRE(program.usage() == "Usage: program [--help] [--version] {sub}");
+    REQUIRE(sub.usage() == "Usage: program sub [--help] [--version]");
+}
