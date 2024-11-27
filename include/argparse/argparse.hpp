@@ -697,7 +697,10 @@ public:
     if (m_default_value.has_value()) {
       var = std::any_cast<bool>(m_default_value);
     }
-    action([&var](const auto & /*unused*/) { var = true; });
+    action([&var](const auto & /*unused*/) {
+      var = true;
+      return var;
+    });
     return *this;
   }
 
@@ -708,6 +711,7 @@ public:
     }
     action([&var](const auto &s) {
       var = details::parse_number<T, details::radix_10>()(s);
+      return var;
     });
     return *this;
   }
@@ -718,6 +722,7 @@ public:
     }
     action([&var](const auto &s) {
       var = details::parse_number<double, details::chars_format::general>()(s);
+      return var;
     });
     return *this;
   }
@@ -726,7 +731,10 @@ public:
     if (m_default_value.has_value()) {
       var = std::any_cast<std::string>(m_default_value);
     }
-    action([&var](const std::string &s) { var = s; });
+    action([&var](const std::string &s) {
+      var = s;
+      return var;
+    });
     return *this;
   }
 
@@ -740,6 +748,7 @@ public:
       }
       m_is_used = true;
       var.push_back(s);
+      return var;
     });
     return *this;
   }
@@ -754,6 +763,7 @@ public:
       }
       m_is_used = true;
       var.push_back(details::parse_number<int, details::radix_10>()(s));
+      return var;
     });
     return *this;
   }
@@ -768,6 +778,7 @@ public:
       }
       m_is_used = true;
       var.insert(s);
+      return var;
     });
     return *this;
   }
@@ -782,6 +793,7 @@ public:
       }
       m_is_used = true;
       var.insert(details::parse_number<int, details::radix_10>()(s));
+      return var;
     });
     return *this;
   }
