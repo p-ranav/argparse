@@ -1600,16 +1600,25 @@ private:
   std::size_t m_group_idx = 0;
 };
 
+struct ArgumentParserText {
+  std::string usage = "Usage";
+  std::string positional_arguments = "Positional arguments";
+  std::string optional_arguments = "Optional arguments";
+  std::string subcommands = "Subcommands";
+};
+
 class ArgumentParser {
 public:
   explicit ArgumentParser(std::string program_name = {},
                           std::string version = "1.0",
                           default_arguments add_args = default_arguments::all,
                           bool exit_on_default_arguments = true,
-                          std::ostream &os = std::cout)
+                          std::ostream &os = std::cout,
+                          ArgumentParserText text = {})
       : m_program_name(std::move(program_name)), m_version(std::move(version)),
         m_exit_on_default_arguments(exit_on_default_arguments),
-        m_parser_path(m_program_name) {
+        m_parser_path(m_program_name),
+        m_text(text) {
     if ((add_args & default_arguments::help) == default_arguments::help) {
       add_argument("-h", "--help")
           .action([&](const auto & /*unused*/) {
@@ -1981,7 +1990,7 @@ public:
       return !argument.m_is_hidden; }) !=
       parser.m_positional_arguments.end();
     if (has_visible_positional_args) {
-      stream << "Positional arguments:\n";
+      stream << parser.m_text.positional_arguments << ":\n";
     }
 
     for (const auto &argument : parser.m_positional_arguments) {
@@ -1993,7 +2002,7 @@ public:
 
     if (!parser.m_optional_arguments.empty()) {
       stream << (!has_visible_positional_args ? "" : "\n")
-             << "Optional arguments:\n";
+             << parser.m_text.optional_arguments << ":\n";
     }
 
     for (const auto &argument : parser.m_optional_arguments) {
@@ -2021,7 +2030,7 @@ public:
       stream << (parser.m_positional_arguments.empty()
                      ? (parser.m_optional_arguments.empty() ? "" : "\n")
                      : "\n")
-             << "Subcommands:\n";
+             << parser.m_text.subcommands << ":\n";
       for (const auto &[command, subparser] : parser.m_subparser_map) {
         if (subparser->get().m_suppress) {
           continue;
@@ -2066,7 +2075,7 @@ public:
   auto usage() const -> std::string {
     std::stringstream stream;
 
-    std::string curline("Usage: ");
+    std::string curline(this->m_text.usage + ": ");
     curline += this->m_parser_path;
     const bool multiline_usage =
         this->m_usage_max_line_width < (std::numeric_limits<std::size_t>::max)();
@@ -2550,6 +2559,7 @@ protected:
   bool m_usage_break_on_mutex = false;
   int m_usage_newline_counter = 0;
   std::vector<std::string> m_group_names;
+  ArgumentParserText m_text;
 };
 
 } // namespace argparse
