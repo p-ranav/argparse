@@ -679,9 +679,9 @@ public:
         std::is_void_v<std::invoke_result_t<F, Args..., std::string const>>,
         void_action, valued_action>;
     if constexpr (sizeof...(Args) == 0) {
-      m_action.emplace<action_type>(std::forward<F>(callable));
+      m_actions.emplace_back<action_type>(std::forward<F>(callable));
     } else {
-      m_action.emplace<action_type>(
+      m_actions.emplace_back<action_type>(
           [f = std::forward<F>(callable),
            tup = std::make_tuple(std::forward<Args>(bound_args)...)](
               std::string const &opt) mutable {
@@ -1014,7 +1014,12 @@ public:
     if (num_args_max == 0) {
       if (!dry_run) {
         m_values.emplace_back(m_implicit_value);
-        std::visit([](const auto &f) { f({}); }, m_action);
+        for(auto &action: m_actions) {
+          std::visit([&](const auto &f) { f({}); }, action);
+        }
+        if(m_actions.empty()){
+          std::visit([&](const auto &f) { f({}); }, m_default_action);
+        }
         m_is_used = true;
       }
       return start;
@@ -1054,7 +1059,12 @@ public:
         Argument &self;
       };
       if (!dry_run) {
-        std::visit(ActionApply{start, end, *this}, m_action);
+        for(auto &action: m_actions) {
+          std::visit(ActionApply{start, end, *this}, action);
+        }
+        if(m_actions.empty()){
+          std::visit(ActionApply{start, end, *this}, m_default_action);
+        }
         m_is_used = true;
       }
       return end;
@@ -1604,9 +1614,10 @@ private:
   std::optional<std::vector<std::string>> m_choices{std::nullopt};
   using valued_action = std::function<std::any(const std::string &)>;
   using void_action = std::function<void(const std::string &)>;
-  std::variant<valued_action, void_action> m_action{
-      std::in_place_type<valued_action>,
-      [](const std::string &value) { return value; }};
+  std::vector<std::variant<valued_action, void_action>> m_actions;
+  std::variant<valued_action, void_action> m_default_action{
+    std::in_place_type<valued_action>,
+    [](const std::string &value) { return value; }};
   std::vector<std::any> m_values;
   NArgsRange m_num_args_range{1, 1};
   // Bit field of bool values. Set default value in ctor.
