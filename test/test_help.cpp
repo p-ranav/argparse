@@ -244,3 +244,13 @@ TEST_CASE("multiline usage, break on mutex") {
         "               [--will-go-on-new-line]\n"
         "               [--on-a-dedicated-line]");
 }
+
+TEST_CASE("multiline usage, single arg that is larger than the max width") {
+    argparse::ArgumentParser program("program");
+    program.set_usage_max_line_width(80);
+    program.add_argument("--lots-of-choices").metavar("<veeeeeeeeeeeeeeeeeeeeeeeeeeery_long|veeeeeeeeeeeeeeeeeeeery_long2>");
+    // std::cout << "DEBUG:" << program.usage() << std::endl;
+    REQUIRE(program.usage() ==
+        "Usage: program [--help] [--version]\n"
+        "               [--lots-of-choices <veeeeeeeeeeeeeeeeeeeeeeeeeeery_long|veeeeeeeeeeeeeeeeeeeery_long2>]");
+}
