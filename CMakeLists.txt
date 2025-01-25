@@ -7,7 +7,7 @@ else()
 endif()
 
 project(argparse
-        VERSION 3.1.0 
+        VERSION 3.2.0 
         DESCRIPTION "A single header argument parser for C++17"
         HOMEPAGE_URL "https://github.com/p-ranav/argparse"
         LANGUAGES CXX
