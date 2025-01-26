@@ -717,12 +717,13 @@ public:
     return *this;
   }
 
-  auto &store_into(double &var) {
+  template <typename T, typename std::enable_if<std::is_floating_point<T>::value>::type * = nullptr>
+  auto &store_into(T &var) {
     if (m_default_value.has_value()) {
-      var = std::any_cast<double>(m_default_value);
+      var = std::any_cast<T>(m_default_value);
     }
     action([&var](const auto &s) {
-      var = details::parse_number<double, details::chars_format::general>()(s);
+      var = details::parse_number<T, details::chars_format::general>()(s);
       return var;
     });
     return *this;
