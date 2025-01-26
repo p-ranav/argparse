@@ -124,6 +124,38 @@ TEST_CASE("Test store_into(double), default value, specified" *
   REQUIRE(res == 5.5);
 }
 
+// Float cases
+
+TEST_CASE("Test store_into(float), no default value, non specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  float res = -1.0f;
+  program.add_argument("--float-opt").store_into(res);
+
+  program.parse_args({"./test.exe"});
+  REQUIRE(res == -1.0f);
+}
+
+TEST_CASE("Test store_into(float), default value, non specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  float res = -1.0f;
+  program.add_argument("--float-opt").default_value(3.5f).store_into(res);
+
+  program.parse_args({"./test.exe"});
+  REQUIRE(res == 3.5f);
+}
+
+TEST_CASE("Test store_into(float), default value, specified" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  float res = -1.0f;
+  program.add_argument("--float-opt").default_value(3.5f).store_into(res);
+
+  program.parse_args({"./test.exe", "--float-opt", "5.5"});
+  REQUIRE(res == 5.5f);
+}
+
 TEST_CASE("Test store_into(string), no default value, non specified" *
           test_suite("store_into")) {
   argparse::ArgumentParser program("test");
