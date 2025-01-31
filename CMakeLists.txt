@@ -40,7 +40,7 @@ if(ARGPARSE_INSTALL)
   install(TARGETS argparse EXPORT argparseConfig)
   install(EXPORT argparseConfig
           NAMESPACE argparse::
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+          DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME})
   install(FILES ${CMAKE_CURRENT_LIST_DIR}/include/argparse/argparse.hpp
           DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/argparse)
 
@@ -63,7 +63,7 @@ if(ARGPARSE_INSTALL)
          NAMESPACE argparse::)
 
   install(FILES "${CMAKE_CONFIG_VERSION_FILE_NAME}"
-         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+         DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME}")
 
   set(PackagingTemplatesDir "${CMAKE_CURRENT_SOURCE_DIR}/packaging")
 
@@ -93,7 +93,7 @@ if(ARGPARSE_INSTALL)
   set(PKG_CONFIG_FILE_NAME "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc")
   configure_file("${PackagingTemplatesDir}/pkgconfig.pc.in" "${PKG_CONFIG_FILE_NAME}" @ONLY)
   install(FILES "${PKG_CONFIG_FILE_NAME}"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/pkgconfig"
   )
 endif()
 
