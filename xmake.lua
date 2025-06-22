@@ -31,12 +31,15 @@ target("argparse", function()
         set_kind("static") -- static atm because of a XMake bug, headeronly doesn't generate package module metadata
     end
 
-    add_options("enable_std_import")
+    if get_config("enable_std_import") then
+        add_defines("ARGPARSE_MODULE_USE_STD_MODULE")
+    end
 
     add_includedirs("include", { public = true })
     add_headerfiles("include/argparse/argparse.hpp")
+    add_headerfiles("include/(argparse/argparse.hpp)")
     if get_config("enable_module") then
-        add_files("module/argparse.cppm", { install = true })
+        add_files("module/argparse.cppm", { public = true, install = true })
     end
 end)
 
