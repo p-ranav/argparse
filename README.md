@@ -743,7 +743,7 @@ The process of gathering remaining arguments plays nicely with optional argument
 ```cpp
 argparse::ArgumentParser program("compiler");
 
-program.add_arguments("-o")
+program.add_argument("-o")
   .default_value(std::string("a.out"));
 
 program.add_argument("files")
