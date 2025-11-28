@@ -694,12 +694,18 @@ public:
   auto &store_into(bool &var) {
     if ((!m_default_value.has_value()) && (!m_implicit_value.has_value())) {
       flag();
+    } else {
+      if (!m_implicit_value.has_value()) {
+        m_implicit_value = !std::any_cast<bool>(m_default_value);
+      }
     }
     if (m_default_value.has_value()) {
       var = std::any_cast<bool>(m_default_value);
     }
-    action([&var](const auto & /*unused*/) {
-      var = true;
+
+    // If implicit value is defined after store_into, the wrong value might be set here.
+    // This is alright as long as it is described well in the manual.
+    action([&var, val = std::any_cast<bool>(m_implicit_value)](const auto & /*unused*/) {      var = val;
       return var;
     });
     return *this;
