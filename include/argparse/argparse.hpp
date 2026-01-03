@@ -698,8 +698,17 @@ public:
     if (m_default_value.has_value()) {
       var = std::any_cast<bool>(m_default_value);
     }
-    action([&var](const auto & /*unused*/) {
-      var = true;
+    action([&var](const std::string &s) {
+      if (s.empty()) {
+        var = true; // implicit flag
+        return var;
+      }
+      try {
+          int v = details::parse_number<int, details::radix_10>()(s);
+          var = (v != 0);
+        } catch (...) {
+          var = true; // fallback to true
+        }
       return var;
     });
     return *this;
@@ -1012,6 +1021,15 @@ public:
         (m_choices.has_value()) ? passed_options : m_num_args_range.get_max();
     const auto num_args_min = m_num_args_range.get_min();
     std::size_t dist = 0;
+    auto run_actions_empty = [&]() {
+      for (auto &action : m_actions) {
+        std::visit([&](const auto &f) { f({}); }, action);
+      }
+      if (m_actions.empty()) {
+        std::visit([&](const auto &f) { f({}); }, m_default_action);
+      }
+      m_is_used = true;
+    };
     if (num_args_max == 0) {
       if (!dry_run) {
         m_values.emplace_back(m_implicit_value);
@@ -1039,6 +1057,15 @@ public:
         if (dist < num_args_min) {
           throw std::runtime_error("Too few arguments for '" +
                                    std::string(m_used_name) + "'.");
+        }
+      }
+      if (dist == 0) {
+        // when nargs(0,1) and no arguments provided
+        if (!dry_run) {
+          if (m_implicit_value.has_value()) {
+            m_values.emplace_back(m_implicit_value);
+            run_actions_empty();
+          }
         }
       }
       struct ActionApply {
