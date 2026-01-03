@@ -203,43 +203,43 @@ TEST_CASE("Parse arguments of different types" *
   REQUIRE(program["-builtin"s] == true);
 }
 
-
-TEST_CASE("Flag with nargs(0,1) stores implicit when no value"*
-          test_suite("optional_arguments")){
-    argparse::ArgumentParser program("prog");
-    bool value = false;
-    program.add_argument("--foo").store_into(value).nargs(0, 1);
-    program.parse_args({"prog", "--foo"});
-    REQUIRE(value == true);
-}
-
-TEST_CASE("Flag with nargs(0,1) respects explicit value"*
-          test_suite("optional_arguments"))  {
-    argparse::ArgumentParser program("prog");
-    bool value = false;
-    program.add_argument("--foo").store_into(value).nargs(0, 1);
-    SUBCASE("test with explicit '0' value") {
-      program.parse_args({"prog", "--foo", "0"});
-      REQUIRE(value == false);
-    }
-    SUBCASE("test with explicit '1' value") {
-      program.parse_args({"prog","--foo","1"});
-      REQUIRE(value == true);
-    }
-}
-
-TEST_CASE("nargs(0,1) default-only without value"
-          * test_suite("optional_arguments")) {
+TEST_CASE("Flag with nargs(0,1) stores implicit when no value" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("prog");
   bool value = false;
-  program.add_argument("--foo").default_value(true).nargs(0, 1).store_into(value);
+  program.add_argument("--foo").store_into(value).nargs(0, 1);
+  program.parse_args({"prog", "--foo"});
+  REQUIRE(value == true);
+}
+
+TEST_CASE("Flag with nargs(0,1) respects explicit value" *
+          test_suite("optional_arguments")) {
+  argparse::ArgumentParser program("prog");
+  bool value = false;
+  program.add_argument("--foo").store_into(value).nargs(0, 1);
+  SUBCASE("test with explicit '0' value") {
+    program.parse_args({"prog", "--foo", "0"});
+    REQUIRE(value == false);
+  }
+  SUBCASE("test with explicit '1' value") {
+    program.parse_args({"prog", "--foo", "1"});
+    REQUIRE(value == true);
+  }
+}
+
+TEST_CASE("nargs(0,1) default-only without value" *
+          test_suite("optional_arguments")) {
+  argparse::ArgumentParser program("prog");
+  bool value = false;
+  program.add_argument("--foo").default_value(true).nargs(0, 1).store_into(
+      value);
   REQUIRE_NOTHROW(program.parse_args({"prog", "--foo"}));
   REQUIRE(value == true);
   REQUIRE(program.get<bool>("--foo") == true);
 }
 
-TEST_CASE("nargs(0,1) implicit when followed by another option"
-          * test_suite("optional_arguments")) {
+TEST_CASE("nargs(0,1) implicit when followed by another option" *
+          test_suite("optional_arguments")) {
   argparse::ArgumentParser program("prog");
   bool foo = false;
   std::string bar;
