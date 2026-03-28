@@ -1,5 +1,7 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
 def add_sample(name):
-    native.cc_binary(
+    cc_binary(
         name = name,
         srcs = ["{}.cpp".format(name)],
         deps = ["//:argparse"],
