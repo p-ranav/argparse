@@ -2356,7 +2356,9 @@ protected:
     }
     auto end = std::end(arguments);
     auto positional_argument_it = std::begin(m_positional_arguments);
-    for (auto it = std::next(std::begin(arguments)); it != end;) {
+    for (auto it = arguments.empty() ? std::begin(arguments)
+                                     : std::next(std::begin(arguments));
+         it != end;) {
       const auto &current_argument = *it;
       if (Argument::is_positional(current_argument, m_prefix_chars)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
@@ -2473,7 +2475,9 @@ protected:
     }
     auto end = std::end(arguments);
     auto positional_argument_it = std::begin(m_positional_arguments);
-    for (auto it = std::next(std::begin(arguments)); it != end;) {
+    for (auto it = arguments.empty() ? std::begin(arguments)
+                                     : std::next(std::begin(arguments));
+         it != end;) {
       const auto &current_argument = *it;
       if (Argument::is_positional(current_argument, m_prefix_chars)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
