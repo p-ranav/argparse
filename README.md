@@ -26,7 +26,7 @@
           *    [Joining values of repeated optional arguments](#joining-values-of-repeated-optional-arguments)
           *    [Repeating an argument to increase a value](#repeating-an-argument-to-increase-a-value)
           *    [Mutually Exclusive Group](#mutually-exclusive-group)
-     *    [Storing values into variables](#store-into)
+     *    [Storing values into variables](#storing-values-into-variables)
      *    [Negative Numbers](#negative-numbers)
      *    [Combining Positional and Optional Arguments](#combining-positional-and-optional-arguments)
      *    [Printing Help](#printing-help)
