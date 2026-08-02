@@ -23,6 +23,16 @@ TEST_CASE("Parse argument that is in the fixed number of allowed choices" *
   program.parse_args({"test", "red"});
 }
 
+TEST_CASE("Reject a choice argument without a value" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--color").choices("red", "green").nargs(1);
+
+  REQUIRE_THROWS_WITH_AS(program.parse_args({"test", "--color"}),
+                         "Too few arguments for '--color'.",
+                         std::runtime_error);
+}
+
 TEST_CASE("Parse argument that is in the fixed number of allowed choices, with "
           "other positional argument" *
           test_suite("choices")) {
