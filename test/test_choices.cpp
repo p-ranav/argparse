@@ -203,3 +203,13 @@ TEST_CASE("Parse multiple arguments that are not in range of allowed choices" *
       "Invalid argument \"d\" - allowed options: {a, b, c}",
       std::runtime_error);
 }
+
+TEST_CASE("Optional option with choices and nargs(1) appearing last accepts "
+          "empty argument" *
+          test_suite("choices")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--color").choices("red", "green").nargs(1);
+
+  REQUIRE_THROWS_AS(program.parse_args({"test", "--color"}),
+                    std::runtime_error);
+}
