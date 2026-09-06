@@ -353,3 +353,33 @@ TEST_CASE("Test store_into(int) still works with a custom action" *
   }
 }
 
+TEST_CASE("Test store_into respects a preceding scan() format" *
+          test_suite("store_into")) {
+
+  GIVEN("an argument that scans hex and stores into a uint64_t") {
+    argparse::ArgumentParser program("test");
+    std::uint64_t res = 0;
+    program.add_argument("--hex-opt").scan<'x', std::uint64_t>().store_into(res);
+
+    WHEN("a hex value is parsed") {
+      program.parse_args({"./test.exe", "--hex-opt", "0xABCD"});
+      THEN("the value is decoded as hex, not base-10") {
+        REQUIRE(res == 0xABCDu);
+      }
+    }
+  }
+
+  GIVEN("an argument that scans a general float and stores into a double") {
+    argparse::ArgumentParser program("test");
+    double res = 0;
+    program.add_argument("--float-opt").scan<'g', double>().store_into(res);
+
+    WHEN("the argument is parsed") {
+      program.parse_args({"./test.exe", "--float-opt", "3.5"});
+      THEN("the value is stored correctly") {
+        REQUIRE(res == 3.5);
+      }
+    }
+  }
+}
+
