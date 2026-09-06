@@ -710,10 +710,31 @@ public:
     if (m_default_value.has_value()) {
       var = std::any_cast<T>(m_default_value);
     }
-    action([&var](const auto &s) {
-      var = details::parse_number<T, details::radix_10>()(s);
-      return var;
-    });
+    if (m_actions.empty()) {
+      action([&var](const auto &s) {
+        var = details::parse_number<T, details::radix_10>()(s);
+        return var;
+      });
+    } else {
+      // An action (e.g. scan(), or a custom one) was already configured for
+      // this argument. If it already produced a value of type T, reuse it
+      // instead of re-parsing the raw string as base-10, which can throw for
+      // formats scan() understands but base-10 doesn't (e.g. hex). If the
+      // earlier action was a side-effect-only one (no compatible value to
+      // reuse), fall back to parsing the raw string ourselves, same as
+      // before. This lambda returns void (making it a void_action) so it
+      // doesn't push a second, extra entry into m_values on top of what the
+      // earlier action already produced.
+      action([this, &var](const auto &s) -> void {
+        if (!m_values.empty()) {
+          if (auto *v = std::any_cast<T>(&m_values.back())) {
+            var = *v;
+            return;
+          }
+        }
+        var = details::parse_number<T, details::radix_10>()(s);
+      });
+    }
     return *this;
   }
 
@@ -722,10 +743,25 @@ public:
     if (m_default_value.has_value()) {
       var = std::any_cast<T>(m_default_value);
     }
-    action([&var](const auto &s) {
-      var = details::parse_number<T, details::chars_format::general>()(s);
-      return var;
-    });
+    if (m_actions.empty()) {
+      action([&var](const auto &s) {
+        var = details::parse_number<T, details::chars_format::general>()(s);
+        return var;
+      });
+    } else {
+      // Same reasoning as the integral overload above: reuse an
+      // already-parsed value of type T when one is available (e.g. from
+      // scan()), otherwise fall back to parsing the raw string ourselves.
+      action([this, &var](const auto &s) -> void {
+        if (!m_values.empty()) {
+          if (auto *v = std::any_cast<T>(&m_values.back())) {
+            var = *v;
+            return;
+          }
+        }
+        var = details::parse_number<T, details::chars_format::general>()(s);
+      });
+    }
     return *this;
   }
 
