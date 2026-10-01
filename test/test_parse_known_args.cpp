@@ -10,6 +10,14 @@ import argparse;
 
 using doctest::test_suite;
 
+TEST_CASE("Parse empty argument vector without exceptions" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test");
+
+  auto unknown_args = program.parse_known_args(std::vector<std::string>{});
+  REQUIRE(unknown_args.empty());
+}
+
 TEST_CASE("Parse unknown optional and positional arguments without exceptions" *
           test_suite("parse_known_args")) {
   argparse::ArgumentParser program("test");

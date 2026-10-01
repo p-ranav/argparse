@@ -6,8 +6,24 @@ import argparse;
 #include <doctest.hpp>
 
 #include <optional>
+#include <vector>
 
 using doctest::test_suite;
+
+TEST_CASE("Parse empty argument vector" * test_suite("parse_args")) {
+  argparse::ArgumentParser program("test");
+
+  REQUIRE_NOTHROW(program.parse_args(std::vector<std::string>{}));
+}
+
+TEST_CASE("Parse empty argument vector with required argument" *
+          test_suite("parse_args")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("config");
+
+  REQUIRE_THROWS_AS(program.parse_args(std::vector<std::string>{}),
+                    std::runtime_error);
+}
 
 TEST_CASE("Missing argument" * test_suite("parse_args")) {
   argparse::ArgumentParser program("test");

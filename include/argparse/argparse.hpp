@@ -2400,7 +2400,9 @@ protected:
     }
     auto end = std::end(arguments);
     auto positional_argument_it = std::begin(m_positional_arguments);
-    for (auto it = std::next(std::begin(arguments)); it != end;) {
+    for (auto it = arguments.empty() ? std::begin(arguments)
+                                     : std::next(std::begin(arguments));
+         it != end;) {
       const auto &current_argument = *it;
       const bool force_positional =
           separator_index.has_value() &&
@@ -2523,7 +2525,9 @@ protected:
     }
     auto end = std::end(arguments);
     auto positional_argument_it = std::begin(m_positional_arguments);
-    for (auto it = std::next(std::begin(arguments)); it != end;) {
+    for (auto it = arguments.empty() ? std::begin(arguments)
+                                     : std::next(std::begin(arguments));
+         it != end;) {
       const auto &current_argument = *it;
       const bool force_positional =
           separator_index.has_value() &&
