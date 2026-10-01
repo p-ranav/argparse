@@ -58,6 +58,31 @@ TEST_CASE("Parse toggle arguments with implicit value" *
   REQUIRE(program["--verbose"] != false);
 }
 
+TEST_CASE("Repeating a non-repeatable optional argument keeps the last value" *
+          test_suite("optional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--foo").default_value(1).scan<'i', int>();
+  program.parse_args({"test", "--foo", "1", "--foo", "2"});
+  REQUIRE(program.get<int>("--foo") == 2);
+}
+
+TEST_CASE("Repeating a non-repeatable optional flag does not throw" *
+          test_suite("optional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--verbose").flag();
+  program.parse_args({"test", "--verbose", "--verbose"});
+  REQUIRE(program.get<bool>("--verbose") == true);
+}
+
+TEST_CASE("Repeating an .append() argument still accumulates all values" *
+          test_suite("optional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--foo").append();
+  program.parse_args({"test", "--foo", "1", "--foo", "2"});
+  REQUIRE((program.get<std::vector<std::string>>("--foo") ==
+          std::vector<std::string>{"1", "2"}));
+}
+
 TEST_CASE("Parse multiple toggle arguments with implicit values" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");

@@ -1023,9 +1023,11 @@ public:
   Iterator consume(Iterator start, Iterator end,
                    std::string_view used_name = {}, bool dry_run = false,
                    bool force_positional = false) {
-    if (!m_is_repeatable && m_is_used) {
-      throw std::runtime_error(
-          std::string("Duplicate argument ").append(used_name));
+    if (!m_is_repeatable && m_is_used && !dry_run) {
+      // Re-specifying a non-repeatable argument replaces its previous
+      // value(s) instead of erroring, matching most CLI parsers' "last
+      // occurrence wins" convention.
+      m_values.clear();
     }
     m_used_name = used_name;
 

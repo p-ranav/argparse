@@ -263,6 +263,8 @@ if (color_arg) {                            // Argument also has an explicit ope
 
 #### Joining values of repeated optional arguments
 
+By default, repeating an optional argument on the command line simply replaces its previous value with the last one provided, e.g., `./main --foo 1 --foo 2` results in `--foo` being `2`. This matches the "last occurrence wins" behavior of most CLI parsers. If you instead want to gather every provided value, use `.append()`:
+
 You may want to allow an optional argument to be repeated and gather all values in one place.
 
 ```cpp
