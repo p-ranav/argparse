@@ -2002,7 +2002,19 @@ public:
   // Print help message
   friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream & {
-    stream.setf(std::ios_base::left);
+    struct StreamFormatGuard {
+      std::ostream &stream;
+      std::ios_base::fmtflags flags;
+      char fill;
+
+      ~StreamFormatGuard() {
+        stream.flags(flags);
+        stream.fill(fill);
+      }
+    } guard{stream, stream.flags(), stream.fill()};
+
+    stream.setf(std::ios_base::left, std::ios_base::adjustfield);
+    stream.fill(' ');
 
     auto longest_arg_length = parser.get_length_of_longest_argument();
 
