@@ -1303,6 +1303,11 @@ public:
     }
   }
 
+  // Whether this argument was supplied on the command line.
+  bool is_used() const { return m_is_used; }
+
+  explicit operator bool() const { return is_used(); }
+
   /*
    * positional:
    *    _empty_
@@ -1966,7 +1971,7 @@ public:
    * user-supplied, even with a default value.
    */
   auto is_used(std::string_view arg_name) const {
-    return (*this)[arg_name].m_is_used;
+    return (*this)[arg_name].is_used();
   }
 
   /* Getter that returns true if a subcommand is used.
