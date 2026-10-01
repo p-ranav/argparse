@@ -588,6 +588,32 @@ std::string get_most_similar_string(const std::map<std::string, ValueType> &map,
   return most_similar;
 }
 
+// RAII guard: forces space-fill and left-justification for help/usage
+// rendering, restoring the stream's original flags/fill on scope exit (even
+// if a write throws), so printing doesn't leak into or inherit from the
+// caller's stream state.
+class StreamFormatGuard {
+public:
+  explicit StreamFormatGuard(std::ostream &stream)
+      : m_stream(stream), m_flags(stream.flags()), m_fill(stream.fill()) {
+    m_stream.setf(std::ios_base::left, std::ios_base::adjustfield);
+    m_stream.fill(' ');
+  }
+
+  StreamFormatGuard(const StreamFormatGuard &) = delete;
+  StreamFormatGuard &operator=(const StreamFormatGuard &) = delete;
+
+  ~StreamFormatGuard() {
+    m_stream.flags(m_flags);
+    m_stream.fill(m_fill);
+  }
+
+private:
+  std::ostream &m_stream;
+  std::ios_base::fmtflags m_flags;
+  char m_fill;
+};
+
 } // namespace details
 
 enum class nargs_pattern { optional, any, at_least_one };
@@ -1202,6 +1228,8 @@ public:
 
   friend std::ostream &operator<<(std::ostream &stream,
                                   const Argument &argument) {
+    details::StreamFormatGuard format_guard(stream);
+
     std::stringstream name_stream;
     name_stream << "  "; // indent
     if (argument.is_positional(argument.m_names.front(),
@@ -2019,19 +2047,7 @@ public:
   // Print help message
   friend auto operator<<(std::ostream &stream, const ArgumentParser &parser)
       -> std::ostream & {
-    struct StreamFormatGuard {
-      std::ostream &stream;
-      std::ios_base::fmtflags flags;
-      char fill;
-
-      ~StreamFormatGuard() {
-        stream.flags(flags);
-        stream.fill(fill);
-      }
-    } guard{stream, stream.flags(), stream.fill()};
-
-    stream.setf(std::ios_base::left, std::ios_base::adjustfield);
-    stream.fill(' ');
+    details::StreamFormatGuard format_guard(stream);
 
     auto longest_arg_length = parser.get_length_of_longest_argument();
 

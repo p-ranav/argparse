@@ -123,6 +123,21 @@ TEST_CASE("Help formatting restores stream state after a failed write" *
   CHECK(output.flags() == flags_before);
 }
 
+TEST_CASE("Printing a bare Argument preserves caller stream state" *
+          test_suite("help")) {
+  argparse::ArgumentParser program("test");
+  auto &mode_arg = program.add_argument("mode").help("Operation mode");
+
+  std::ostringstream output;
+  output << std::right << std::setfill('0');
+  const auto flags_before = output.flags();
+
+  output << mode_arg;
+
+  CHECK(output.fill() == '0');
+  CHECK(output.flags() == flags_before);
+}
+
 TEST_CASE("Multiline help message alignment") {
   // '#' is used at the beginning of each help message line to simplify testing.
   // It is important to ensure that this character doesn't appear elsewhere in
