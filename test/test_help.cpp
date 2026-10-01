@@ -5,8 +5,11 @@ import argparse;
 #endif
 #include <doctest.hpp>
 
+#include <iomanip>
 #include <optional>
+#include <ostream>
 #include <sstream>
+#include <streambuf>
 
 using doctest::test_suite;
 
@@ -78,6 +81,46 @@ TEST_CASE("Users can replace default -h/--help" * test_suite("help")) {
   REQUIRE(buffer.str().empty());
   program.parse_args({"test", "--help"});
   REQUIRE_FALSE(buffer.str().empty());
+}
+
+TEST_CASE("Help formatting preserves caller stream state" * test_suite("help")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("mode").help("Operation mode\nMore information");
+  program.add_argument("-d", "--debug").flag().help("Enable debug mode");
+  argparse::ArgumentParser run("run");
+  run.add_description("Run the program");
+
+  SUBCASE("Arguments") {}
+  SUBCASE("Subcommands") { program.add_subparser(run); }
+
+  const auto expected = program.help().str();
+  std::ostringstream output;
+  output << std::right << std::setfill('0');
+  const auto flags_before = output.flags();
+
+  output << program;
+
+  CHECK(output.str() == expected);
+  CHECK(output.fill() == '0');
+  CHECK(output.flags() == flags_before);
+  output << '\n' << std::setw(4) << 7;
+  CHECK(output.str() == expected + "\n0007");
+}
+
+TEST_CASE("Help formatting restores stream state after a failed write" *
+          test_suite("help")) {
+  struct UnwritableBuffer : std::streambuf {} buffer;
+  std::ostream output(&buffer);
+  output << std::right << std::setfill('0');
+  const auto flags_before = output.flags();
+  REQUIRE(output.good());
+  REQUIRE_NOTHROW(output.exceptions(std::ios_base::badbit |
+                                   std::ios_base::failbit));
+  argparse::ArgumentParser program("test");
+
+  CHECK_THROWS_AS(output << program, std::ios_base::failure);
+  CHECK(output.fill() == '0');
+  CHECK(output.flags() == flags_before);
 }
 
 TEST_CASE("Multiline help message alignment") {
