@@ -976,10 +976,15 @@ public:
   /* The dry_run parameter can be set to true to avoid running the actions,
    * and setting m_is_used. This may be used by a pre-processing step to do
    * a first iteration over arguments.
+   *
+   * The force_positional parameter indicates that the values in [start, end)
+   * appeared after a "--" separator, and so must be treated as positional
+   * values even if they look like optional arguments, e.g., "-5" or "--foo".
    */
   template <typename Iterator>
   Iterator consume(Iterator start, Iterator end,
-                   std::string_view used_name = {}, bool dry_run = false) {
+                   std::string_view used_name = {}, bool dry_run = false,
+                   bool force_positional = false) {
     if (!m_is_repeatable && m_is_used) {
       throw std::runtime_error(
           std::string("Duplicate argument ").append(used_name));
@@ -1031,7 +1036,7 @@ public:
         end = std::next(start, static_cast<typename Iterator::difference_type>(
                                    num_args_max));
       }
-      if (!m_accepts_optional_like_value) {
+      if (!m_accepts_optional_like_value && !force_positional) {
         end = std::find_if(
             start, end,
             std::bind(is_optional, std::placeholders::_1, m_prefix_chars));
@@ -2285,8 +2290,14 @@ protected:
    * Pre-process this argument list. Anything starting with "--", that
    * contains an =, where the prefix before the = has an entry in the
    * options table, should be split.
+   *
+   * Also detects a lone "--" pseudo-argument (when '-' is a legal prefix
+   * char and no argument is explicitly named "--"): everything from that
+   * point on is forced to be treated as positional, and the "--" itself is
+   * removed from the returned list. The returned index marks the position,
+   * in the returned argument list, where forced-positional parsing begins.
    */
-  std::vector<std::string>
+  std::pair<std::vector<std::string>, std::optional<std::size_t>>
   preprocess_arguments(const std::vector<std::string> &raw_arguments) const {
     std::vector<std::string> arguments{};
     for (const auto &arg : raw_arguments) {
@@ -2343,14 +2354,30 @@ protected:
       // If we've fallen through to here, then it's a standard argument
       arguments.push_back(arg);
     }
-    return arguments;
+
+    // Detect a lone "--" separator: everything after it is forced to be
+    // parsed as positional, mirroring Python's argparse behaviour. Only
+    // applies when '-' is a legal prefix char and "--" isn't itself the
+    // name of a defined argument.
+    std::optional<std::size_t> separator_index;
+    if (m_prefix_chars.find('-') != std::string::npos &&
+        m_argument_map.find("--") == m_argument_map.end()) {
+      auto separator_it = std::find(arguments.begin(), arguments.end(), "--");
+      if (separator_it != arguments.end()) {
+        separator_index = static_cast<std::size_t>(
+            std::distance(arguments.begin(), separator_it));
+        arguments.erase(separator_it);
+      }
+    }
+
+    return {arguments, separator_index};
   }
 
   /*
    * @throws std::runtime_error in case of any invalid argument
    */
   void parse_args_internal(const std::vector<std::string> &raw_arguments) {
-    auto arguments = preprocess_arguments(raw_arguments);
+    auto [arguments, separator_index] = preprocess_arguments(raw_arguments);
     if (m_program_name.empty() && !arguments.empty()) {
       m_program_name = arguments.front();
     }
@@ -2358,7 +2385,12 @@ protected:
     auto positional_argument_it = std::begin(m_positional_arguments);
     for (auto it = std::next(std::begin(arguments)); it != end;) {
       const auto &current_argument = *it;
-      if (Argument::is_positional(current_argument, m_prefix_chars)) {
+      const bool force_positional =
+          separator_index.has_value() &&
+          static_cast<std::size_t>(std::distance(std::begin(arguments), it)) >=
+              *separator_index;
+      if (force_positional ||
+          Argument::is_positional(current_argument, m_prefix_chars)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
 
           // Check sub-parsers
@@ -2422,14 +2454,15 @@ protected:
             positional_argument_it->m_num_args_range.get_min() == 1 &&
             positional_argument_it->m_num_args_range.get_max() == 1 ) {
           if (std::next(it) != end) {
-            positional_argument_it->consume(std::prev(end), end);
+            positional_argument_it->consume(std::prev(end), end, {}, false,
+                                            force_positional);
             end = std::prev(end);
           } else {
             throw std::runtime_error("Missing " + positional_argument_it->m_names.front());
           }
         }
 
-        it = argument->consume(it, end);
+        it = argument->consume(it, end, {}, false, force_positional);
         continue;
       }
 
@@ -2464,7 +2497,7 @@ protected:
    */
   std::vector<std::string>
   parse_known_args_internal(const std::vector<std::string> &raw_arguments) {
-    auto arguments = preprocess_arguments(raw_arguments);
+    auto [arguments, separator_index] = preprocess_arguments(raw_arguments);
 
     std::vector<std::string> unknown_arguments{};
 
@@ -2475,7 +2508,12 @@ protected:
     auto positional_argument_it = std::begin(m_positional_arguments);
     for (auto it = std::next(std::begin(arguments)); it != end;) {
       const auto &current_argument = *it;
-      if (Argument::is_positional(current_argument, m_prefix_chars)) {
+      const bool force_positional =
+          separator_index.has_value() &&
+          static_cast<std::size_t>(std::distance(std::begin(arguments), it)) >=
+              *separator_index;
+      if (force_positional ||
+          Argument::is_positional(current_argument, m_prefix_chars)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
 
           // Check sub-parsers
@@ -2500,7 +2538,7 @@ protected:
           // current argument is the value of a positional argument
           // consume it
           auto argument = positional_argument_it++;
-          it = argument->consume(it, end);
+          it = argument->consume(it, end, {}, false, force_positional);
         }
         continue;
       }

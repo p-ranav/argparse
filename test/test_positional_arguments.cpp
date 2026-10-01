@@ -301,3 +301,42 @@ TEST_CASE("At_least_one_followed_by_exactly_one" * test_suite("positional_argume
     }
   }
 }
+
+TEST_CASE("Parse positional arguments after -- separator" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("files").remaining();
+  program.parse_args({"test", "--", "--foo", "-bar", "baz"});
+  REQUIRE(program.get<std::vector<std::string>>("files") ==
+          std::vector<std::string>{"--foo", "-bar", "baz"});
+}
+
+TEST_CASE("-- separator does not affect arguments before it" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--verbose").flag();
+  program.add_argument("files").remaining();
+  program.parse_args({"test", "--verbose", "--", "--foo", "-bar"});
+  REQUIRE(program.get<bool>("--verbose") == true);
+  REQUIRE(program.get<std::vector<std::string>>("files") ==
+          std::vector<std::string>{"--foo", "-bar"});
+}
+
+TEST_CASE("-- itself is not included in the positional results" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("input");
+  program.parse_args({"test", "--", "-value"});
+  REQUIRE(program.get("input") == "-value");
+}
+
+TEST_CASE("An argument explicitly named -- disables separator handling" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--").flag();
+  program.add_argument("rest").remaining();
+  program.parse_args({"test", "--", "one", "two"});
+  REQUIRE(program.get<bool>("--") == true);
+  REQUIRE(program.get<std::vector<std::string>>("rest") ==
+          std::vector<std::string>{"one", "two"});
+}

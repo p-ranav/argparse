@@ -36,6 +36,7 @@
      *    [Converting to Numeric Types](#converting-to-numeric-types)
      *    [Default Arguments](#default-arguments)
      *    [Gathering Remaining Arguments](#gathering-remaining-arguments)
+     *    [The -- separator](#the----separator)
      *    [Parent Parsers](#parent-parsers)
      *    [Subcommands](#subcommands)
      *    [Getting Argument and Subparser Instances](#getting-argument-and-subparser-instances)
@@ -792,6 +793,31 @@ baz.cpp
 -o
 main
 ```
+
+### The -- separator
+
+Like Python's `argparse`, a lone `--` on the command line marks the end of optional arguments: everything after it is treated as positional, even if it looks like an optional argument (e.g., starts with `-`). The `--` itself is consumed and does not appear in any parsed values.
+
+```cpp
+argparse::ArgumentParser program("compiler");
+
+program.add_argument("files")
+  .remaining();
+
+program.parse_args(argc, argv);
+
+auto files = program.get<std::vector<std::string>>("files");
+for (auto& file : files)
+  std::cout << file << std::endl;
+```
+
+```console
+foo@bar:/home/dev/$ ./compiler -- --foo.cpp -bar.cpp
+--foo.cpp
+-bar.cpp
+```
+
+This makes it unnecessary to work around option-like positional values with a dummy mutually exclusive `--` argument.
 
 ### Parent Parsers
 
