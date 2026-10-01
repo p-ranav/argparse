@@ -58,6 +58,18 @@ SOFTWARE.
 #include <variant>
 #include <vector>
 #include <filesystem>
+#if defined(__has_include)
+#  if __has_include(<format>)
+#    include <format>
+#  endif
+#endif
+#endif
+
+// std::format support requires C++20 and a standard library that actually
+// defines std::formatter (merely finding the <format> header isn't enough,
+// since e.g. libc++ ships the header even in C++17 mode with no contents).
+#if defined(__cpp_lib_format)
+#  define ARGPARSE_HAS_STD_FORMAT 1
 #endif
 
 #ifndef ARGPARSE_CUSTOM_STRTOF
@@ -2625,3 +2637,28 @@ protected:
 };
 
 } // namespace argparse
+
+#ifdef ARGPARSE_HAS_STD_FORMAT
+// Formats via the existing operator<<, so std::format/std::print work the
+// same way as writing to an ostream.
+template <>
+struct std::formatter<argparse::Argument> : std::formatter<std::string> {
+  auto format(const argparse::Argument &argument,
+              std::format_context &ctx) const {
+    std::ostringstream stream;
+    stream << argument;
+    return std::formatter<std::string>::format(stream.str(), ctx);
+  }
+};
+
+template <>
+struct std::formatter<argparse::ArgumentParser>
+   : std::formatter<std::string> {
+  auto format(const argparse::ArgumentParser &parser,
+              std::format_context &ctx) const {
+    std::ostringstream stream;
+    stream << parser;
+    return std::formatter<std::string>::format(stream.str(), ctx);
+  }
+};
+#endif

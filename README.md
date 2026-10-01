@@ -455,6 +455,15 @@ Optional arguments:
 
 You may also get the help message in string via `program.help().str()`.
 
+If your compiler and standard library support `std::format`/`std::print` (C++20), `argparse::ArgumentParser` and `argparse::Argument` are also formattable directly, producing the same output as `operator<<`:
+
+```cpp
+std::print("{}", program); // same as std::cout << program
+auto message = std::format("{}", program);
+```
+
+This is detected automatically at compile time; no extra include or opt-in is required beyond `<format>` being available.
+
 #### Adding a description and an epilog to help
 
 `ArgumentParser::add_description` will add text before the detailed argument
