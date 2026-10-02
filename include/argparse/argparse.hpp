@@ -1898,47 +1898,7 @@ public:
    */
   void parse_args(const std::vector<std::string> &arguments) {
     parse_args_internal(arguments);
-    // Check if all arguments are parsed
-    for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
-      argument->validate();
-    }
-
-    // Check each mutually exclusive group and make sure
-    // there are no constraint violations
-    for (const auto &group : m_mutually_exclusive_groups) {
-      auto mutex_argument_used{false};
-      Argument *mutex_argument_it{nullptr};
-      for (Argument *arg : group.m_elements) {
-        if (!mutex_argument_used && arg->m_is_used) {
-          mutex_argument_used = true;
-          mutex_argument_it = arg;
-        } else if (mutex_argument_used && arg->m_is_used) {
-          // Violation
-          throw std::runtime_error("Argument '" + arg->get_usage_full() +
-                                   "' not allowed with '" +
-                                   mutex_argument_it->get_usage_full() + "'");
-        }
-      }
-
-      if (!mutex_argument_used && group.m_required) {
-        // at least one argument from the group is
-        // required
-        std::string argument_names{};
-        std::size_t i = 0;
-        std::size_t size = group.m_elements.size();
-        for (Argument *arg : group.m_elements) {
-          if (i + 1 == size) {
-            // last
-            argument_names += std::string("'") + arg->get_usage_full() + std::string("' ");
-          } else {
-            argument_names += std::string("'") + arg->get_usage_full() + std::string("' or ");
-          }
-          i += 1;
-        }
-        throw std::runtime_error("One of the arguments " + argument_names +
-                                 "is required");
-      }
-    }
+    validate_parsed_arguments();
   }
 
   /* Call parse_known_args_internal - which does all the work
@@ -1949,10 +1909,7 @@ public:
   std::vector<std::string>
   parse_known_args(const std::vector<std::string> &arguments) {
     auto unknown_arguments = parse_known_args_internal(arguments);
-    // Check if all arguments are parsed
-    for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
-      argument->validate();
-    }
+    validate_parsed_arguments();
     return unknown_arguments;
   }
 
@@ -2317,6 +2274,50 @@ public:
   void set_suppress(bool suppress) { m_suppress = suppress; }
 
 protected:
+  void validate_parsed_arguments() const {
+    // Check if all arguments are parsed
+    for ([[maybe_unused]] const auto &[unused, argument] : m_argument_map) {
+      argument->validate();
+    }
+
+    // Check each mutually exclusive group and make sure
+    // there are no constraint violations
+    for (const auto &group : m_mutually_exclusive_groups) {
+      auto mutex_argument_used{false};
+      Argument *mutex_argument_it{nullptr};
+      for (Argument *arg : group.m_elements) {
+        if (!mutex_argument_used && arg->m_is_used) {
+          mutex_argument_used = true;
+          mutex_argument_it = arg;
+        } else if (mutex_argument_used && arg->m_is_used) {
+          // Violation
+          throw std::runtime_error("Argument '" + arg->get_usage_full() +
+                                   "' not allowed with '" +
+                                   mutex_argument_it->get_usage_full() + "'");
+        }
+      }
+
+      if (!mutex_argument_used && group.m_required) {
+        // at least one argument from the group is
+        // required
+        std::string argument_names{};
+        std::size_t i = 0;
+        std::size_t size = group.m_elements.size();
+        for (Argument *arg : group.m_elements) {
+          if (i + 1 == size) {
+            // last
+            argument_names += std::string("'") + arg->get_usage_full() + std::string("' ");
+          } else {
+            argument_names += std::string("'") + arg->get_usage_full() + std::string("' or ");
+          }
+          i += 1;
+        }
+        throw std::runtime_error("One of the arguments " + argument_names +
+                                 "is required");
+      }
+    }
+  }
+
   const MutuallyExclusiveGroup *get_belonging_mutex(const Argument *arg) const {
     for (const auto &mutex : m_mutually_exclusive_groups) {
       if (std::find(mutex.m_elements.begin(), mutex.m_elements.end(), arg) !=
