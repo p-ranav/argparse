@@ -16,6 +16,8 @@ project(argparse
 option(ARGPARSE_INSTALL "Include an install target" ${ARGPARSE_IS_TOP_LEVEL})
 option(ARGPARSE_BUILD_TESTS "Build tests" ${ARGPARSE_IS_TOP_LEVEL})
 option(ARGPARSE_BUILD_SAMPLES "Build samples" OFF)
+option(ARGPARSE_BUILD_MODULES "Build C++ modules support" OFF)
+option(ARGPARSE_MODULE_USE_STD_MODULE "Build with modules C++ import std" OFF)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -27,6 +29,10 @@ target_compile_features(argparse INTERFACE cxx_std_17)
 target_include_directories(argparse INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>)
+
+if(ARGPARSE_BUILD_MODULES)
+  add_subdirectory(module)
+endif()
 
 if(ARGPARSE_BUILD_SAMPLES)
   add_subdirectory(samples)
