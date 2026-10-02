@@ -95,3 +95,135 @@ TEST_CASE("Parse unknown optional and positional arguments in subparsers "
                                                       "BAR", "-jn", "spam"}));
   }
 }
+
+TEST_CASE("Parse known arguments rejects conflicting mutually exclusive flags" *
+          test_suite("parse_known_args")) {
+  for (const bool required : {false, true}) {
+    for (const auto &arguments : std::vector<std::vector<std::string>>{
+             {"test", "--first", "--second"},
+             {"test", "--second", "--first", "--unknown", "value"}}) {
+      CAPTURE(required);
+      argparse::ArgumentParser program("test");
+      auto &group = program.add_mutually_exclusive_group(required);
+      group.add_argument("--first").flag();
+      group.add_argument("--second").flag();
+
+      REQUIRE_THROWS_WITH_AS(
+          program.parse_known_args(arguments),
+          "Argument '--second' not allowed with '--first'", std::runtime_error);
+    }
+  }
+}
+
+TEST_CASE("Parse known arguments requires an explicitly used group member" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test");
+  auto &group = program.add_mutually_exclusive_group(true);
+  group.add_argument("--first").flag().default_value(true);
+  group.add_argument("--second").flag().default_value(true);
+
+  SUBCASE("No arguments") {
+    REQUIRE_THROWS_WITH_AS(
+        program.parse_known_args({"test"}),
+        "One of the arguments '--first' or '--second' is required",
+        std::runtime_error);
+  }
+  SUBCASE("Unknown arguments do not satisfy the required group") {
+    REQUIRE_THROWS_WITH_AS(
+        program.parse_known_args({"test", "--unknown", "value"}),
+        "One of the arguments '--first' or '--second' is required",
+        std::runtime_error);
+  }
+}
+
+TEST_CASE("Parse known arguments permits an unused optional group" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test");
+  auto &group = program.add_mutually_exclusive_group();
+  group.add_argument("--first").flag().default_value(true);
+  group.add_argument("--second").flag().default_value(true);
+
+  const auto unknown =
+      program.parse_known_args({"test", "--unknown", "value"});
+  REQUIRE((unknown == std::vector<std::string>{"--unknown", "value"}));
+  REQUIRE(program.get<bool>("--first"));
+  REQUIRE(program.get<bool>("--second"));
+  REQUIRE_FALSE(program.is_used("--first"));
+  REQUIRE_FALSE(program.is_used("--second"));
+}
+
+TEST_CASE("Parse known arguments preserves unknowns with a valid group member" *
+          test_suite("parse_known_args")) {
+  for (const bool required : {false, true}) {
+    for (const auto &selected : {"--first", "--second"}) {
+      CAPTURE(required);
+      CAPTURE(selected);
+      argparse::ArgumentParser program("test");
+      auto &group = program.add_mutually_exclusive_group(required);
+      group.add_argument("--first").flag().default_value(true);
+      group.add_argument("--second").flag().default_value(true);
+
+      const auto unknown = program.parse_known_args(
+          {"test", "--before", "one", selected, "--after", "two"});
+      REQUIRE((unknown == std::vector<std::string>{"--before", "one",
+                                                   "--after", "two"}));
+      REQUIRE(program.is_used(selected));
+    }
+  }
+}
+
+TEST_CASE("Parse known arguments validates every mutually exclusive group" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test");
+  auto &first_group = program.add_mutually_exclusive_group();
+  first_group.add_argument("--first").flag();
+  first_group.add_argument("--second").flag();
+  auto &second_group = program.add_mutually_exclusive_group(true);
+  second_group.add_argument("--third").flag();
+  second_group.add_argument("--fourth").flag();
+
+  SUBCASE("Missing member of the second group") {
+    REQUIRE_THROWS_WITH_AS(
+        program.parse_known_args({"test", "--first"}),
+        "One of the arguments '--third' or '--fourth' is required",
+        std::runtime_error);
+  }
+  SUBCASE("Conflicting members of the second group") {
+    REQUIRE_THROWS_WITH_AS(
+        program.parse_known_args({"test", "--first", "--third", "--fourth"}),
+        "Argument '--fourth' not allowed with '--third'", std::runtime_error);
+  }
+  SUBCASE("One member of each group") {
+    const auto unknown =
+        program.parse_known_args({"test", "--first", "--third", "--unknown"});
+    REQUIRE((unknown == std::vector<std::string>{"--unknown"}));
+    REQUIRE(program.is_used("--first"));
+    REQUIRE(program.is_used("--third"));
+  }
+}
+
+TEST_CASE("Parse known argc argv validates mutually exclusive groups" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test");
+  auto &group = program.add_mutually_exclusive_group();
+  group.add_argument("--first").flag();
+  group.add_argument("--second").flag();
+  const char *arguments[] = {"test", "--first", "--second"};
+
+  REQUIRE_THROWS_WITH_AS(
+      program.parse_known_args(3, arguments),
+      "Argument '--second' not allowed with '--first'", std::runtime_error);
+}
+
+TEST_CASE("Parse known arguments validates individual arguments before groups" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--required").required();
+  auto &group = program.add_mutually_exclusive_group();
+  group.add_argument("--first").flag();
+  group.add_argument("--second").flag();
+
+  REQUIRE_THROWS_WITH_AS(
+      program.parse_known_args({"test", "--first", "--second"}),
+      "--required: required.", std::runtime_error);
+}
