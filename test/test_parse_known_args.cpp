@@ -10,6 +10,90 @@ import argparse;
 
 using doctest::test_suite;
 
+TEST_CASE("Preserve unknown arguments across subparser dispatch" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--output");
+  argparse::ArgumentParser command("run");
+  command.add_argument("--count").scan<'i', int>();
+  program.add_subparser(command);
+
+  SUBCASE("Unknown arguments only before the subcommand") {
+    auto unknown = program.parse_known_args({"test", "--extra", "value", "run"});
+    REQUIRE((unknown == std::vector<std::string>{"--extra", "value"}));
+  }
+  SUBCASE("Unknown arguments only after the subcommand") {
+    auto unknown = program.parse_known_args({"test", "run", "--extra", "value"});
+    REQUIRE((unknown == std::vector<std::string>{"--extra", "value"}));
+  }
+  SUBCASE("Preserve order and duplicates around known arguments") {
+    auto unknown = program.parse_known_args(
+        {"test", "--extra", "before", "--output", "out.txt", "run",
+         "--extra", "after", "--count", "3"});
+    REQUIRE((unknown == std::vector<std::string>{"--extra", "before",
+                                               "--extra", "after"}));
+    REQUIRE(program.get<std::string>("--output") == "out.txt");
+    REQUIRE(command.get<int>("--count") == 3);
+  }
+  SUBCASE("Preserve unknown compound option before the subcommand") {
+    auto unknown = program.parse_known_args({"test", "-xy", "run", "tail"});
+    REQUIRE((unknown == std::vector<std::string>{"-xy", "tail"}));
+  }
+  SUBCASE("Known arguments alone produce no leftovers") {
+    auto unknown = program.parse_known_args(
+        {"test", "--output", "out.txt", "run", "--count", "3"});
+    REQUIRE(unknown.empty());
+    REQUIRE(program.get<std::string>("--output") == "out.txt");
+    REQUIRE(command.get<int>("--count") == 3);
+  }
+  SUBCASE("argc and argv preserve both levels") {
+    const char *argv[] = {"test", "--parent", "run", "--child"};
+    auto unknown = program.parse_known_args(4, argv);
+    REQUIRE((unknown == std::vector<std::string>{"--parent", "--child"}));
+  }
+  REQUIRE(program.is_subcommand_used("run"));
+}
+
+TEST_CASE("Preserve unknown arguments across nested subcommands" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test"), command("run"), nested("leaf");
+  nested.add_argument("--known");
+  command.add_subparser(nested);
+  program.add_subparser(command);
+  auto unknown = program.parse_known_args(
+      {"test", "--parent", "P", "run", "--child", "C", "leaf",
+       "--known", "K", "--leaf", "L"});
+  REQUIRE((unknown == std::vector<std::string>{"--parent", "P", "--child", "C",
+                                             "--leaf", "L"}));
+  REQUIRE(nested.get<std::string>("--known") == "K");
+  REQUIRE(program.is_subcommand_used("run"));
+  REQUIRE(command.is_subcommand_used("leaf"));
+}
+
+TEST_CASE("Subcommand errors still propagate when parent has unknown arguments" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test"), command("run");
+  command.add_argument("--count").scan<'i', int>();
+  program.add_subparser(command);
+  REQUIRE_THROWS_AS(program.parse_known_args(
+                        {"test", "--unknown", "run", "--count", "invalid"}),
+                    std::invalid_argument);
+}
+
+TEST_CASE("parse_args remains strict across subparser dispatch" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test"), command("run");
+  program.add_subparser(command);
+  SUBCASE("Unknown parent option") {
+    REQUIRE_THROWS_AS(program.parse_args({"test", "--parent-extra", "run"}),
+                      std::runtime_error);
+  }
+  SUBCASE("Unknown child option") {
+    REQUIRE_THROWS_AS(program.parse_args({"test", "run", "--child-extra"}),
+                      std::runtime_error);
+  }
+}
+
 TEST_CASE("Parse empty argument vector without exceptions" *
           test_suite("parse_known_args")) {
   argparse::ArgumentParser program("test");

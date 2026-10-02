@@ -2579,8 +2579,13 @@ protected:
             // invoke subparser
             m_is_parsed = true;
             m_subparser_used[current_argument] = true;
-            return subparser_it->second->get().parse_known_args_internal(
-                unprocessed_arguments);
+            auto subparser_unknown_arguments =
+                subparser_it->second->get().parse_known_args_internal(
+                    unprocessed_arguments);
+            unknown_arguments.insert(unknown_arguments.end(),
+                                     subparser_unknown_arguments.begin(),
+                                     subparser_unknown_arguments.end());
+            return unknown_arguments;
           }
 
           // save current argument as unknown and go to next argument
