@@ -2526,7 +2526,7 @@ protected:
                  !is_valid_prefix_char(compound_arg[1])) {
         ++it;
         for (std::size_t j = 1; j < compound_arg.size(); j++) {
-          auto hypothetical_arg = std::string{'-', compound_arg[j]};
+          auto hypothetical_arg = std::string{compound_arg[0], compound_arg[j]};
           auto arg_map_it2 = m_argument_map.find(hypothetical_arg);
           if (arg_map_it2 != m_argument_map.end()) {
             auto argument = arg_map_it2->second;
@@ -2610,7 +2610,7 @@ protected:
                  !is_valid_prefix_char(compound_arg[1])) {
         ++it;
         for (std::size_t j = 1; j < compound_arg.size(); j++) {
-          auto hypothetical_arg = std::string{'-', compound_arg[j]};
+          auto hypothetical_arg = std::string{compound_arg[0], compound_arg[j]};
           auto arg_map_it2 = m_argument_map.find(hypothetical_arg);
           if (arg_map_it2 != m_argument_map.end()) {
             auto argument = arg_map_it2->second;
