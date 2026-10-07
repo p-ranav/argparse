@@ -1057,7 +1057,7 @@ public:
         (m_choices.has_value()) ? passed_options : m_num_args_range.get_max();
     const auto num_args_min = m_num_args_range.get_min();
     std::size_t dist = 0;
-    if (num_args_max == 0) {
+    if (m_num_args_range.get_max() == 0) {
       if (!dry_run) {
         m_values.emplace_back(m_implicit_value);
         for(auto &action: m_actions) {
