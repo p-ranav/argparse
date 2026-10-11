@@ -62,6 +62,187 @@ TEST_CASE("Test store_into(int), default value, specified" *
 
 // integral cases
 
+TEST_CASE("Test store_into(uint64_t) with scan" * test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint64_t res = 0;
+  auto &arg = program.add_argument("foo");
+  std::string input;
+  uint64_t expected = 0;
+
+  SUBCASE("hexadecimal with prefix") {
+    arg.scan<'x', uint64_t>();
+    input = "0xABCD";
+    expected = 0xABCD;
+  }
+  SUBCASE("hexadecimal without prefix") {
+    arg.scan<'X', uint64_t>();
+    input = "ABCD";
+    expected = 0xABCD;
+  }
+  SUBCASE("octal") {
+    arg.scan<'o', uint64_t>();
+    input = "077";
+    expected = 63;
+  }
+  SUBCASE("binary") {
+    arg.scan<'b', uint64_t>();
+    input = "0b1010";
+    expected = 10;
+  }
+  SUBCASE("decimal") {
+    arg.scan<'u', uint64_t>();
+    input = "123";
+    expected = 123;
+  }
+  SUBCASE("automatic base") {
+    arg.scan<'i', uint64_t>();
+    input = "0xABCD";
+    expected = 0xABCD;
+  }
+
+  arg.store_into(res);
+  program.parse_args({"test", input});
+  REQUIRE(res == expected);
+  REQUIRE(program.get<uint64_t>("foo") == expected);
+  REQUIRE(program.get<std::vector<uint64_t>>("foo").size() == 1);
+}
+
+TEST_CASE("Test store_into with scan and actions" * test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint64_t res = 0;
+  int calls = 0;
+  program.add_argument("foo")
+      .scan<'x', uint64_t>()
+      .action([&](const std::string &) { ++calls; })
+      .store_into(res)
+      .action([&](const std::string &) { ++calls; });
+
+  program.parse_args({"test", "0xABCD"});
+  REQUIRE(res == 0xABCD);
+  REQUIRE(program.get<uint64_t>("foo") == res);
+  REQUIRE(calls == 2);
+}
+
+TEST_CASE("Test store_into with scan rejects invalid input" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint64_t res = 7;
+  program.add_argument("foo").scan<'x', uint64_t>().store_into(res);
+
+  SUBCASE("invalid digit") {
+    REQUIRE_THROWS_AS(program.parse_args({"test", "0xABCG"}),
+                      std::invalid_argument);
+  }
+  SUBCASE("overflow") {
+    REQUIRE_THROWS_AS(program.parse_args({"test", "0x10000000000000000"}),
+                      std::range_error);
+  }
+  REQUIRE(res == 7);
+}
+
+TEST_CASE("Test store_into with scan preserves action ordering" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint64_t value = 7;
+  uint64_t observed = 0;
+  program.add_argument("foo")
+      .nargs(1, 2)
+      .scan<'d', uint64_t>()
+      .action([&](const std::string &) { observed = value; })
+      .store_into(value);
+
+  program.parse_args({"test", "123"});
+  REQUIRE(observed == 7);
+  REQUIRE(value == 123);
+  REQUIRE(program.get<std::vector<uint64_t>>("foo") ==
+          std::vector<uint64_t>{123});
+}
+
+TEST_CASE("Test store_into with scan preserves exception ordering" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint64_t value = 7;
+  program.add_argument("foo")
+      .scan<'d', uint64_t>()
+      .action([](const std::string &) {
+        throw std::runtime_error("custom failure");
+      })
+      .store_into(value);
+
+  REQUIRE_THROWS_WITH_AS(program.parse_args({"test", "123"}), "custom failure",
+                         std::runtime_error);
+  REQUIRE(value == 7);
+}
+
+TEST_CASE("Test store_into with scan preserves multiple values without defaults" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint64_t value = 7;
+  auto &arg =
+      program.add_argument("--hex").scan<'x', uint64_t>().store_into(value);
+
+  SUBCASE("multiple tokens") {
+    arg.nargs(2);
+    program.parse_args({"test", "--hex", "0xABCD", "0x1234"});
+  }
+  SUBCASE("repeated argument") {
+    arg.append();
+    program.parse_args({"test", "--hex", "0xABCD", "--hex", "0x1234"});
+  }
+  REQUIRE(value == 0x1234);
+  REQUIRE(program.get<std::vector<uint64_t>>("--hex") ==
+          std::vector<uint64_t>{0xABCD, 0x1234});
+}
+
+TEST_CASE("Test store_into(double) with scan" * test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  double res = 0;
+  program.add_argument("foo").scan<'a', double>().store_into(res);
+
+  program.parse_args({"test", "0x1.8p+1"});
+  REQUIRE(res == 3.0);
+  REQUIRE(program.get<double>("foo") == res);
+  REQUIRE(program.get<std::vector<double>>("foo").size() == 1);
+}
+
+TEST_CASE("Test store_into with scan preserves defaults and repeated values" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  uint64_t res = 0;
+  program.add_argument("--hex")
+      .default_value(uint64_t{7})
+      .scan<'x', uint64_t>()
+      .store_into(res)
+      .append();
+
+  SUBCASE("default") {
+    REQUIRE(res == 7);
+    program.parse_args({"test"});
+    REQUIRE(program.get<uint64_t>("--hex") == 7);
+    REQUIRE(res == 7);
+  }
+  SUBCASE("repeated values") {
+    program.parse_args({"test", "--hex", "0xABCD", "--hex", "0x1234"});
+    REQUIRE(res == 0x1234);
+    REQUIRE(program.get<std::vector<uint64_t>>("--hex") ==
+            std::vector<uint64_t>{0xABCD, 0x1234});
+  }
+}
+
+TEST_CASE("Test store_into preserves independent parsing for different types" *
+          test_suite("store_into")) {
+  argparse::ArgumentParser program("test");
+  double res = 0;
+  program.add_argument("foo")
+      .nargs(1, 2)
+      .scan<'d', int>()
+      .store_into(res);
+
+  program.parse_args({"test", "12"});
+  REQUIRE(program.get<int>("foo") == 12);
+  REQUIRE(res == 12.0);
+}
+
 TEST_CASE("Test store_into(uint8_t), no default value, non specified" *
           test_suite("store_into")) {
   argparse::ArgumentParser program("test");

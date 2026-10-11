@@ -748,6 +748,9 @@ public:
     if (m_default_value.has_value()) {
       var = std::any_cast<T>(m_default_value);
     }
+    if (store_into_scan(var)) {
+      return *this;
+    }
     action([&var](const auto &s) {
       var = details::parse_number<T, details::radix_10>()(s);
       return var;
@@ -759,6 +762,9 @@ public:
   auto &store_into(T &var) {
     if (m_default_value.has_value()) {
       var = std::any_cast<T>(m_default_value);
+    }
+    if (store_into_scan(var)) {
+      return *this;
     }
     action([&var](const auto &s) {
       var = details::parse_number<T, details::chars_format::general>()(s);
@@ -898,6 +904,7 @@ public:
       static_assert(alignof(T) == 0, "No scan specification for T");
     }
 
+    m_scan_action_index = ScanActionIndex<T>{m_actions.size() - 1};
     return *this;
   }
 
@@ -1099,6 +1106,10 @@ public:
                   static_cast<std::size_t>(std::distance(first, last)));
             }
           }
+        }
+
+        void operator()(storage_action &f) {
+          std::for_each(first, last, f);
         }
 
         Iterator first, last;
@@ -1364,6 +1375,24 @@ public:
   }
 
 private:
+  template <typename T> struct ScanActionIndex {
+    std::size_t index;
+  };
+
+  template <typename T> bool store_into_scan(T &var) {
+    const auto *scan = std::any_cast<ScanActionIndex<T>>(&m_scan_action_index);
+    if (scan == nullptr) {
+      return false;
+    }
+    // Reuse the configured parser at the storage action's registered position.
+    const auto &parser = std::get<valued_action>(m_actions[scan->index]);
+    m_actions.emplace_back(storage_action{
+        [parse = parser, &var](const std::string &s) {
+          var = std::any_cast<T>(parse(s));
+        }});
+    return true;
+  }
+
   class NArgsRange {
     std::size_t m_min;
     std::size_t m_max;
@@ -1667,7 +1696,13 @@ private:
   std::optional<std::vector<std::string>> m_choices{std::nullopt};
   using valued_action = std::function<std::any(const std::string &)>;
   using void_action = std::function<void(const std::string &)>;
-  std::vector<std::variant<valued_action, void_action>> m_actions;
+  // Unlike a user void action, storage must not resize the parsed values.
+  struct storage_action {
+    void_action apply;
+    void operator()(const std::string &s) const { apply(s); }
+  };
+  std::vector<std::variant<valued_action, void_action, storage_action>> m_actions;
+  std::any m_scan_action_index;
   std::variant<valued_action, void_action> m_default_action{
     std::in_place_type<valued_action>,
     [](const std::string &value) { return value; }};
