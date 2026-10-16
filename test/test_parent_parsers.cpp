@@ -38,3 +38,45 @@ TEST_CASE("Add parent to multiple parent parsers" *
   bar_parser.parse_args({"./main", "--bar", "YYY"});
   REQUIRE(bar_parser["--bar"] == std::string("YYY"));
 }
+
+TEST_CASE("Parent parsers preserve required mutually exclusive groups" *
+          test_suite("parent_parsers")) {
+  argparse::ArgumentParser parent_parser("parent", "1.0",
+                                         argparse::default_arguments::none);
+  auto &group = parent_parser.add_mutually_exclusive_group(true);
+  group.add_argument("-a", "--host").flag();
+  group.add_argument("--guest").flag();
+
+  argparse::ArgumentParser child_parser("child");
+  child_parser.add_parents(parent_parser);
+
+  SUBCASE("a group member is required") {
+    REQUIRE_THROWS_AS(child_parser.parse_args({"child"}), std::runtime_error);
+  }
+  SUBCASE("conflicting members are rejected") {
+    REQUIRE_THROWS_AS(child_parser.parse_args({"child", "--host", "--guest"}),
+                      std::runtime_error);
+  }
+  SUBCASE("an alias satisfies the child group independently") {
+    REQUIRE_NOTHROW(child_parser.parse_args({"child", "-a"}));
+    REQUIRE(child_parser["--host"] == true);
+    REQUIRE_FALSE(parent_parser.is_used("--host"));
+    REQUIRE_FALSE(parent_parser.is_used("--guest"));
+  }
+}
+
+TEST_CASE("Inherited mutually exclusive groups outlive their parent" *
+          test_suite("parent_parsers")) {
+  argparse::ArgumentParser child_parser("child");
+  {
+    argparse::ArgumentParser parent_parser("parent", "1.0",
+                                           argparse::default_arguments::none);
+    auto &group = parent_parser.add_mutually_exclusive_group();
+    group.add_argument("--host").flag();
+    group.add_argument("--guest").flag();
+    child_parser.add_parents(parent_parser);
+  }
+
+  REQUIRE_THROWS_AS(child_parser.parse_args({"child", "--host", "--guest"}),
+                    std::runtime_error);
+}
