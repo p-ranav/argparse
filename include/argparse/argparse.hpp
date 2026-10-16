@@ -1809,15 +1809,25 @@ public:
   template <typename... Targs>
   ArgumentParser &add_parents(const Targs &... f_args) {
     for (const ArgumentParser &parent_parser : {std::ref(f_args)...}) {
+      std::map<const Argument *, Argument *> inherited_arguments;
       for (const auto &argument : parent_parser.m_positional_arguments) {
         auto it = m_positional_arguments.insert(
             std::cend(m_positional_arguments), argument);
         index_argument(it);
+        inherited_arguments.emplace(&argument, &*it);
       }
       for (const auto &argument : parent_parser.m_optional_arguments) {
         auto it = m_optional_arguments.insert(std::cend(m_optional_arguments),
                                               argument);
         index_argument(it);
+        inherited_arguments.emplace(&argument, &*it);
+      }
+      for (const auto &group : parent_parser.m_mutually_exclusive_groups) {
+        auto &inherited_group = add_mutually_exclusive_group(group.m_required);
+        for (const auto *argument : group.m_elements) {
+          inherited_group.m_elements.push_back(
+              inherited_arguments.at(argument));
+        }
       }
     }
     return *this;
