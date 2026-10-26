@@ -10,6 +10,95 @@ import argparse;
 
 using doctest::test_suite;
 
+TEST_CASE("Validate required arguments in parse_known_args subparsers" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test"), command("run"), unused("unused");
+  command.add_argument("input");
+  command.add_argument("--output").required();
+  unused.add_argument("required");
+  program.add_subparser(command);
+  program.add_subparser(unused);
+
+  SUBCASE("Missing positional argument") {
+    REQUIRE_THROWS_AS(program.parse_known_args(
+                          {"test", "run", "--output", "out", "--unknown"}),
+                      std::runtime_error);
+  }
+  SUBCASE("Missing required option") {
+    REQUIRE_THROWS_AS(
+        program.parse_known_args({"test", "run", "in", "--unknown"}),
+        std::runtime_error);
+  }
+  SUBCASE("Valid selected subparser preserves unknown arguments") {
+    auto unknown =
+        program.parse_known_args({"test", "--parent-extra", "run", "in",
+                                  "--output", "out", "--child-extra"});
+    REQUIRE((unknown ==
+             std::vector<std::string>{"--parent-extra", "--child-extra"}));
+    REQUIRE(command.get<std::string>("input") == "in");
+    REQUIRE(command.get<std::string>("--output") == "out");
+    REQUIRE_FALSE(program.is_subcommand_used("unused"));
+  }
+}
+
+TEST_CASE("Validate mutually exclusive groups in parse_known_args subparsers" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test"), command("run");
+  auto &group = command.add_mutually_exclusive_group(true);
+  group.add_argument("--first").flag();
+  group.add_argument("--second").flag();
+  program.add_subparser(command);
+
+  SUBCASE("Conflicting group members") {
+    REQUIRE_THROWS_AS(
+        program.parse_known_args({"test", "run", "--first", "--second"}),
+        std::runtime_error);
+  }
+  SUBCASE("Missing required group") {
+    REQUIRE_THROWS_AS(program.parse_known_args({"test", "run"}),
+                      std::runtime_error);
+  }
+  SUBCASE("Valid group selection with argc and argv") {
+    const char *argv[] = {"test", "--parent-extra", "run", "--first",
+                          "--child-extra"};
+    auto unknown = program.parse_known_args(5, argv);
+    REQUIRE((unknown ==
+             std::vector<std::string>{"--parent-extra", "--child-extra"}));
+    REQUIRE(command.get<bool>("--first"));
+    REQUIRE_FALSE(command.get<bool>("--second"));
+  }
+}
+
+TEST_CASE("Validate each selected level in parse_known_args subparsers" *
+          test_suite("parse_known_args")) {
+  argparse::ArgumentParser program("test"), command("run"), nested("leaf");
+  command.add_argument("--count").required().scan<'i', int>();
+  nested.add_argument("--name").required();
+  command.add_subparser(nested);
+  program.add_subparser(command);
+
+  SUBCASE("Missing intermediate option") {
+    REQUIRE_THROWS_AS(
+        program.parse_known_args({"test", "run", "leaf", "--name", "name"}),
+        std::runtime_error);
+  }
+  SUBCASE("Missing leaf option") {
+    REQUIRE_THROWS_AS(
+        program.parse_known_args({"test", "run", "--count", "3", "leaf"}),
+        std::runtime_error);
+  }
+  SUBCASE("Valid nested subcommands preserve unknown arguments") {
+    auto unknown = program.parse_known_args(
+        {"test", "--parent-extra", "run", "--count", "3", "--child-extra",
+         "leaf", "--name", "name", "--leaf-extra"});
+    REQUIRE(
+        (unknown == std::vector<std::string>{"--parent-extra", "--child-extra",
+                                             "--leaf-extra"}));
+    REQUIRE(command.get<int>("--count") == 3);
+    REQUIRE(nested.get<std::string>("--name") == "name");
+  }
+}
+
 TEST_CASE("Preserve unknown arguments across subparser dispatch" *
           test_suite("parse_known_args")) {
   argparse::ArgumentParser program("test");
