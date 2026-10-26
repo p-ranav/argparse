@@ -2580,7 +2580,7 @@ protected:
             m_is_parsed = true;
             m_subparser_used[current_argument] = true;
             auto subparser_unknown_arguments =
-                subparser_it->second->get().parse_known_args_internal(
+                subparser_it->second->get().parse_known_args(
                     unprocessed_arguments);
             unknown_arguments.insert(unknown_arguments.end(),
                                      subparser_unknown_arguments.begin(),
