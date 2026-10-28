@@ -330,6 +330,27 @@ TEST_CASE("-- itself is not included in the positional results" *
   REQUIRE(program.get("input") == "-value");
 }
 
+TEST_CASE("--opt=value after -- is not split" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--name");
+  program.add_argument("input");
+  program.parse_args({"test", "--", "--name=x"});
+  REQUIRE(program.get("input") == "--name=x");
+  REQUIRE(program.is_used("--name") == false);
+}
+
+TEST_CASE("Options do not take values from after --" *
+          test_suite("positional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--list").nargs(argparse::nargs_pattern::any);
+  program.add_argument("input");
+  program.parse_args({"test", "--list", "a", "--", "b"});
+  REQUIRE(program.get<std::vector<std::string>>("--list") ==
+          std::vector<std::string>{"a"});
+  REQUIRE(program.get("input") == "b");
+}
+
 TEST_CASE("An argument explicitly named -- disables separator handling" *
           test_suite("positional_arguments")) {
   argparse::ArgumentParser program("test");

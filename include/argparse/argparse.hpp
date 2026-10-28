@@ -2348,8 +2348,26 @@ protected:
   std::pair<std::vector<std::string>, std::optional<std::size_t>>
   preprocess_arguments(const std::vector<std::string> &raw_arguments) const {
     std::vector<std::string> arguments{};
+    // Detect a lone "--" separator: everything after it is forced to be
+    // parsed as positional, mirroring Python's argparse behaviour. Only
+    // applies when '-' is a legal prefix char and "--" isn't itself the
+    // name of a defined argument. It has to be found before any "--opt=value"
+    // splitting, so that a value of "--" isn't taken for it and nothing after
+    // it gets split.
+    std::optional<std::size_t> separator_index;
+    const bool separator_allowed =
+        m_prefix_chars.find('-') != std::string::npos &&
+        m_argument_map.find("--") == m_argument_map.end();
     for (const auto &arg : raw_arguments) {
-      
+      if (separator_index.has_value()) {
+        arguments.push_back(arg);
+        continue;
+      }
+      if (separator_allowed && arg == "--") {
+        separator_index = arguments.size();
+        continue;
+      }
+
       const auto argument_starts_with_prefix_chars =
           [this](const std::string &a) -> bool {
         if (!a.empty()) {
@@ -2403,21 +2421,6 @@ protected:
       arguments.push_back(arg);
     }
 
-    // Detect a lone "--" separator: everything after it is forced to be
-    // parsed as positional, mirroring Python's argparse behaviour. Only
-    // applies when '-' is a legal prefix char and "--" isn't itself the
-    // name of a defined argument.
-    std::optional<std::size_t> separator_index;
-    if (m_prefix_chars.find('-') != std::string::npos &&
-        m_argument_map.find("--") == m_argument_map.end()) {
-      auto separator_it = std::find(arguments.begin(), arguments.end(), "--");
-      if (separator_it != arguments.end()) {
-        separator_index = static_cast<std::size_t>(
-            std::distance(arguments.begin(), separator_it));
-        arguments.erase(separator_it);
-      }
-    }
-
     return {arguments, separator_index};
   }
 
@@ -2430,6 +2433,12 @@ protected:
       m_program_name = arguments.front();
     }
     auto end = std::end(arguments);
+    // Options never take their values from after a "--" separator
+    const auto separator_it =
+        separator_index.has_value()
+            ? std::next(std::begin(arguments),
+                        static_cast<std::ptrdiff_t>(*separator_index))
+            : std::end(arguments);
     auto positional_argument_it = std::begin(m_positional_arguments);
     for (auto it = arguments.empty() ? std::begin(arguments)
                                      : std::next(std::begin(arguments));
@@ -2519,7 +2528,8 @@ protected:
       auto arg_map_it = m_argument_map.find(current_argument);
       if (arg_map_it != m_argument_map.end()) {
         auto argument = arg_map_it->second;
-        it = argument->consume(std::next(it), end, arg_map_it->first);
+        it = argument->consume(std::next(it), (std::min)(end, separator_it),
+                                arg_map_it->first);
       } else if (const auto &compound_arg = current_argument;
                  compound_arg.size() > 1 &&
                  is_valid_prefix_char(compound_arg[0]) &&
@@ -2530,7 +2540,8 @@ protected:
           auto arg_map_it2 = m_argument_map.find(hypothetical_arg);
           if (arg_map_it2 != m_argument_map.end()) {
             auto argument = arg_map_it2->second;
-            it = argument->consume(it, end, arg_map_it2->first);
+            it = argument->consume(it, (std::min)(end, separator_it),
+                                  arg_map_it2->first);
           } else {
             throw std::runtime_error("Unknown argument: " + current_argument);
           }
@@ -2555,6 +2566,12 @@ protected:
       m_program_name = arguments.front();
     }
     auto end = std::end(arguments);
+    // Options never take their values from after a "--" separator
+    const auto separator_it =
+        separator_index.has_value()
+            ? std::next(std::begin(arguments),
+                        static_cast<std::ptrdiff_t>(*separator_index))
+            : std::end(arguments);
     auto positional_argument_it = std::begin(m_positional_arguments);
     for (auto it = arguments.empty() ? std::begin(arguments)
                                      : std::next(std::begin(arguments));
@@ -2603,7 +2620,8 @@ protected:
       auto arg_map_it = m_argument_map.find(current_argument);
       if (arg_map_it != m_argument_map.end()) {
         auto argument = arg_map_it->second;
-        it = argument->consume(std::next(it), end, arg_map_it->first);
+        it = argument->consume(std::next(it), (std::min)(end, separator_it),
+                                arg_map_it->first);
       } else if (const auto &compound_arg = current_argument;
                  compound_arg.size() > 1 &&
                  is_valid_prefix_char(compound_arg[0]) &&
@@ -2614,7 +2632,8 @@ protected:
           auto arg_map_it2 = m_argument_map.find(hypothetical_arg);
           if (arg_map_it2 != m_argument_map.end()) {
             auto argument = arg_map_it2->second;
-            it = argument->consume(it, end, arg_map_it2->first);
+            it = argument->consume(it, (std::min)(end, separator_it),
+                                  arg_map_it2->first);
           } else {
             unknown_arguments.push_back(current_argument);
             break;
