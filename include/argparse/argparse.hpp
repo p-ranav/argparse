@@ -1073,8 +1073,7 @@ public:
     if ((dist = static_cast<std::size_t>(std::distance(start, end))) >=
         num_args_min) {
       if (num_args_max < dist) {
-        end = std::next(start, static_cast<typename Iterator::difference_type>(
-                                   num_args_max));
+        end = std::next(start, num_args_max);
       }
       if (!m_accepts_optional_like_value && !force_positional) {
         end = std::find_if(
