@@ -81,3 +81,39 @@ TEST_CASE("Position of the argument with default value") {
     REQUIRE(program.get("-s") == std::string("./src"));
   }
 }
+
+TEST_CASE("Custom data type with default value") {
+  enum class CustomType { Value1, Value2, INVALID };
+
+  auto convert_custom_type = [](const std::string &input) -> CustomType {
+    if (input == "value1") {
+      return CustomType::Value1;
+    }
+    if (input == "value2") {
+      return CustomType::Value2;
+    }
+    return CustomType::INVALID;
+  };
+
+  argparse::ArgumentParser program("test");
+  program.add_argument("--custom1")
+      .default_value("value1")
+      .action(convert_custom_type);
+  program.add_argument("--custom2")
+      .default_value("value2")
+      .action(convert_custom_type);
+  program.add_argument("--custom3")
+      .default_value("value3")
+      .action(convert_custom_type);
+  program.add_argument("--custom4")
+      .default_value("value1")
+      .action(convert_custom_type);
+
+  // custom1-3 as their default values, custom4 with given value
+  REQUIRE_NOTHROW(program.parse_args({"test", "--custom4", "value2"}));
+
+  REQUIRE(program.get<CustomType>("custom1") == CustomType::Value1);
+  REQUIRE(program.get<CustomType>("custom2") == CustomType::Value2);
+  REQUIRE(program.get<CustomType>("custom3") == CustomType::INVALID);
+  REQUIRE(program.get<CustomType>("custom4") == CustomType::Value2);
+}
