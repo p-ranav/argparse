@@ -47,6 +47,39 @@ TEST_CASE("Argument '-l' is an optional argument but '-' is not" *
   REQUIRE(program.get<std::string>("input") == "-");
 }
 
+TEST_CASE("Values starting with '-' and containing a space are not options" *
+          test_suite("optional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("--petsc-options");
+  program.add_argument("input");
+
+  SUBCASE("parse_args") {
+    program.parse_args(
+        {"test", "--petsc-options", "-ksp_view -ksp_type preonly", "-a b"});
+    REQUIRE(program.get("--petsc-options") == "-ksp_view -ksp_type preonly");
+    REQUIRE(program.get("input") == "-a b");
+  }
+
+  SUBCASE("parse_known_args") {
+    auto unknown = program.parse_known_args({"test", "--petsc-options",
+                                             "-ksp_view -ksp_type preonly",
+                                             "-a b", "-c d"});
+    REQUIRE(program.get("--petsc-options") == "-ksp_view -ksp_type preonly");
+    REQUIRE(program.get("input") == "-a b");
+    REQUIRE(unknown == std::vector<std::string>{"-c d"});
+  }
+}
+
+TEST_CASE("Option names containing a space are still options" *
+          test_suite("optional_arguments")) {
+  argparse::ArgumentParser program("test");
+  program.add_argument("-a b").flag();
+  program.add_argument("input");
+  program.parse_args({"test", "-a b", "x"});
+  REQUIRE(program.get<bool>("-a b") == true);
+  REQUIRE(program.get("input") == "x");
+}
+
 TEST_CASE("Parse toggle arguments with implicit value" *
           test_suite("optional_arguments")) {
   argparse::ArgumentParser program("test");

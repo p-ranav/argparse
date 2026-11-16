@@ -1077,9 +1077,9 @@ public:
                                    num_args_max));
       }
       if (!m_accepts_optional_like_value && !force_positional) {
-        end = std::find_if(
-            start, end,
-            std::bind(is_optional, std::placeholders::_1, m_prefix_chars));
+        end = std::find_if(start, end,
+                           std::bind(is_optional_token, std::placeholders::_1,
+                                     m_prefix_chars));
         dist = static_cast<std::size_t>(std::distance(start, end));
         if (dist < num_args_min) {
           throw std::runtime_error("Too few arguments for '" +
@@ -1596,6 +1596,14 @@ private:
   static bool is_optional(std::string_view name,
                           std::string_view prefix_chars) {
     return !is_positional(name, prefix_chars);
+  }
+
+  // For command-line tokens rather than argument names: as in Python's
+  // argparse, a token containing a space is a value, e.g. "-a -b".
+  static bool is_optional_token(std::string_view token,
+                                std::string_view prefix_chars) {
+    return is_optional(token, prefix_chars) &&
+           token.find(' ') == std::string_view::npos;
   }
 
   /*
@@ -2332,6 +2340,13 @@ protected:
     return m_prefix_chars.find(c) != std::string::npos;
   }
 
+  // A registered argument name keeps its meaning even if it contains a space.
+  bool is_positional_token(const std::string &token) const {
+    return Argument::is_positional(token, m_prefix_chars) ||
+           (!Argument::is_optional_token(token, m_prefix_chars) &&
+            m_argument_map.find(token) == m_argument_map.end());
+  }
+
   char get_any_valid_prefix_char() const { return m_prefix_chars[0]; }
 
   /*
@@ -2439,8 +2454,7 @@ protected:
           separator_index.has_value() &&
           static_cast<std::size_t>(std::distance(std::begin(arguments), it)) >=
               *separator_index;
-      if (force_positional ||
-          Argument::is_positional(current_argument, m_prefix_chars)) {
+      if (force_positional || is_positional_token(current_argument)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
 
           // Check sub-parsers
@@ -2564,8 +2578,7 @@ protected:
           separator_index.has_value() &&
           static_cast<std::size_t>(std::distance(std::begin(arguments), it)) >=
               *separator_index;
-      if (force_positional ||
-          Argument::is_positional(current_argument, m_prefix_chars)) {
+      if (force_positional || is_positional_token(current_argument)) {
         if (positional_argument_it == std::end(m_positional_arguments)) {
 
           // Check sub-parsers
