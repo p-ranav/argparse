@@ -1037,7 +1037,8 @@ argparse::ArgumentParser program("test");
 program.add_argument("--dir");
 program.at("--dir").default_value(std::string("/home/user"));
 
-program.add_subparser(argparse::ArgumentParser{"walk"});
+argparse::ArgumentParser walk("walk");
+program.add_subparser(walk);
 program.at<argparse::ArgumentParser>("walk").add_argument("depth");
 ```
 
