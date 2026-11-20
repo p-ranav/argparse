@@ -596,6 +596,25 @@ program.add_argument("--input_files")
   .nargs(argparse::nargs_pattern::optional);  // "?" in Python. This accepts an argument optionally.
 ```
 
+An optional argument with a variable-length `nargs` range can consume values
+intended for a positional argument. In the following example, put the `output`
+value before `--input_files` to avoid this:
+
+```cpp
+argparse::ArgumentParser program("main");
+program.add_argument("--input_files").nargs(1, 3);
+program.add_argument("output");
+program.parse_args(argc, argv);
+```
+
+```console
+./main result.txt --input_files a.txt b.txt
+```
+
+Here, `output` is `result.txt` and `--input_files` contains `a.txt` and `b.txt`.
+In contrast, `./main --input_files a.txt b.txt result.txt` consumes `result.txt`
+as the third input file and reports that `output` is missing.
+
 ### Compound Arguments
 
 Compound arguments are optional arguments that are combined and provided as a single argument. Example: ```ps -aux```
