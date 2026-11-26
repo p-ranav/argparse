@@ -263,9 +263,9 @@ if (color_arg) {                            // Argument also has an explicit ope
 
 #### Joining values of repeated optional arguments
 
-By default, repeating an optional argument on the command line simply replaces its previous value with the last one provided, e.g., `./main --foo 1 --foo 2` results in `--foo` being `2`. This matches the "last occurrence wins" behavior of most CLI parsers. If you instead want to gather every provided value, use `.append()`:
-
-You may want to allow an optional argument to be repeated and gather all values in one place.
+By default, repeating an optional argument replaces the values from the previous
+occurrence. For example, `./main --foo 1 --foo 2` leaves `--foo` with the value
+`2`. Use `.append()` to collect values across occurrences:
 
 ```cpp
 program.add_argument("--color")
@@ -594,6 +594,22 @@ program.add_argument("--input_files")
 ```cpp
 program.add_argument("--input_files")
   .nargs(argparse::nargs_pattern::optional);  // "?" in Python. This accepts an argument optionally.
+```
+
+`.nargs()` applies to each occurrence of an option. With
+`nargs_pattern::at_least_one`, `--input_files a.yml b.yml` collects both files
+from one occurrence. To collect all values from repeated occurrences as well,
+combine `.nargs()` with `.append()`:
+
+```cpp
+program.add_argument("--input_files")
+  .nargs(argparse::nargs_pattern::at_least_one)
+  .append();
+
+// ./main --input_files a.yml --input_files b.yml c.yml
+program.parse_args(argc, argv);
+auto files = program.get<std::vector<std::string>>("--input_files");
+// files contains {"a.yml", "b.yml", "c.yml"}
 ```
 
 ### Compound Arguments
